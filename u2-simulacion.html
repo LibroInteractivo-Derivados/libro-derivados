@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Cobertura y especulación con futuros · Simulación</title>
+  <link rel="stylesheet" href="vendor/fuentes/fuentes.css">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="css/libro.css">
+  <style>
+    .sim-dos { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 18px; align-items: start; }
+    @media (max-width: 1100px) { .sim-dos { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body data-unidad="u2" data-seccion="simulacion">
+  <div id="encabezado"></div>
+
+  <main class="pagina con-indice">
+    <aside class="indice" id="indice"></aside>
+    <article class="contenido ancho">
+      <h1>Simulación</h1>
+      <p class="bajada">Tres simulaciones sobre coberturas con futuros: el riesgo de base, la estimación del ratio óptimo y la cobertura de una cartera con beta. Cada cambio viene con su explicación.</p>
+      <!-- ================================================================== -->
+      <h2 id="cobertura-y-riesgo-de-base">Cobertura y riesgo de base</h2>
+      <section class="widget" id="w-base">
+        <p class="widget-intro">La cobertura se abre en t₁ (contado S₁, futuro F₁) y se cierra en t₂. Mové los precios de t₂ y mirá qué parte del riesgo elimina la cobertura y qué parte queda: la base.</p>
+        <div class="entradas">
+          <div>
+            <label>Cobertura</label>
+            <div class="opciones-radio">
+              <label><input type="radio" name="bs-lado" value="corta" checked> Corta (voy a vender)</label>
+              <label><input type="radio" name="bs-lado" value="larga"> Larga (voy a comprar)</label>
+            </div>
+          </div>
+          <div><label for="bs-s1">Contado en t₁, S₁</label><input id="bs-s1" type="number" value="48" step="any"></div>
+          <div><label for="bs-f1">Futuro en t₁, F₁</label><input id="bs-f1" type="number" value="50" step="any"></div>
+          <div id="bs-s2-box"></div>
+          <div id="bs-f2-box"></div>
+        </div>
+        <div class="sim-dos">
+          <div style="min-width:0">
+            <div class="resultados" id="bs-datos"></div>
+            <div class="lienzo-medio"><canvas id="bs-grafico" aria-label="Precio obtenido con y sin cobertura"></canvas></div>
+          </div>
+          <div id="bs-narrador"></div>
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="estimar-h-con-datos">Estimar h* con datos</h2>
+      <section class="widget" id="w-hstar">
+        <p class="widget-intro">Generá una muestra de cambios de precio ΔS y ΔF con la correlación y las volatilidades que elijas. La pendiente de la regresión es el ratio de cobertura de mínima varianza; el gráfico de la derecha muestra cuánta varianza elimina.</p>
+        <div class="entradas">
+          <div id="hs-rho-box"></div>
+          <div id="hs-ss-box"></div>
+          <div id="hs-sf-box"></div>
+          <div><label for="hs-n">Cantidad de observaciones</label><select id="hs-n"><option>15</option><option selected>40</option><option>150</option></select></div>
+          <div><label for="hs-qa">Exposición Q_A</label><input id="hs-qa" type="number" value="2000000" step="any"></div>
+          <div><label for="hs-qf">Tamaño del contrato Q_F</label><input id="hs-qf" type="number" value="42000" step="any"></div>
+        </div>
+        <div class="botones" style="margin-top:0"><button class="btn" id="hs-nueva" type="button">Nueva muestra</button></div>
+        <div class="sim-dos" style="margin-top:12px">
+          <div style="min-width:0">
+            <div class="resultados" id="hs-datos"></div>
+            <div class="grilla-graficos">
+              <div class="lienzo-medio"><canvas id="hs-disp" aria-label="Dispersión de ΔS contra ΔF"></canvas></div>
+              <div class="lienzo-medio"><canvas id="hs-var" aria-label="Desvío de la posición según el ratio"></canvas></div>
+            </div>
+          </div>
+          <div id="hs-narrador"></div>
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="cubrir-o-cambiar-la-beta-de-una-cartera">Cubrir o cambiar la beta de una cartera</h2>
+      <section class="widget" id="w-beta">
+        <p class="widget-intro">Cartera de acciones cubierta con futuros sobre índice. Elegí la beta objetivo y mové el mercado: el resultado de la cartera sigue al CAPM. Precargado: el ejemplo de la cátedra (cartera de 5.050.000, β = 1,5, S&amp;P 500 a 1.000, futuro a 1.010, contrato de 250 por punto, 3 meses).</p>
+        <div class="entradas">
+          <div><label for="bt-va">Valor de la cartera</label><input id="bt-va" type="number" value="5050000" step="any"></div>
+          <div><label for="bt-b">Beta de la cartera β</label><input id="bt-b" type="number" value="1.5" step="any"></div>
+          <div><label for="bt-i">Índice hoy</label><input id="bt-i" type="number" value="1000" step="any"></div>
+          <div><label for="bt-f">Futuro hoy</label><input id="bt-f" type="number" value="1010" step="any"></div>
+          <div><label for="bt-mult">Multiplicador</label><input id="bt-mult" type="number" value="250" step="any"></div>
+          <div><label for="bt-r">Tasa r (% anual)</label><input id="bt-r" type="number" value="4" step="any"></div>
+          <div><label for="bt-q">Dividendos del índice (% anual)</label><input id="bt-q" type="number" value="1" step="any"></div>
+          <div id="bt-obj-box"></div>
+          <div id="bt-mov-box"></div>
+        </div>
+        <div class="sim-dos">
+          <div style="min-width:0">
+            <div class="resultados" id="bt-datos"></div>
+            <div class="lienzo-medio"><canvas id="bt-grafico" aria-label="Valor de la cartera según el movimiento del índice"></canvas></div>
+            <p class="ayuda">Horizonte de 3 meses; el futuro vence un mes después (como en el ejemplo). Al cierre se valúa con \(F = I\,e^{(r - q)/12}\).</p>
+          </div>
+          <div id="bt-narrador"></div>
+        </div>
+      </section>
+
+    </article>
+  </main>
+
+  <nav class="pie-navegacion" id="pie-navegacion"></nav>
+
+  <script src="vendor/katex/katex.min.js"></script>
+  <script src="vendor/katex/contrib/auto-render.min.js"></script>
+  <script src="vendor/chartjs/chart.umd.min.js"></script>
+  <script src="js/calculos.js"></script>
+  <script src="js/comun.js"></script>
+  <script src="js/u2-simulacion.js"></script>
+</body>
+</html>

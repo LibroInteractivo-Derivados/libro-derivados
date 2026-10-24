@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Valuación de opciones · Teoría</title>
+  <link rel="stylesheet" href="vendor/fuentes/fuentes.css">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="css/libro.css">
+</head>
+<body data-unidad="u6" data-seccion="teoria">
+  <div id="encabezado"></div>
+
+  <main class="pagina con-indice">
+    <aside class="indice" id="indice"></aside>
+
+    <article class="contenido">
+      <h1>Valuación de opciones</h1>
+      <p class="bajada">Del modelo binomial (portafolio replicante, valuación neutral al riesgo y precios de Arrow-Debreu) a los modelos en tiempo continuo, la fórmula de Black-Scholes-Merton y las griegas.</p>
+      <span class="etiqueta-hull">Hull OFOD caps. 13, 14, 15 y 19 (cronograma)</span>
+      <span class="etiqueta-hull">Caps. 10, 11 y 15 en la edición en español</span>
+
+      <div class="objetivos">
+        <p>Objetivos de la unidad</p>
+        <ul>
+          <li>Valuar opciones europeas y americanas con árboles binomiales por tres caminos equivalentes: portafolio replicante, valuación neutral al riesgo y precios de Arrow-Debreu.</li>
+          <li>Entender por qué el \(\Delta\) cambia de nodo en nodo y qué significa rebalancear una cobertura.</li>
+          <li>Describir el precio de una acción en tiempo continuo: proceso de Wiener, proceso de Itô, movimiento browniano geométrico y lema de Itô.</li>
+          <li>Usar la propiedad lognormal para calcular valores esperados, intervalos de confianza y probabilidades de ejercicio, y estimar la volatilidad histórica.</li>
+          <li>Explicar la ecuación diferencial de Black-Scholes-Merton y aplicar la fórmula, con y sin dividendos.</li>
+          <li>Interpretar las griegas (delta, gamma, theta, vega y rho) y usarlas para medir y cubrir el riesgo de una cartera de opciones.</li>
+        </ul>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>La idea: valuar por replicación</h2>
+
+      <p>Para valuar una opción no hace falta saber si la acción va a subir o bajar. La idea central es <strong>replicar</strong> el payoff de la opción con activos cuyo precio ya conocemos: el subyacente y una colocación o un préstamo a la tasa libre de riesgo (una caución).</p>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">Ley del precio único</p>
+        <p>Si dos carteras tienen <strong>los mismos pagos futuros</strong> en todos los escenarios, para que haya <strong>ausencia de oportunidades de arbitraje</strong> (AOA) deben <strong>valer lo mismo hoy</strong>.</p>
+      </div>
+
+      <p>Para replicar una opción hay que comprar o vender en corto el subyacente. Si se compra, se financia con deuda; si se vende en corto, lo recaudado se invierte. En el fondo, un derivado es un contrato entre partes, y con los activos disponibles se podría replicar cualquier estructura de pagos.</p>
+
+      <p>Vamos a ver tres enfoques que dan el mismo resultado: el <strong>portafolio replicante</strong>, la <strong>valuación neutral al riesgo</strong> y los <strong>precios de Arrow-Debreu</strong>. Son la misma idea escrita de tres maneras.</p>
+
+      <!-- ================================================================== -->
+      <h2>Modelo binomial de un período</h2>
+
+      <p>Supongamos que en un período la acción solo puede <strong>subir</strong> (estado <em>up</em>) o <strong>bajar</strong> (estado <em>down</em>).</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>Call europeo sobre una acción que no paga dividendos, con payoff \(\max(S_T - K;\ 0)\). Datos: \(S_0 = 41\), \(K = 40\), \(r = 8\%\) (composición continua), \(T = 1\) año, un solo período. La acción puede subir a 60 o bajar a 30:</p>
+        <div class="tabla-wrap">
+          <table class="tabla">
+            <thead><tr><th></th><th class="num">Hoy</th><th class="num">Estado up</th><th class="num">Estado down</th></tr></thead>
+            <tbody>
+              <tr><td>Acción</td><td class="num">41</td><td class="num">60</td><td class="num">30</td></tr>
+              <tr><td>Caución (por cada $1)</td><td class="num">1</td><td class="num">\(e^{0{,}08}\)</td><td class="num">\(e^{0{,}08}\)</td></tr>
+              <tr><td>Call (K = 40)</td><td class="num">¿?</td><td class="num">20</td><td class="num">0</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <h3>Portafolio replicante</h3>
+      <p>Armamos una cartera con \(\Delta\) unidades de la acción (positivo = comprado, negativo = vendido en corto) y \(B\) pesos en caución (positivo = colocado, negativo = tomado prestado). Para que replique al call, tiene que pagar lo mismo en los dos estados:</p>
+      <div class="formula">\[ \begin{cases} \Delta \cdot 60 + B\, e^{0{,}08} = 20 \\ \Delta \cdot 30 + B\, e^{0{,}08} = 0 \end{cases} \]</div>
+      <p>Restando las ecuaciones, \(\Delta = 20/30 = 2/3\). Reemplazando, \(B = -20\,e^{-0{,}08} = -18{,}4623\): se pide prestado para financiar parte de la compra de las acciones. La cartera cuesta hoy:</p>
+      <div class="formula">\[ \Delta\, S_0 + B = \tfrac{2}{3} \times 41 - 18{,}4623 = 8{,}871 \]</div>
+      <p>Por la ley del precio único, <strong>el call vale 8,871</strong>. Verificación: en el estado up la cartera vale \(\tfrac{2}{3} \times 60 - 20 = 20\) y en el down, \(\tfrac{2}{3} \times 30 - 20 = 0\). Exactamente lo mismo que el call.</p>
+
+      <h3>Fórmulas generales</h3>
+      <p>Si la acción sube a \(u S_0\) (con \(u \gt 1\)) o baja a \(d S_0\) (con \(d \lt 1\)), y la opción paga \(C_u\) o \(C_d\):</p>
+      <div class="formula">\[ \Delta = \frac{C_u - C_d}{S_0\,(u - d)} \qquad\qquad B = e^{-rT}\,\frac{u\,C_d - d\,C_u}{u - d} \]</div>
+      <div class="formula">\[ C_0 = \Delta\, S_0 + B = e^{-rT}\,\frac{C_d\,(u - e^{rT}) + C_u\,(e^{rT} - d)}{u - d} \]</div>
+
+      <div class="caja importante">
+        <p class="caja-titulo">Cuestiones importantes</p>
+        <ul>
+          <li>Tiene que cumplirse \(d \lt e^{rT} \lt u\). Si \(d \gt e^{rT}\), conviene tomar un préstamo por \(S_0\) a la tasa \(r\) y comprar la acción; si \(e^{rT} \gt u\), conviene vender en corto la acción e invertir a la tasa \(r\). En los dos casos habría arbitraje.</li>
+          <li>\(\Delta\) es la <strong>sensibilidad</strong> del precio de la opción ante un cambio de una unidad en el precio del subyacente.</li>
+          <li>En un árbol de varios pasos, \(\Delta\) y \(B\) se "recalibran" en cada nodo: la cartera replicante se rebalancea paso a paso.</li>
+        </ul>
+      </div>
+
+      <div class="caja prueba">
+        <p class="caja-titulo">Probá vos</p>
+        <p>Con los mismos datos, valuá un <strong>put</strong> europeo con \(K = 40\). Pista: ahora \(P_u = 0\) y \(P_d = 10\).</p>
+        <details class="desplegable">
+          <summary>Ver la resolución</summary>
+          <p>\(\Delta = (0 - 10)/(60 - 30) = -1/3\): la cartera replicante está vendida en corto en la acción.</p>
+          <p>\(B = (0 - (-\tfrac{1}{3}) \times 60)\, e^{-0{,}08} = 20\,e^{-0{,}08} = 18{,}4623\): se coloca dinero.</p>
+          <p>\(P_0 = -\tfrac{1}{3} \times 41 + 18{,}4623 = 4{,}7957\).</p>
+          <p>Control con la paridad put-call: \(c + Ke^{-rT} = 8{,}871 + 36{,}925 = 45{,}796\) y \(p + S_0 = 4{,}796 + 41 = 45{,}796\). Se cumple.</p>
+        </details>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Valuación neutral al riesgo</h2>
+
+      <p>Reordenando la fórmula del precio del call, se puede escribir como un <strong>valor esperado descontado</strong>:</p>
+      <div class="formula">\[ C_0 = e^{-rT}\left[\,p\, C_u + (1 - p)\, C_d\,\right] \qquad \text{donde} \qquad p = \frac{e^{rT} - d}{u - d} \]</div>
+
+      <p>\(p\) es la <strong>probabilidad neutral al riesgo</strong> de que el precio suba. <strong>No es la probabilidad real</strong>, que no conocemos y no hace falta conocer. Es la probabilidad que habría en un mundo donde los inversores son neutrales al riesgo y todos los activos rinden, en promedio, la tasa libre de riesgo.</p>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">Principio de valuación neutral al riesgo</p>
+        <p>El valor de cualquier opción es igual al <strong>valor esperado de su payoff</strong>, calculado con las probabilidades neutrales al riesgo, <strong>descontado a la tasa libre de riesgo</strong>.</p>
+      </div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">El mismo ejemplo</p>
+        <p>\(u = 60/41 = 1{,}4634\), \(d = 30/41 = 0{,}7317\) y \(e^{0{,}08} = 1{,}0833\). Entonces \(p = (1{,}0833 - 0{,}7317)/(1{,}4634 - 0{,}7317) = 0{,}4805\).</p>
+        <p>\(C_0 = e^{-0{,}08}\,[\,0{,}4805 \times 20 + 0{,}5195 \times 0\,] = 8{,}871\). Es el mismo resultado que con el portafolio replicante.</p>
+      </div>
+
+      <h3>¿Por qué funciona?</h3>
+      <p>\(p\) es justamente la probabilidad que hace que la acción rinda la tasa libre de riesgo: \(p\,S_u + (1-p)\,S_d = S_0\,e^{rT}\). En el ejemplo, \(0{,}4805 \times 60 + 0{,}5195 \times 30 = 44{,}41 = 41\,e^{0{,}08}\). El argumento de replicación no usó en ningún momento las preferencias por riesgo de los inversores. Por lo tanto, el precio que sale en un mundo imaginario de inversores neutrales al riesgo es también el precio en el mundo real.</p>
+      <p>En el mundo real la acción rinde más que \(r\) (por ejemplo, 16 %) y la opción, que es más riesgosa que la acción, se tendría que descontar a una tasa todavía mayor. Las dos correcciones se compensan exactamente. La valuación neutral al riesgo es un atajo para no tener que estimar ni el rendimiento esperado ni la tasa de descuento ajustada por riesgo.</p>
+
+      <div class="caja error">
+        <p class="caja-titulo">Errores frecuentes</p>
+        <ul>
+          <li><strong>Usar la probabilidad real y descontar a \(r\)</strong>, o usar \(p\) y descontar al rendimiento esperado de la acción. Las probabilidades neutrales al riesgo van <strong>siempre</strong> con la tasa libre de riesgo. En el ejemplo de un paso de Hull (\(S_0 = 20\), \(S_u = 22\), \(S_d = 18\), \(K = 21\), \(r = 12\%\), tres meses) el call vale 0,633. Con un rendimiento esperado real de 16 %, la probabilidad real de suba es 0,7041, y para que el payoff esperado real dé 0,633 habría que descontarlo a alrededor de 42,6 % anual: nadie conoce esa tasa de antemano.</li>
+          <li><strong>Suponer \(p = 0{,}5\)</strong> porque "sube o baja". \(p\) depende de \(u\), \(d\) y \(r\).</li>
+          <li><strong>Olvidar descontar</strong> el payoff esperado.</li>
+        </ul>
+      </div>
+
+      <h3>Calibración de u y d</h3>
+      <p>En la práctica, \(u\) y \(d\) se eligen para que el árbol refleje la <strong>volatilidad</strong> del subyacente (calibración de Cox, Ross y Rubinstein). Si cada paso dura \(\Delta t\) años:</p>
+      <div class="formula">\[ u = e^{\sigma\sqrt{\Delta t}} \qquad\qquad d = e^{-\sigma\sqrt{\Delta t}} = \frac{1}{u} \qquad\qquad p = \frac{e^{r\Delta t} - d}{u - d} \]</div>
+      <p>La raíz de \(\Delta t\) aparece porque la incertidumbre crece con la raíz del tiempo, como se verá en los modelos en tiempo continuo.</p>
+
+      <!-- ================================================================== -->
+      <h2>Árboles de dos y n pasos</h2>
+
+      <p>La misma lógica se aplica a árboles más largos. Se parte de las <strong>condiciones terminales</strong>, es decir, los payoffs en el extremo derecho del árbol (\(t = T\)). Desde ahí se repite el procedimiento de un paso, nodo por nodo, hasta llegar al extremo izquierdo, que es el valor de hoy. Este método (la <strong>inducción hacia atrás</strong>) sirve para calls, puts y cualquier derivado cuyo payoff conozcamos.</p>
+
+      <p>Con dos pasos, el árbol tiene tres nodos finales (\(S_{uu}\), \(S_{ud}\) y \(S_{dd}\)) y el precio del call es:</p>
+      <div class="formula">\[ C_0 = e^{-2r\Delta t}\left[\,p^2 C_{uu} + 2p(1 - p)\, C_{ud} + (1 - p)^2 C_{dd}\,\right] \]</div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo (guía U6, ej. 4)</p>
+        <p>Una acción vale 100 y en cada uno de los dos próximos semestres sube o baja 10 %: \(u = 1{,}1\), \(d = 0{,}9\), \(\Delta t = 0{,}5\). La tasa es 8 % anual continua y el call vence en un año con \(K = 100\).</p>
+        <p>\(p = (e^{0{,}08 \times 0{,}5} - 0{,}9)/(1{,}1 - 0{,}9) = 0{,}7041\). Los payoffs finales son 21 (\(S_{uu} = 121\)), 0 (\(S_{ud} = 99\)) y 0 (\(S_{dd} = 81\)).</p>
+        <p>Hacia atrás: \(c_u = e^{-0{,}04}(0{,}7041 \times 21 + 0{,}2959 \times 0) = 14{,}21\); \(c_d = 0\); \(c_0 = e^{-0{,}04}(0{,}7041 \times 14{,}21 + 0{,}2959 \times 0) = 9{,}61\).</p>
+        <p>Con la fórmula directa: \(c_0 = e^{-0{,}08}\,[\,0{,}7041^2 \times 21\,] = 9{,}61\). El put con el mismo strike vale 1,92, y se cumple la paridad: \(9{,}61 + 100\,e^{-0{,}08} = 101{,}92 = 1{,}92 + 100\).</p>
+      </div>
+
+      <figure class="figura">
+        <div class="svg-scroll"><!--SVG:arbol--></div>
+        <figcaption>Árbol de dos pasos de la guía (ej. 4). En cada nodo: precio de la acción, valor del call (K = 100) y el Δ que replica al call durante el paso siguiente. El único nodo final con payoff positivo está resaltado.</figcaption>
+      </figure>
+
+      <p>El 2 del medio en la fórmula aparece porque hay dos caminos para llegar al nodo \(ud\): subir y bajar, o bajar y subir. Generalizando a \(n\) pasos:</p>
+      <div class="formula">\[ C_0 = e^{-n r \Delta t} \sum_{j=0}^{n} \frac{n!}{j!\,(n-j)!}\; p^{j}(1-p)^{n-j}\; \max\left(u^{j} d^{\,n-j} S_0 - K;\ 0\right) \]</div>
+      <ul>
+        <li>\(j\) es la cantidad de pasos al alza.</li>
+        <li>\(p^j (1-p)^{n-j}\) es la probabilidad de un camino que llega a ese nodo.</li>
+        <li>\(\frac{n!}{j!\,(n-j)!}\) es la cantidad de caminos que llevan a ese nodo.</li>
+        <li>\(\max(u^j d^{n-j} S_0 - K;\ 0)\) es el payoff en ese nodo.</li>
+      </ul>
+      <p>En palabras: el payoff de cada nodo, multiplicado por la probabilidad de llegar a él y por la cantidad de caminos que llevan ahí, todo traído a hoy. Esta forma de escribirlo es la de los <strong>precios de Arrow-Debreu</strong>, que se ven más abajo. Cuando \(n\) crece, el resultado del árbol converge al de Black-Scholes.</p>
+
+      <h3>Opciones americanas en el árbol</h3>
+      <p>Para opciones americanas hay que revisar <strong>nodo por nodo</strong> qué conviene más: <strong>ejercer</strong> la opción (cobrar el valor intrínseco) o <strong>mantenerla</strong> (su valor esperado descontado). En cada nodo nos quedamos con el mayor de los dos.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: put americano (guía U6, ej. 7)</p>
+        <p>\(S_0 = 40\); en cada uno de dos trimestres la acción sube o baja 10 %; \(r = 12\%\); \(K = 42\). Entonces \(p = (e^{0{,}03} - 0{,}9)/0{,}2 = 0{,}6523\). Los precios finales son 48,40, 39,60 y 32,40, con payoffs del put 0, 2,40 y 9,60.</p>
+        <ul>
+          <li><strong>Nodo \(u\)</strong> (\(S = 44\)): mantener vale \(e^{-0{,}03}(0{,}6523 \times 0 + 0{,}3477 \times 2{,}40) = 0{,}81\); ejercer da \(\max(42 - 44;\ 0) = 0\). Se mantiene: 0,81.</li>
+          <li><strong>Nodo \(d\)</strong> (\(S = 36\)): mantener vale \(e^{-0{,}03}(0{,}6523 \times 2{,}40 + 0{,}3477 \times 9{,}60) = 4{,}76\); ejercer da \(42 - 36 = 6\). <strong>Conviene ejercer</strong>: 6.</li>
+          <li><strong>Hoy</strong>: mantener vale \(e^{-0{,}03}(0{,}6523 \times 0{,}81 + 0{,}3477 \times 6) = 2{,}54\); ejercer da 2. El put americano vale <strong>2,54</strong>. El europeo (sin la opción de ejercer en el nodo \(d\)) vale 2,12.</li>
+        </ul>
+        <p>La diferencia, 0,42, es el valor del derecho a ejercer anticipadamente. En el nodo \(d\) el put está muy dentro del dinero: cobrar 42 ya y ganar intereses vale más que esperar.</p>
+      </div>
+
+      <p>En la <a href="u6-simulacion.html#arbol">simulación del árbol paso a paso</a> podés recorrer este árbol columna por columna, tocar cualquier nodo para ver su cuenta (y su delta) y ver dónde conviene ejercer un put americano, con árboles de hasta 6 pasos.</p>
+
+      <!-- ================================================================== -->
+      <h2>Delta en el árbol y cobertura dinámica</h2>
+
+      <p>En cada nodo del árbol, el portafolio replicante tiene su propio \(\Delta\):</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Delta de un nodo</span>\[ \Delta = \frac{V_u - V_d}{S_u - S_d} \]</div>
+      <p>donde \(V_u\) y \(V_d\) son los valores de la opción en los dos nodos siguientes. Es la cantidad de acciones que hay que tener <strong>durante el paso que empieza en ese nodo</strong> para replicar la opción (o, con el signo cambiado, para cubrir una opción vendida).</p>
+
+      <p>En el árbol de la figura anterior:</p>
+      <ul>
+        <li>Hoy: \(\Delta_0 = (14{,}21 - 0)/(110 - 90) = 0{,}7103\).</li>
+        <li>Si la acción sube a 110: \(\Delta_u = (21 - 0)/(121 - 99) = 0{,}9545\). El call está más dentro del dinero y se parece más a tener la acción.</li>
+        <li>Si la acción baja a 90: \(\Delta_d = (0 - 0)/(99 - 81) = 0\). El call ya no puede terminar dentro del dinero.</li>
+      </ul>
+      <p>El \(\Delta\) <strong>cambia con el precio y con el paso del tiempo</strong>. Por eso una cobertura con acciones no se arma una vez y se olvida: hay que <strong>rebalancearla</strong> en cada paso. Eso es la <strong>cobertura dinámica</strong> (<em>dynamic hedging</em>).</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: un banco que vendió 1.000 calls</p>
+        <p>Con los datos de la guía (ej. 4), el banco vende 1.000 calls a 9,61 cada uno y quiere quedar cubierto.</p>
+        <ul>
+          <li><strong>Hoy</strong> compra \(0{,}7103 \times 1.000 = 710{,}3\) acciones a 100 y toma prestados 61.417,78 (es \(B_0 = -61{,}42\) por opción). Su cartera de acciones y deuda vale lo mismo que los calls: \(71.030 - 61.418 = 9.612\).</li>
+          <li><strong>Si la acción sube a 110</strong>, el \(\Delta\) pasa a 0,9545: compra 244,3 acciones más (a 110, unos 26.870) y las financia con más deuda. La cartera que tenía valía \(0{,}7103 \times 110 - 61{,}42\,e^{0{,}04} = 14{,}21\) por opción, justo lo que vale el call en ese nodo: el rebalanceo <strong>no requiere poner plata nueva</strong> (la cartera es autofinanciada).</li>
+          <li><strong>Si la acción baja a 90</strong>, el \(\Delta\) pasa a 0: vende todas las acciones, cancela la deuda y queda sin posición.</li>
+        </ul>
+        <p>Fijate el patrón: después de una suba se <strong>compran</strong> acciones y después de una baja se <strong>venden</strong>. Ese "comprar caro y vender barato" es lo que cuesta, en promedio, la prima de la opción.</p>
+      </div>
+
+      <p>Para un <strong>put</strong> el \(\Delta\) es negativo. En el mismo árbol, el put con \(K = 100\) tiene \(\Delta_0 = -0{,}2897\), \(\Delta_u = -0{,}0455\) y \(\Delta_d = -1\): quien compró el put se cubre <strong>comprando</strong> acciones, y quien lo vendió, <strong>vendiendo</strong> en corto.</p>
+
+      <p>Cuando la cantidad de pasos crece, el rebalanceo se vuelve cada vez más frecuente. En el límite, en tiempo continuo, el \(\Delta\) del árbol se convierte en la derivada \(\partial c/\partial S = N(d_1)\) de Black-Scholes. La <a href="u6-simulacion.html#cobertura-delta">simulación de cobertura delta</a> muestra este rebalanceo semana a semana.</p>
+
+      <div class="caja error">
+        <p class="caja-titulo">Errores frecuentes</p>
+        <ul>
+          <li><strong>Calcular el \(\Delta\) con los payoffs finales para todo el árbol.</strong> Cada nodo tiene su \(\Delta\), calculado con los valores de los dos nodos <em>siguientes</em>.</li>
+          <li><strong>Dividir por \(S_0\)</strong> en lugar de por \(S_u - S_d\) (o por \(S_0(u-d)\)).</li>
+          <li><strong>Creer que un \(\Delta\) negativo significa "vender la opción".</strong> El signo indica la dirección de la sensibilidad: un put comprado gana cuando la acción baja.</li>
+        </ul>
+      </div>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">En un árbol binomial, \(p = (e^{r\Delta t} - d)/(u - d)\) es…</p>
+          <ol class="qr-op">
+            <li>La probabilidad real de que la acción suba.</li>
+            <li>La probabilidad que hace que la acción rinda, en promedio, la tasa libre de riesgo.</li>
+            <li>El delta de la opción en el primer paso.</li>
+          </ol>
+          <p class="qr-explicacion">Con esa \(p\), \(p\,S_u + (1-p)\,S_d = S_0 e^{r\Delta t}\). No es la probabilidad real, y se usa siempre junto con el descuento a \(r\).</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="3">
+          <p class="qr-enunciado">Vendiste un call y lo cubrís con acciones según el \(\Delta\) del árbol. La acción sube. ¿Qué hacés en el nodo siguiente?</p>
+          <ol class="qr-op">
+            <li>Vendés acciones, porque ya ganaste con la suba.</li>
+            <li>Nada: el \(\Delta\) se fija al principio.</li>
+            <li>Comprás más acciones, porque el \(\Delta\) del call subió.</li>
+          </ol>
+          <p class="qr-explicacion">Con la suba el call queda más dentro del dinero y su \(\Delta\) aumenta (en el ejemplo, de 0,7103 a 0,9545). Para seguir cubierto hay que tener más acciones.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">En un put americano, en un nodo intermedio mantener vale 4,76 y ejercer da 6. ¿Qué valor se usa en ese nodo para seguir hacia atrás?</p>
+          <ol class="qr-op">
+            <li>6</li>
+            <li>4,76</li>
+            <li>El promedio, 5,38</li>
+          </ol>
+          <p class="qr-explicacion">El tenedor elige lo que más le conviene: en ese nodo ejerce, y el valor del nodo es 6 (guía, ej. 7).</p>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Precios de Arrow-Debreu</h2>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">Título de Arrow-Debreu y precio de estado</p>
+        <p>Un <strong>título de Arrow-Debreu</strong> (o título de estado) paga <strong>$1 si ocurre un estado determinado</strong> del mundo y nada en los demás. Su precio hoy se llama <strong>precio de Arrow-Debreu</strong> o <strong>precio de estado</strong>, \(\pi\).</p>
+      </div>
+
+      <p>Cualquier payoff se puede armar con títulos de Arrow-Debreu. En el árbol de un paso hay dos estados: un derivado que paga \(V_u\) si sube y \(V_d\) si baja equivale a \(V_u\) títulos del estado up más \(V_d\) títulos del estado down. Por la ley del precio único:</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Valuación con precios de estado</span>\[ V_0 = \pi_u\, V_u + \pi_d\, V_d \]</div>
+
+      <h3>Cómo se calculan</h3>
+      <p>Los precios de estado tienen que valuar bien los dos activos que conocemos:</p>
+      <ul>
+        <li>Un bono que paga $1 en los dos estados vale \(e^{-rT}\): \(\pi_u + \pi_d = e^{-rT}\).</li>
+        <li>La acción paga \(S_u\) o \(S_d\) y vale \(S_0\): \(\pi_u\,S_u + \pi_d\,S_d = S_0\).</li>
+      </ul>
+      <p>Resolviendo el sistema se llega a:</p>
+      <div class="formula">\[ \pi_u = e^{-rT}\,p \qquad\qquad \pi_d = e^{-rT}\,(1 - p) \]</div>
+      <p>Los precios de Arrow-Debreu son las <strong>probabilidades neutrales al riesgo descontadas</strong>. Por eso valuar con precios de estado es lo mismo que valuar con probabilidades neutrales al riesgo y descontar, y lo mismo que replicar: las tres miradas coinciden.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: derivado que paga \(S_T^2\) (guía U6, ej. 6)</p>
+        <p>Una acción vale 25 y en dos meses valdrá 27 o 23. La tasa es 10 % anual continua. ¿Cuánto vale un derivado que paga \(S_T^2\) dentro de dos meses?</p>
+        <p>Factor de descuento: \(e^{-0{,}10 \times 2/12} = 0{,}9835\). Los precios de estado salen de:</p>
+        <p>\(\pi_u + \pi_d = 0{,}9835\) y \(27\,\pi_u + 23\,\pi_d = 25\) \(\Rightarrow\) \(\pi_u = \dfrac{25 - 23 \times 0{,}9835}{4} = 0{,}5950\) y \(\pi_d = 0{,}3884\).</p>
+        <p>El derivado paga \(27^2 = 729\) o \(23^2 = 529\):</p>
+        <p>\(V_0 = 0{,}5950 \times 729 + 0{,}3884 \times 529 = \mathbf{639{,}26}\).</p>
+        <p>Control: \(p = \pi_u / 0{,}9835 = 0{,}6050\), que es la probabilidad neutral al riesgo \((e^{0{,}10/6} - 0{,}92)/(1{,}08 - 0{,}92)\).</p>
+      </div>
+
+      <div class="caja error">
+        <p class="caja-titulo">Errores frecuentes con el ej. 6</p>
+        <ul>
+          <li><strong>625</strong>: es \(S_0^2\). El derivado paga \(S_T^2\) en el futuro, no hoy.</li>
+          <li><strong>650,01</strong>: es el payoff esperado neutral al riesgo sin descontar.</li>
+          <li><strong>618,61</strong>: usar \(p = 0{,}5\), es decir, \(e^{-rT} \times 629\).</li>
+        </ul>
+      </div>
+
+      <h3>Precios de estado en un árbol de n pasos</h3>
+      <p>Al vencimiento de un árbol de \(n\) pasos hay \(n + 1\) estados finales. El precio de Arrow-Debreu del nodo final con \(j\) subas suma todos los caminos que llegan a él:</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Precio de estado del nodo final j</span>\[ \pi_j = e^{-rT} \binom{n}{j} p^{j} (1-p)^{n-j} \qquad\qquad V_0 = \sum_{j=0}^{n} \pi_j \cdot \text{payoff}(S_0\,u^j d^{\,n-j}) \]</div>
+      <p>Esta es exactamente la fórmula de \(n\) pasos de la sección anterior: \(e^{-rT} \binom{n}{j} p^j(1-p)^{n-j}\) es el precio de un título que paga $1 si se llega al nodo \(j\). Una vez que tenés los precios de estado, valuás <strong>cualquier</strong> derivado europeo sin rearmar el árbol: solo cambia la columna de payoffs.</p>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th>Nodo final</th><th class="num">\(S_T\)</th><th class="num">Caminos</th><th class="num">Prob. neutral al riesgo</th><th class="num">Precio de estado \(\pi_j\)</th><th class="num">Payoff call</th><th class="num">Payoff put</th></tr></thead>
+          <tbody>
+            <tr><td>\(uu\) (\(j = 2\))</td><td class="num">121</td><td class="num">1</td><td class="num">0,4957</td><td class="num">0,4576</td><td class="num">21</td><td class="num">0</td></tr>
+            <tr><td>\(ud\) (\(j = 1\))</td><td class="num">99</td><td class="num">2</td><td class="num">0,4167</td><td class="num">0,3847</td><td class="num">0</td><td class="num">1</td></tr>
+            <tr><td>\(dd\) (\(j = 0\))</td><td class="num">81</td><td class="num">1</td><td class="num">0,0876</td><td class="num">0,0809</td><td class="num">0</td><td class="num">19</td></tr>
+            <tr class="total"><td>Total</td><td class="num"></td><td class="num">4</td><td class="num">1,0000</td><td class="num">0,9231</td><td class="num">9,61</td><td class="num">1,92</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Con los datos de la guía (ej. 4): call \(= 21 \times 0{,}4576 = 9{,}61\) y put \(= 1 \times 0{,}3847 + 19 \times 0{,}0809 = 1{,}92\), los mismos valores que con la inducción hacia atrás. La suma de los precios de estado es \(e^{-0{,}08} = 0{,}9231\): un título que paga $1 en todos los estados es un bono cupón cero. Y una opción digital que paga $1 si \(S_T \gt 100\) vale directamente \(\pi_{uu} = 0{,}4576\).</p>
+
+      <div class="caja prueba">
+        <p class="caja-titulo">Probá vos</p>
+        <p>Con los precios de estado de la tabla, valuá un contrato que paga \(S_T - 100\) dentro de un año (un forward con precio de entrega 100).</p>
+        <details class="desplegable">
+          <summary>Ver la resolución</summary>
+          <p>\(V_0 = 0{,}4576 \times 21 + 0{,}3847 \times (-1) + 0{,}0809 \times (-19) = 7{,}69\).</p>
+          <p>Más rápido: \(\sum \pi_j S_j = S_0 = 100\) y \(\sum \pi_j = e^{-0{,}08}\), así que \(V_0 = 100 - 100\,e^{-0{,}08} = 7{,}69\). Es la fórmula del valor de un forward, \(S_0 - Ke^{-rT}\), de la Unidad III.</p>
+        </details>
+      </div>
+
+      <p>En tiempo continuo los precios de estado se convierten en una <strong>densidad</strong>: el precio de un título que paga $1 si \(S_T\) cae en un intervalo pequeño. Es la densidad neutral al riesgo de \(S_T\), descontada. En la <a href="u6-simulacion.html#arrow-debreu">simulación</a> podés armar la tabla de precios de estado para cualquier árbol y valuar un call, un put, una digital o \(S_T^2\).</p>
+
+      <!-- ================================================================== -->
+      <h2>Árboles con dividendos y otros subyacentes</h2>
+
+      <p>Si la acción paga un <strong>rendimiento por dividendos continuo</strong> \(q\), en el mundo neutral al riesgo su rendimiento <em>total</em> (suba de precio más dividendos) tiene que ser \(r\). Entonces el precio solo crece, en promedio, a la tasa \(r - q\). Los factores \(u\) y \(d\) no cambian (dependen de la volatilidad), pero sí la probabilidad:</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Probabilidad neutral al riesgo con rendimiento q</span>\[ p = \frac{e^{(r - q)\Delta t} - d}{u - d} \]</div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>Con el árbol de la guía (ej. 4) pero con un rendimiento por dividendos de 3 %: \(p = (e^{0{,}05 \times 0{,}5} - 0{,}9)/0{,}2 = 0{,}6266\) (sin dividendos era 0,7041). El call vale \(e^{-0{,}08} \times 0{,}6266^2 \times 21 = 7{,}61\) en lugar de 9,61, y el put sube de 1,92 a 2,88. Los dividendos hacen bajar el precio esperado de la acción: perjudican al call y favorecen al put.</p>
+      </div>
+
+      <p>La misma fórmula sirve para otros subyacentes, cambiando qué representa \(q\):</p>
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th>Subyacente</th><th>Qué es \(q\)</th><th>Probabilidad \(p\)</th></tr></thead>
+          <tbody>
+            <tr><td>Acción sin dividendos</td><td>0</td><td>\((e^{r\Delta t} - d)/(u - d)\)</td></tr>
+            <tr><td>Índice accionario</td><td>Rendimiento por dividendos del índice</td><td>\((e^{(r - q)\Delta t} - d)/(u - d)\)</td></tr>
+            <tr><td>Moneda extranjera</td><td>Tasa libre de riesgo extranjera \(r_f\)</td><td>\((e^{(r - r_f)\Delta t} - d)/(u - d)\)</td></tr>
+            <tr><td>Contrato de futuros</td><td>\(q = r\)</td><td>\((1 - d)/(u - d)\)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>El caso del futuro tiene una intuición clara: entrar en un futuro no cuesta nada, así que en un mundo neutral al riesgo su precio no puede tener tendencia (si la tuviera, se ganaría en promedio sin invertir). Estos subyacentes se estudian en detalle en la <strong>Unidad VII</strong> (opciones sobre índices, monedas y futuros).</p>
+
+      <p>Con <strong>dividendos en efectivo conocidos</strong> (un monto \(D\) en una fecha dada), en la fecha ex-dividendo el precio cae en \(D\) y el árbol deja de recombinar: después de un paso de suba y uno de baja no se llega al mismo nodo. En la práctica se arma el árbol para \(S_0 - VP(D)\) (la parte riesgosa del precio) y en cada nodo se le suma el valor presente de los dividendos que faltan pagar.</p>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="3">
+          <p class="qr-enunciado">El precio de Arrow-Debreu de un estado es…</p>
+          <ol class="qr-op">
+            <li>La probabilidad real de que ocurra ese estado.</li>
+            <li>La probabilidad neutral al riesgo de ese estado, sin descontar.</li>
+            <li>El precio hoy de un título que paga $1 solo si ocurre ese estado.</li>
+          </ol>
+          <p class="qr-explicacion">Es un precio, no una probabilidad: es la probabilidad neutral al riesgo del estado descontada a la tasa libre de riesgo.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">¿Cuánto suman los precios de estado de todos los nodos finales de un árbol con vencimiento \(T\)?</p>
+          <ol class="qr-op">
+            <li>1</li>
+            <li>\(e^{-rT}\)</li>
+            <li>\(S_0\)</li>
+          </ol>
+          <p class="qr-explicacion">Tener un título de cada estado asegura $1 pase lo que pase: es un bono cupón cero, que vale \(e^{-rT}\). La suma ponderada por \(S_T\) sí da \(S_0\).</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">En un árbol para opciones sobre un contrato de futuros, la probabilidad neutral al riesgo de suba es…</p>
+          <ol class="qr-op">
+            <li>\((1 - d)/(u - d)\)</li>
+            <li>\((e^{r\Delta t} - d)/(u - d)\)</li>
+            <li>0,5</li>
+          </ol>
+          <p class="qr-explicacion">Un futuro no requiere inversión inicial, así que en el mundo neutral al riesgo su precio esperado no cambia: \(p\,u + (1 - p)\,d = 1\).</p>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Modelos en tiempo continuo</h2>
+
+      <p>El árbol binomial supone que el precio salta una vez por período. Si hacemos los pasos cada vez más cortos, en el límite el precio cambia de forma continua y al azar. Una variable que cambia al azar a lo largo del tiempo sigue un <strong>proceso estocástico</strong>. Para llegar a Black-Scholes necesitamos describir ese proceso con precisión.</p>
+
+      <h3>Propiedad de Markov y eficiencia débil</h3>
+      <p>Un proceso es de <strong>Markov</strong> si para predecir el futuro solo importa el valor actual de la variable: la historia de cómo llegó hasta ahí no agrega información. Se supone que el precio de las acciones es un proceso de Markov.</p>
+      <p>Esto es coherente con la <strong>forma débil de eficiencia</strong> de los mercados: el precio actual ya incorpora toda la información contenida en los precios pasados. Si los gráficos de precios permitieran predecir sistemáticamente, los inversores operarían en consecuencia y la competencia eliminaría la ventaja. El precio de hoy puede servir para predecir; el camino recorrido, no.</p>
+
+      <h3>Proceso de Wiener</h3>
+      <p>Una variable \(z\) sigue un <strong>proceso de Wiener</strong> (o movimiento browniano) si cumple dos propiedades:</p>
+      <ol>
+        <li>En un intervalo corto \(\Delta t\), el cambio es \(\Delta z = \varepsilon\sqrt{\Delta t}\), con \(\varepsilon \sim N(0;\,1)\). Es decir, \(\Delta z\) es normal con media 0, varianza \(\Delta t\) y desvío \(\sqrt{\Delta t}\).</li>
+        <li>Los cambios en dos intervalos distintos son <strong>independientes</strong> (es un proceso de Markov).</li>
+      </ol>
+      <p>Para un plazo largo \(T\), el cambio es la suma de \(N = T/\Delta t\) cambios independientes, así que se suman las <strong>varianzas</strong>:</p>
+      <div class="formula">\[ z(T) - z(0) = \sum_{i=1}^{N} \varepsilon_i\sqrt{\Delta t} \;\sim\; N\!\left(0;\ \sqrt{T}\right) \qquad \text{(varianza } T\text{, desvío } \sqrt{T}\text{)} \]</div>
+      <p>La varianza crece en proporción al tiempo y el desvío, con la raíz del tiempo. Por ejemplo, si hoy \(z = 25\), dentro de un año \(z\) es normal con media 25 y desvío 1; dentro de cinco años, con media 25 y desvío \(\sqrt{5} = 2{,}24\). En el límite, cuando \(\Delta t \to 0\), se escribe \(dz = \varepsilon\sqrt{dt}\). Las trayectorias son continuas pero muy irregulares: no tienen pendiente definida en ningún punto.</p>
+
+      <h3>Proceso de Wiener generalizado</h3>
+      <p>Al proceso de Wiener se le puede agregar una tendencia (<em>drift</em>) y cambiar su escala:</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Proceso de Wiener generalizado</span>\[ dx = a\,dt + b\,dz \]</div>
+      <p>\(a\,dt\) es la parte determinística: \(x\) crece en promedio \(a\) por año. \(b\,dz\) es el ruido, con <strong>tasa de varianza</strong> \(b^2\) por año. En un plazo \(T\), el cambio de \(x\) es normal con media \(aT\) y desvío \(b\sqrt{T}\).</p>
+      <p>Ejemplo (Hull): la caja de una empresa, en miles de pesos, sigue \(dx = 20\,dt + 30\,dz\) y hoy vale 50. Dentro de seis meses es normal con media \(50 + 20 \times 0{,}5 = 60\) y desvío \(30\sqrt{0{,}5} = 21{,}21\); dentro de un año, con media 70 y desvío 30.</p>
+
+      <figure class="figura">
+        <div class="svg-scroll"><!--SVG:wiener--></div>
+        <figcaption>Izquierda: una trayectoria de un proceso de Wiener (sin tendencia). Derecha: los mismos shocks con una tendencia \(a\) por año: la trayectoria oscila alrededor de la recta \(a\,t\).</figcaption>
+      </figure>
+
+      <h3>Proceso de Itô</h3>
+      <p>Un <strong>proceso de Itô</strong> es un Wiener generalizado en el que la tendencia y la volatilidad pueden depender del valor de la variable y del tiempo:</p>
+      <div class="formula">\[ dx = a(x, t)\,dt + b(x, t)\,dz \]</div>
+
+      <h3>Movimiento browniano geométrico</h3>
+      <p>Para el precio de una acción no sirve una tendencia fija en pesos (\(dS = \mu\,dt\)): los inversores piden un rendimiento <strong>porcentual</strong>, que no depende de si la acción vale 10 o 100. Lo mismo pasa con la incertidumbre: tiene sentido que el desvío del cambio porcentual sea el mismo a cualquier nivel de precio. Así se llega al <strong>movimiento browniano geométrico</strong> (MBG), un proceso de Itô con \(a = \mu S\) y \(b = \sigma S\):</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Movimiento browniano geométrico</span>\[ dS = \mu S\,dt + \sigma S\,dz \qquad\Longleftrightarrow\qquad \frac{dS}{S} = \mu\,dt + \sigma\,dz \]</div>
+      <p>\(\mu\) es el <strong>rendimiento esperado</strong> de la acción (por año, en composición continua) y \(\sigma\) es la <strong>volatilidad</strong>. En su versión discreta, para un intervalo corto \(\Delta t\):</p>
+      <div class="formula">\[ \frac{\Delta S}{S} = \mu\,\Delta t + \sigma\,\varepsilon\sqrt{\Delta t} \qquad\Rightarrow\qquad \frac{\Delta S}{S} \sim N\!\left(\mu\,\Delta t;\ \sigma\sqrt{\Delta t}\right) \]</div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo (Hull)</p>
+        <p>Una acción vale 100, con \(\mu = 15\%\) y \(\sigma = 30\%\). En una semana (\(\Delta t = 1/52 = 0{,}0192\)):</p>
+        <p>\(\Delta S = 100\,(0{,}15 \times 0{,}0192 + 0{,}30\,\varepsilon\sqrt{0{,}0192}) = 0{,}288 + 4{,}16\,\varepsilon\).</p>
+        <p>El cambio semanal es normal con media 0,288 y desvío 4,16. La tendencia es chica frente al ruido: en plazos cortos domina la volatilidad.</p>
+      </div>
+
+      <p>Repitiendo esta cuenta paso a paso con números al azar para \(\varepsilon\) se simulan trayectorias del precio (simulación de Monte Carlo). El árbol de Cox-Ross-Rubinstein es una aproximación discreta del mismo proceso: \(u = e^{\sigma\sqrt{\Delta t}}\) reproduce la varianza \(\sigma^2\Delta t\) del MBG. En la <a href="u6-simulacion.html#trayectorias">simulación</a> podés generar trayectorias y ver qué hace cada parámetro.</p>
+
+      <h3>Lema de Itô</h3>
+      <p>Una opción es una función del precio de la acción y del tiempo. El <strong>lema de Itô</strong> dice qué proceso sigue una función así.</p>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">Lema de Itô</p>
+        <p>Si \(x\) sigue el proceso de Itô \(dx = a\,dt + b\,dz\) y \(G(x, t)\) es una función de \(x\) y de \(t\), entonces \(G\) sigue el proceso:</p>
+        <p>\[ dG = \left(\frac{\partial G}{\partial x}\,a + \frac{\partial G}{\partial t} + \frac{1}{2}\,\frac{\partial^2 G}{\partial x^2}\,b^2\right)dt + \frac{\partial G}{\partial x}\,b\,dz \]</p>
+      </div>
+
+      <p><strong>La intuición.</strong> Con un desarrollo de Taylor, \(\Delta G \approx G_x\,\Delta x + G_t\,\Delta t + \tfrac12 G_{xx}\,(\Delta x)^2\). En el cálculo común, \((\Delta x)^2\) es despreciable porque es del orden de \(\Delta t^2\). Acá no: \((\Delta x)^2\) contiene \(b^2\varepsilon^2\Delta t\), que es del orden de \(\Delta t\) y tiene valor esperado \(b^2\Delta t\). En el límite, \((dz)^2 = dt\). Ese término de segundo orden que "sobrevive" es el \(\tfrac12 G_{xx} b^2\) que distingue al lema de Itô de la regla de la cadena. Además, \(G\) queda expuesto a <strong>la misma fuente de incertidumbre</strong> \(dz\) que \(x\): esta es la clave de Black-Scholes-Merton.</p>
+
+      <p>Para una acción que sigue un MBG (\(a = \mu S\), \(b = \sigma S\)):</p>
+      <div class="formula">\[ dG = \left(\frac{\partial G}{\partial S}\,\mu S + \frac{\partial G}{\partial t} + \frac{1}{2}\,\frac{\partial^2 G}{\partial S^2}\,\sigma^2 S^2\right)dt + \frac{\partial G}{\partial S}\,\sigma S\,dz \]</div>
+
+      <p><strong>Aplicación 1: el logaritmo del precio.</strong> Con \(G = \ln S\): \(\partial G/\partial S = 1/S\), \(\partial^2 G/\partial S^2 = -1/S^2\) y \(\partial G/\partial t = 0\). Reemplazando:</p>
+      <div class="formula">\[ d\ln S = \left(\mu - \frac{\sigma^2}{2}\right)dt + \sigma\,dz \]</div>
+      <p>\(\ln S\) sigue un Wiener generalizado con tendencia constante \(\mu - \sigma^2/2\) y varianza \(\sigma^2\). Por lo tanto, \(\ln S_T - \ln S_0 \sim N\left[(\mu - \sigma^2/2)T;\ \sigma\sqrt{T}\right]\). Es la <strong>propiedad lognormal</strong> de la próxima sección.</p>
+
+      <p><strong>Aplicación 2: el precio forward.</strong> Para una acción sin dividendos, \(F = S\,e^{r(T - t)}\). Ahora \(\partial F/\partial S = e^{r(T-t)}\), \(\partial^2 F/\partial S^2 = 0\) y \(\partial F/\partial t = -r\,S\,e^{r(T-t)}\):</p>
+      <div class="formula">\[ dF = (\mu - r)\,F\,dt + \sigma\,F\,dz \]</div>
+      <p>El precio forward también sigue un MBG, con la misma volatilidad que la acción y tendencia \(\mu - r\): el forward ya "descuenta" el costo de financiar la acción.</p>
+
+      <div class="caja error">
+        <p class="caja-titulo">Errores frecuentes</p>
+        <ul>
+          <li><strong>Confundir varianza con desvío.</strong> En un proceso de Wiener la varianza crece con \(T\) y el desvío con \(\sqrt{T}\): en cuatro semanas la incertidumbre es el doble que en una, no el cuádruple.</li>
+          <li><strong>Aplicar la regla de la cadena común</strong> a \(\ln S\) y concluir que su tendencia es \(\mu\). Falta el término de Itô: es \(\mu - \sigma^2/2\).</li>
+        </ul>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>La propiedad lognormal</h2>
+
+      <p>Del lema de Itô aplicado a \(\ln S\):</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Propiedad lognormal</span>\[ \ln S_T \sim N\!\left[\ln S_0 + \left(\mu - \frac{\sigma^2}{2}\right)T;\ \ \sigma\sqrt{T}\right] \]</div>
+      <p>Una variable cuyo logaritmo es normal tiene <strong>distribución lognormal</strong>. A diferencia de la normal, solo toma valores positivos (un precio no puede ser negativo) y es <strong>asimétrica</strong> hacia la derecha: la moda, la mediana y la media son distintas.</p>
+      <div class="formula">\[ E(S_T) = S_0\,e^{\mu T} \qquad \text{var}(S_T) = S_0^2\,e^{2\mu T}\left(e^{\sigma^2 T} - 1\right) \qquad \text{mediana} = S_0\,e^{(\mu - \sigma^2/2)T} \]</div>
+      <p>Que el valor esperado crezca a la tasa \(\mu\) es coherente con la definición de \(\mu\) como rendimiento esperado.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo (Hull)</p>
+        <p>Una acción vale 40, con \(\mu = 16\%\) y \(\sigma = 20\%\). Para dentro de seis meses:</p>
+        <p>\(\ln S_T \sim N\left[\ln 40 + (0{,}16 - 0{,}02) \times 0{,}5;\ 0{,}20\sqrt{0{,}5}\right] = N(3{,}7589;\ 0{,}1414)\).</p>
+        <p>Con 95 % de probabilidad, una normal está a menos de 1,96 desvíos de su media: \(3{,}7589 \pm 1{,}96 \times 0{,}1414\). Volviendo a precios con la exponencial: \(e^{3{,}4817} = 32{,}51 \lt S_T \lt e^{4{,}0361} = 56{,}60\). (Hull, redondeando los parámetros, informa 32,55 y 56,56.)</p>
+        <p>Valor esperado: \(40\,e^{0{,}16 \times 0{,}5} = 43{,}33\). Varianza: \(1.600\,e^{0{,}16}(e^{0{,}02} - 1) = 37{,}93\), desvío 6,16. Mediana: \(40\,e^{0{,}07} = 42{,}90\).</p>
+      </div>
+
+      <figure class="figura">
+        <div class="svg-scroll"><!--SVG:lognormal--></div>
+        <figcaption>Densidad lognormal de \(S_T\) en el ejemplo. El área sombreada es el intervalo de 95 %. La cola derecha es más larga que la izquierda: por eso la media (43,33) supera a la mediana (42,90), que supera a la moda (42,05).</figcaption>
+      </figure>
+
+      <h3>¿Cuál es el rendimiento esperado?</h3>
+      <p>El rendimiento compuesto continuo obtenido en \(T\) años es \(x = \frac{1}{T}\ln(S_T/S_0)\). De la propiedad lognormal:</p>
+      <div class="formula">\[ x \sim N\!\left(\mu - \frac{\sigma^2}{2};\ \frac{\sigma}{\sqrt{T}}\right) \]</div>
+      <p>El rendimiento compuesto continuo esperado es \(\mu - \sigma^2/2\), <strong>menor que \(\mu\)</strong>. No es una contradicción. \(\mu\) es el rendimiento esperado en un intervalo muy corto: el promedio aritmético de los rendimientos de cada \(dt\). \(\mu - \sigma^2/2\) es el rendimiento compuesto de todo el período, que se parece a un promedio geométrico, y el promedio geométrico siempre es menor que el aritmético cuando hay variabilidad.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: promedio aritmético y rendimiento compuesto</p>
+        <p>Rendimientos anuales de una acción: 15 %, 20 %, 30 %, −20 % y 25 %. El promedio aritmético es 14 %. Pero $100 invertidos los cinco años terminan en \(100 \times 1{,}15 \times 1{,}20 \times 1{,}30 \times 0{,}80 \times 1{,}25 = 179{,}40\), que equivale a 12,4 % anual compuesto. Cuanto más volátiles son los rendimientos, más grande es la brecha.</p>
+        <p>Otro ejemplo: con \(\mu = 17\%\) y \(\sigma = 20\%\), el rendimiento compuesto continuo de un año es normal con media \(0{,}17 - 0{,}02 = 15\%\) y desvío 20 %. Con 95 % de probabilidad estará entre \(15\% - 1{,}96 \times 20\% = -24{,}2\%\) y \(54{,}2\%\).</p>
+      </div>
+
+      <h3>Probabilidad real y probabilidad neutral al riesgo de ejercicio</h3>
+      <p>Un call se ejerce si \(S_T \gt K\), es decir, si \(\ln S_T \gt \ln K\). Con la propiedad lognormal y el rendimiento esperado real \(\mu\):</p>
+      <div class="formula">\[ P(S_T \gt K) = N(\hat d_2) \qquad \hat d_2 = \frac{\ln(S_0/K) + (\mu - \sigma^2/2)\,T}{\sigma\sqrt{T}} \]</div>
+      <p>Es el \(d_2\) de Black-Scholes con \(\mu\) en lugar de \(r\). La probabilidad de ejercicio de un put es \(N(-\hat d_2)\).</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo (guía U6, ej. 10)</p>
+        <p>Una acción vale 38, con rendimiento esperado de 16 % y volatilidad de 35 %. Call y put con \(K = 40\) a seis meses:</p>
+        <p>\(\hat d_2 = \dfrac{\ln(38/40) + (0{,}16 - 0{,}35^2/2) \times 0{,}5}{0{,}35\sqrt{0{,}5}} = \dfrac{-0{,}0513 + 0{,}0494}{0{,}2475} = -0{,}0078\).</p>
+        <p>Probabilidad de que se ejerza el call: \(N(-0{,}0078) = \mathbf{49{,}69\%}\). Del put: \(1 - 0{,}4969 = \mathbf{50{,}31\%}\).</p>
+        <p>En Black-Scholes, en cambio, \(N(d_2)\) se calcula con \(r\): es la probabilidad de ejercicio en el mundo <strong>neutral al riesgo</strong>. Con una tasa de 5 % (dato ilustrativo), \(d_2 = -0{,}2300\) y \(N(d_2) = 40{,}91\%\). Como \(\mu \gt r\), la probabilidad real de ejercicio de un call es mayor que la neutral al riesgo.</p>
+      </div>
+
+      <div class="caja error">
+        <p class="caja-titulo">Errores frecuentes</p>
+        <ul>
+          <li><strong>Usar el \(N(d_2)\) de Black-Scholes como probabilidad real de ejercicio.</strong> Con \(r\) es la probabilidad neutral al riesgo; para la real hay que usar \(\mu\).</li>
+          <li><strong>Usar \(N(d_1)\)</strong> como probabilidad de ejercicio. \(N(d_1)\) es el delta del call.</li>
+          <li><strong>Olvidar el \(-\sigma^2/2\)</strong>: la mediana de \(S_T\) es \(S_0e^{(\mu - \sigma^2/2)T}\), no \(S_0 e^{\mu T}\).</li>
+        </ul>
+      </div>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">\(z\) sigue un proceso de Wiener. ¿Cuál es el desvío estándar de su cambio en 4 años?</p>
+          <ol class="qr-op">
+            <li>4</li>
+            <li>2</li>
+            <li>16</li>
+          </ol>
+          <p class="qr-explicacion">La varianza es igual al plazo (4); el desvío es su raíz: \(\sqrt{4} = 2\).</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">Según el lema de Itô, si \(dS = \mu S\,dt + \sigma S\,dz\), la tendencia de \(\ln S\) es…</p>
+          <ol class="qr-op">
+            <li>\(\mu - \sigma^2/2\)</li>
+            <li>\(\mu\)</li>
+            <li>\(\mu + \sigma^2/2\)</li>
+          </ol>
+          <p class="qr-explicacion">El término \(\tfrac12 G_{SS}\sigma^2S^2 = -\sigma^2/2\) se suma a \(\mu\). Por la concavidad del logaritmo, el rendimiento compuesto esperado es menor que \(\mu\).</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="3">
+          <p class="qr-enunciado">Con \(S_0 = 40\), \(\mu = 16\%\), \(\sigma = 20\%\) y \(T = 0{,}5\), el valor esperado de \(S_T\) es 43,33 y la mediana, 42,90. ¿Por qué difieren?</p>
+          <ol class="qr-op">
+            <li>Por un error de redondeo.</li>
+            <li>Porque la media usa \(r\) y la mediana usa \(\mu\).</li>
+            <li>Porque la distribución lognormal es asimétrica a la derecha.</li>
+          </ol>
+          <p class="qr-explicacion">Unas pocas trayectorias muy altas suben la media. La mitad de las veces el precio termina por debajo de 42,90.</p>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Volatilidad histórica</h2>
+
+      <p>La volatilidad \(\sigma\) es el desvío estándar del rendimiento compuesto continuo de un año. Para un plazo corto \(\Delta t\), el desvío del cambio porcentual del precio es aproximadamente \(\sigma\sqrt{\Delta t}\). Con \(\sigma = 30\%\) y una acción de 50, el desvío semanal es \(30\% \times \sqrt{1/52} = 4{,}16\%\), es decir, unos 2,08 pesos.</p>
+
+      <h3>Cómo se estima</h3>
+      <p>Se observan \(n + 1\) precios a intervalos fijos de \(\tau\) años (por ejemplo, cierres diarios) y se calculan los rendimientos logarítmicos:</p>
+      <div class="formula">\[ u_i = \ln\frac{S_i}{S_{i-1}} \qquad (i = 1, \dots, n) \]</div>
+      <p>Su desvío estándar muestral es</p>
+      <div class="formula">\[ s = \sqrt{\frac{1}{n-1}\sum_{i=1}^{n}(u_i - \bar u)^2} = \sqrt{\frac{1}{n-1}\sum u_i^2 - \frac{1}{n(n-1)}\left(\sum u_i\right)^2} \]</div>
+      <p>Como el desvío de \(u_i\) es \(\sigma\sqrt{\tau}\), la volatilidad anual se estima así:</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Volatilidad histórica</span>\[ \hat\sigma = \frac{s}{\sqrt{\tau}} \qquad\qquad \text{error estándar} \approx \frac{\hat\sigma}{\sqrt{2n}} \]</div>
+
+      <h3>Días hábiles: 252</h3>
+      <p>La volatilidad es mucho mayor cuando el mercado está abierto que cuando está cerrado. Fama y French encontraron que la varianza del rendimiento entre el cierre del viernes y el del lunes es solo un 20 % mayor que la de un día hábil, cuando "debería" ser el triple si los tres días contaran igual. Por eso, con precios diarios, el tiempo se mide en <strong>días de negociación</strong>: se toma \(\tau = 1/252\) y se ignoran los fines de semana y feriados. Con datos semanales, \(\tau = 1/52\); con mensuales, \(\tau = 1/12\).</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo (Hull, tabla 11.1)</p>
+        <p>Con 21 precios de cierre diarios (de 20,00 a 22,00) hay \(n = 20\) rendimientos, con \(\sum u_i = 0{,}09531\) y \(\sum u_i^2 = 0{,}00326\):</p>
+        <p>\(s = \sqrt{\dfrac{0{,}00326}{19} - \dfrac{0{,}09531^2}{20 \times 19}} = 0{,}01216\) (por día).</p>
+        <p>\(\hat\sigma = 0{,}01216 \times \sqrt{252} = 0{,}193\): una volatilidad de <strong>19,3 % anual</strong>.</p>
+        <p>Error estándar: \(0{,}193/\sqrt{40} = 0{,}031\), unos 3,1 puntos porcentuales. Con tan pocos datos la estimación es imprecisa: un intervalo de 95 % va de 13,3 % a 25,3 %.</p>
+        <details class="desplegable">
+          <summary>Ver la tabla de precios y rendimientos</summary>
+          <div class="tabla-wrap">
+            <table class="tabla compacta">
+              <thead><tr><th class="num">Día</th><th class="num">Cierre</th><th class="num">\(u_i\)</th><th class="num">Día</th><th class="num">Cierre</th><th class="num">\(u_i\)</th></tr></thead>
+              <tbody>
+                <tr><td class="num">0</td><td class="num">20,00</td><td class="num"></td><td class="num">11</td><td class="num">21,00</td><td class="num">0,01198</td></tr>
+                <tr><td class="num">1</td><td class="num">20,10</td><td class="num">0,00499</td><td class="num">12</td><td class="num">21,10</td><td class="num">0,00475</td></tr>
+                <tr><td class="num">2</td><td class="num">19,90</td><td class="num">−0,01000</td><td class="num">13</td><td class="num">20,90</td><td class="num">−0,00952</td></tr>
+                <tr><td class="num">3</td><td class="num">20,00</td><td class="num">0,00501</td><td class="num">14</td><td class="num">20,90</td><td class="num">0,00000</td></tr>
+                <tr><td class="num">4</td><td class="num">20,50</td><td class="num">0,02469</td><td class="num">15</td><td class="num">21,25</td><td class="num">0,01661</td></tr>
+                <tr><td class="num">5</td><td class="num">20,25</td><td class="num">−0,01227</td><td class="num">16</td><td class="num">21,40</td><td class="num">0,00703</td></tr>
+                <tr><td class="num">6</td><td class="num">20,90</td><td class="num">0,03159</td><td class="num">17</td><td class="num">21,40</td><td class="num">0,00000</td></tr>
+                <tr><td class="num">7</td><td class="num">20,90</td><td class="num">0,00000</td><td class="num">18</td><td class="num">21,25</td><td class="num">−0,00703</td></tr>
+                <tr><td class="num">8</td><td class="num">20,90</td><td class="num">0,00000</td><td class="num">19</td><td class="num">21,75</td><td class="num">0,02326</td></tr>
+                <tr><td class="num">9</td><td class="num">20,75</td><td class="num">−0,00720</td><td class="num">20</td><td class="num">22,00</td><td class="num">0,01143</td></tr>
+                <tr><td class="num">10</td><td class="num">20,75</td><td class="num">0,00000</td><td class="num"></td><td class="num"></td><td class="num"></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+      </div>
+
+      <p>¿Cuántos datos usar? Más datos dan más precisión (el error estándar baja con \(\sqrt{n}\)), pero la volatilidad cambia con el tiempo y los datos muy viejos pueden no servir. Una práctica habitual es usar los cierres diarios de los últimos 90 a 180 días, o tantos días hacia atrás como días le quedan de vida a la opción. Si hay un dividendo, el rendimiento del día ex-dividendo es \(\ln[(S_i + D)/S_{i-1}]\), o directamente se descarta ese día.</p>
+
+      <div class="caja error">
+        <p class="caja-titulo">Errores frecuentes</p>
+        <ul>
+          <li><strong>Anualizar multiplicando por 252</strong> en lugar de por \(\sqrt{252}\). Se escala la varianza por el tiempo; el desvío, por su raíz.</li>
+          <li><strong>Mezclar 365 y 252</strong>: si los datos son de días hábiles, se anualiza con 252. Con 365 la volatilidad del ejemplo daría 23,2 % en lugar de 19,3 %.</li>
+          <li><strong>Usar rendimientos simples</strong> \((S_i - S_{i-1})/S_{i-1}\). Para datos diarios la diferencia es chica, pero el modelo está escrito en rendimientos logarítmicos.</li>
+        </ul>
+      </div>
+
+      <p>En la <a href="herramientas.html#volatilidad-historica">simulación</a> podés pegar tu propia serie de precios y ver el cálculo paso a paso.</p>
+
+      <!-- ================================================================== -->
+      <h2>La ecuación diferencial de Black-Scholes-Merton</h2>
+
+      <p>La idea es la misma que en el árbol binomial: armar una cartera <strong>sin riesgo</strong> con la opción y la acción. Se puede porque las dos dependen de la misma fuente de incertidumbre, el \(dz\) del precio de la acción.</p>
+
+      <p>Sea \(f(S, t)\) el precio de un derivado sobre una acción que sigue \(dS = \mu S\,dt + \sigma S\,dz\). Por el lema de Itô:</p>
+      <div class="formula">\[ df = \left(\frac{\partial f}{\partial S}\mu S + \frac{\partial f}{\partial t} + \frac{1}{2}\frac{\partial^2 f}{\partial S^2}\sigma^2 S^2\right)dt + \frac{\partial f}{\partial S}\,\sigma S\,dz \]</div>
+      <p>Armamos la cartera: <strong>vendemos un derivado</strong> y <strong>compramos \(\partial f/\partial S\) acciones</strong> (el \(\Delta\)). Su valor es \(\Pi = -f + \frac{\partial f}{\partial S}S\) y en un instante \(dt\) cambia en</p>
+      <div class="formula">\[ d\Pi = -df + \frac{\partial f}{\partial S}\,dS = \left(-\frac{\partial f}{\partial t} - \frac{1}{2}\frac{\partial^2 f}{\partial S^2}\sigma^2 S^2\right)dt \]</div>
+      <p>Los términos con \(dz\) se cancelan: <strong>la cartera no tiene riesgo</strong> durante \(dt\). Para que no haya arbitraje, tiene que rendir la tasa libre de riesgo: \(d\Pi = r\,\Pi\,dt\). Igualando y reordenando:</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Ecuación diferencial de Black-Scholes-Merton</span>\[ \frac{\partial f}{\partial t} + r S\,\frac{\partial f}{\partial S} + \frac{1}{2}\,\sigma^2 S^2\,\frac{\partial^2 f}{\partial S^2} = r f \]</div>
+
+      <ul>
+        <li><strong>¿Por qué no aparece \(\mu\)?</strong> El rendimiento esperado entraba solo en los términos \(\frac{\partial f}{\partial S}\mu S\,dt\) de la opción y de las \(\Delta\) acciones, y se cancelaron al armar la cartera. Las preferencias por riesgo de los inversores no influyen en el precio del derivado expresado en función de \(S\).</li>
+        <li><strong>Vínculo con la valuación neutral al riesgo.</strong> Como la ecuación no depende de \(\mu\), cualquier valor de \(\mu\) da la misma solución. En particular, \(\mu = r\): podemos suponer un mundo neutral al riesgo, calcular el payoff esperado y descontarlo a \(r\). Así se obtiene la fórmula de Black-Scholes.</li>
+        <li><strong>Cada derivado es una solución distinta</strong> de la misma ecuación, según su <strong>condición de borde</strong>: \(f = \max(S - K;\ 0)\) en \(t = T\) para un call, \(\max(K - S;\ 0)\) para un put.</li>
+        <li><strong>La cartera es sin riesgo solo por un instante.</strong> Cuando \(S\) y \(t\) cambian, cambia \(\partial f/\partial S\) y hay que rebalancear continuamente: es la cobertura dinámica del árbol, llevada al límite.</li>
+      </ul>
+
+      <div class="caja prueba">
+        <p class="caja-titulo">Probá vos</p>
+        <p>Verificá que el valor de un forward largo sobre una acción sin dividendos, \(f = S - K e^{-r(T - t)}\), cumple la ecuación diferencial.</p>
+        <details class="desplegable">
+          <summary>Ver la resolución</summary>
+          <p>\(\partial f/\partial t = -rK e^{-r(T-t)}\), \(\partial f/\partial S = 1\) y \(\partial^2 f/\partial S^2 = 0\).</p>
+          <p>Lado izquierdo: \(-rKe^{-r(T-t)} + rS \times 1 + 0 = r\left(S - Ke^{-r(T-t)}\right) = r f\). Se cumple.</p>
+        </details>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Modelo de Black-Scholes-Merton</h2>
+
+      <p>Resolviendo la ecuación diferencial con la condición de borde de un call (o, equivalentemente, cuando la cantidad de pasos del árbol tiende a infinito) se obtiene una fórmula cerrada: el modelo de <strong>Black-Scholes-Merton</strong> (BS). Para opciones europeas sobre una acción que no paga dividendos:</p>
+
+      <div class="formula">\[ c = S_0\, N(d_1) - K e^{-rT} N(d_2) \]</div>
+      <div class="formula">\[ p = K e^{-rT} N(-d_2) - S_0\, N(-d_1) \]</div>
+      <div class="formula">\[ d_1 = \frac{\ln(S_0/K) + (r + \sigma^2/2)\,T}{\sigma\sqrt{T}} \qquad\qquad d_2 = \frac{\ln(S_0/K) + (r - \sigma^2/2)\,T}{\sigma\sqrt{T}} = d_1 - \sigma\sqrt{T} \]</div>
+      <p>\(N(x)\) es la función de distribución normal estándar acumulada: la probabilidad de que una normal estándar sea menor que \(x\).</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>\(S_0 = 50\), \(K = 50\), \(r = 5\%\), \(\sigma = 30\%\), \(T = 1\).</p>
+        <p>\(d_1 = \dfrac{0 + (0{,}05 + 0{,}045) \times 1}{0{,}30} = 0{,}3167\) y \(d_2 = 0{,}3167 - 0{,}30 = 0{,}0167\).</p>
+        <p>\(N(d_1) = 0{,}6243\) y \(N(d_2) = 0{,}5066\).</p>
+        <p>\(c = 50 \times 0{,}6243 - 50e^{-0{,}05} \times 0{,}5066 = 7{,}12\) y \(p = 4{,}68\). Se puede verificar que cumplen la paridad put-call.</p>
+      </div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo (guía U6, ej. 11)</p>
+        <p>Call con \(S_0 = 52\), \(K = 50\), \(r = 12\%\), \(\sigma = 30\%\) y \(T = 0{,}25\): \(d_1 = 0{,}5365\), \(d_2 = 0{,}3865\), \(N(d_1) = 0{,}7042\), \(N(d_2) = 0{,}6504\). Entonces \(c = 52 \times 0{,}7042 - 50\,e^{-0{,}03} \times 0{,}6504 = \mathbf{5{,}06}\).</p>
+      </div>
+
+      <h3>Supuestos y limitaciones</h3>
+      <p>Black, Scholes y Merton suponen que:</p>
+      <ul>
+        <li>El precio de la acción sigue un <strong>movimiento browniano geométrico</strong> con \(\mu\) y \(\sigma\) constantes: los rendimientos son normales y los precios, lognormales.</li>
+        <li>Se puede vender en corto y no hay costos de transacción ni impuestos; los activos son perfectamente divisibles.</li>
+        <li>No hay dividendos durante la vida de la opción (se levanta más abajo).</li>
+        <li>No hay oportunidades de arbitraje, y la negociación es continua.</li>
+        <li>Se puede prestar y pedir prestado a la misma tasa libre de riesgo \(r\), constante.</li>
+      </ul>
+      <p>Bajo valuación neutral al riesgo, \(\mu\) se reemplaza por \(r\):</p>
+      <div class="formula">\[ \ln\frac{S_T}{S_0} \sim N\!\left(\left(r - \frac{\sigma^2}{2}\right)T;\ \sigma\sqrt{T}\right) \]</div>
+      <p>Esto trae algunas limitaciones:</p>
+      <ul>
+        <li>Sirve solo para opciones <strong>europeas</strong>.</li>
+        <li>Asume retornos normales y precios lognormales, e ignora los comportamientos extremos de los precios (colas pesadas, saltos).</li>
+        <li>Supone <strong>volatilidad constante</strong> y <strong>tasa libre de riesgo constante</strong> durante toda la vida de la opción.</li>
+        <li>Supone que no hay oportunidades de arbitraje y que los mercados son 100 % eficientes todo el tiempo.</li>
+      </ul>
+
+      <h3>Volatilidad implícita</h3>
+      <p>De todos los datos de la fórmula, el único que <strong>no se observa directamente</strong> en el mercado es la volatilidad. Se puede estimar a partir del comportamiento histórico del subyacente (<em>backward looking</em>, como en la sección de volatilidad histórica) o extraerla de los precios de mercado de las opciones (<em>forward looking</em>). Esta última es la <strong>volatilidad implícita</strong>: la \(\sigma\) que hace que la fórmula dé el precio observado. No tiene fórmula cerrada; se obtiene iterando.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo (adaptado de Hull)</p>
+        <p>Un call sobre una acción sin dividendos cotiza a 1,90, con \(S_0 = 21\), \(K = 20\), \(r = 10\%\) y \(T = 0{,}25\). Con \(\sigma = 20\%\) la fórmula da 1,76 (poco): hace falta más volatilidad. Con 30 % da 2,10 (demasiado). Con 25 % da 1,93 (todavía mucho), así que \(\sigma\) está entre 20 % y 25 %. Partiendo el intervalo por la mitad una y otra vez se llega a <strong>24,2 %</strong>.</p>
+      </div>
+      <p>Para un put se procede igual (guía, ej. 8): se busca la \(\sigma\) que iguala el precio de Black-Scholes del put con su precio de mercado. Los operadores siguen las volatilidades implícitas como la opinión del mercado sobre la volatilidad futura, y las usan para valuar opciones menos líquidas sobre el mismo activo.</p>
+
+      <!-- ================================================================== -->
+      <h2>Interpretación de la fórmula</h2>
+
+      <ul>
+        <li>\(N(d_2)\) es la <strong>probabilidad neutral al riesgo de que el call se ejerza</strong>, es decir, de que \(S_T \gt K\). (Con \(\mu\) en lugar de \(r\) sería la probabilidad real, como en la guía, ej. 10.)</li>
+        <li>\(K e^{-rT} N(d_2)\) es el valor de un call <strong>"cash or nothing"</strong> (CorN) por \(K\) pesos: paga \(K\) si \(S_T \gt K\) y nada si no.</li>
+        <li>\(N(d_1)\) es el delta del call: \(N(d_1) = \Delta = \partial c / \partial S_0\). Mide cuánto se parece el call a tener la acción. <em>No</em> es la probabilidad neutral al riesgo de ejercicio (esa es \(N(d_2)\)). En rigor, \(N(d_1)\) es la probabilidad de ejercicio cuando se usa la acción, y no el dinero, como unidad de medida (cambio de numerario); por eso es siempre mayor que \(N(d_2)\).</li>
+        <li>\(S_0 N(d_1)\) es el valor de un call <strong>"asset or nothing"</strong> (AorN): entrega una acción si \(S_T \gt K\) y nada si no.</li>
+      </ul>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">Un call como dos opciones exóticas</p>
+        <p>Un call <em>plain vanilla</em> equivale a una posición <strong>long en un AorN</strong> y \(K\) posiciones <strong>short en un CorN</strong>, ambas con el mismo strike. Si se activan, se recibe una acción y se pagan \(K\); si no, todo vale cero.</p>
+        <p>\[ c = \underbrace{S_0 N(d_1)}_{\text{AorN}} - \underbrace{K e^{-rT} N(d_2)}_{K \times \text{CorN}} \]</p>
+      </div>
+
+      <h3>Comportamiento al vencimiento</h3>
+      <p>Cuando falta muy poco para el vencimiento (\(T - t \to 0\)), \(\sigma\sqrt{T - t} \to 0\), así que \(d_1\) y \(d_2\) dependen solo del término con el logaritmo:</p>
+      <ul>
+        <li>Si \(S \gt K\): \(\ln(S/K) \gt 0\), entonces \(d_1, d_2 \to +\infty\) y \(N(d_1) = N(d_2) = 1\). El call vale \(S - K\).</li>
+        <li>Si \(S \lt K\): \(\ln(S/K) \lt 0\), entonces \(d_1, d_2 \to -\infty\) y \(N(d_1) = N(d_2) = 0\). El call vale 0.</li>
+      </ul>
+      <p>Es decir, la fórmula converge al payoff \(\max(S - K;\ 0)\), como tiene que ser. En el put aparecen \(N(-d_1)\) y \(N(-d_2)\), que valen 1 si \(S \lt K\) y 0 si \(S \gt K\).</p>
+
+      <details class="desplegable">
+        <summary>Derivación de Black-Scholes para un call (resumen)</summary>
+        <p>Por valuación neutral al riesgo, el precio del call es el valor esperado del payoff descontado:</p>
+        <p>\[ C_0 = e^{-rT}\, E\left[\max(S_T - K;\ 0)\right] = e^{-rT}\int_{-\infty}^{+\infty} \left(S_0 e^{Y_T} - K\right)^{+} f(Y_T)\, dY_T \]</p>
+        <p>donde \(Y_T = \ln(S_T/S_0) \sim N\left((r - \sigma^2/2)T;\ \sigma\sqrt{T}\right)\). El call se ejerce solo si \(S_T \gt K\), es decir, si \(Y_T \gt \ln(K/S_0)\). Por debajo de esa barrera el integrando vale cero, así que:</p>
+        <p>\[ C_0 = \underbrace{e^{-rT}\int_{\ln(K/S_0)}^{+\infty} S_0 e^{Y_T} f(Y_T)\, dY_T}_{(A)} \;-\; \underbrace{e^{-rT}\int_{\ln(K/S_0)}^{+\infty} K f(Y_T)\, dY_T}_{(B)} \]</p>
+        <p><strong>(B):</strong> estandarizando \(Z = \frac{Y_T - (r - \sigma^2/2)T}{\sigma\sqrt{T}}\), la integral es la probabilidad de que \(Z\) supere un umbral; por simetría de la normal queda \(K e^{-rT} N(d_2)\).</p>
+        <p><strong>(A):</strong> con el mismo cambio de variable, el exponente se puede completar como un cuadrado: \(e^{-\frac{1}{2}(Z - \sigma\sqrt{T})^2}\). Con \(Z' = Z - \sigma\sqrt{T}\) el límite inferior se corre en \(\sigma\sqrt{T}\), y el resultado es \(S_0 N(d_1)\).</p>
+        <p>Por lo tanto, \(C_0 = A - B = S_0 N(d_1) - K e^{-rT} N(d_2)\).</p>
+      </details>
+
+      <!-- ================================================================== -->
+      <h2>Dividendos</h2>
+
+      <h3>Rendimiento por dividendos continuo</h3>
+      <p>Si la acción paga un rendimiento por dividendos continuo \(q\) (la presentación de la cátedra lo llama \(\delta\)), en el mundo neutral al riesgo su precio crece a \(r - q\). Basta con reemplazar \(S_0\) por \(S_0 e^{-qT}\) en la fórmula, lo que equivale a usar \(r - q\) dentro de \(d_1\) y \(d_2\):</p>
+      <div class="formula">\[ c = S_0 e^{-qT} N(d_1) - K e^{-rT} N(d_2) \qquad\qquad p = K e^{-rT} N(-d_2) - S_0 e^{-qT} N(-d_1) \]</div>
+      <div class="formula">\[ d_1 = \frac{\ln(S_0/K) + (r - q + \sigma^2/2)\,T}{\sigma\sqrt{T}} \qquad\qquad d_2 = d_1 - \sigma\sqrt{T} \]</div>
+      <p>Con los datos del ejemplo anterior (\(S_0 = K = 50\), \(r = 5\%\), \(\sigma = 30\%\), \(T = 1\)) y \(q = 3\%\): \(d_1 = 0{,}2167\), \(d_2 = -0{,}0833\), \(c = 6{,}22\) y \(p = 5{,}26\), contra 7,12 y 4,68 sin dividendos. Es la fórmula que se usa para índices y monedas en la Unidad VII.</p>
+
+      <h3>Dividendos discretos conocidos</h3>
+      <p>Si se conocen los montos y las fechas ex-dividendo, se piensa el precio de la acción como dos partes: una sin riesgo, que va a pagar los dividendos, y una riesgosa. Black-Scholes se aplica a la parte riesgosa:</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Opciones europeas con dividendos discretos</span>\[ S_0 \;\to\; S_0 - D \qquad \text{donde } D = \text{valor presente de los dividendos con fecha ex-dividendo antes del vencimiento} \]</div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo (Hull)</p>
+        <p>Call europeo con \(S_0 = 40\), \(K = 40\), \(r = 9\%\), \(\sigma = 30\%\) y \(T = 6\) meses. Se esperan dividendos de 0,50 con fechas ex-dividendo dentro de 2 y 5 meses.</p>
+        <p>\(D = 0{,}50\,e^{-0{,}09 \times 2/12} + 0{,}50\,e^{-0{,}09 \times 5/12} = 0{,}9742\), así que \(S_0 - D = 39{,}0258\).</p>
+        <p>\(d_1 = \dfrac{\ln(39{,}0258/40) + (0{,}09 + 0{,}045) \times 0{,}5}{0{,}30\sqrt{0{,}5}} = 0{,}2020\) y \(d_2 = -0{,}0102\); \(N(d_1) = 0{,}5800\) y \(N(d_2) = 0{,}4959\).</p>
+        <p>\(c = 39{,}0258 \times 0{,}5800 - 40\,e^{-0{,}045} \times 0{,}4959 = \mathbf{3{,}67}\). Sin dividendos valdría 4,26.</p>
+      </div>
+      <p>En rigor, la \(\sigma\) de la fórmula debería ser la volatilidad de la parte riesgosa, que es aproximadamente \(S_0/(S_0 - D)\) veces la de la acción; en la práctica se usan como iguales.</p>
+
+      <h3>Calls americanos: la aproximación de Black</h3>
+      <p>Sin dividendos, un call americano nunca se ejerce antes (Unidad V). Con dividendos puede convenir ejercerlo <strong>justo antes de una fecha ex-dividendo</strong>, para cobrar el dividendo; en la práctica, casi siempre antes de la última. No conviene ejercer antes de la fecha ex-dividendo \(t_i\) si el dividendo es menor que el interés que se gana demorando el pago del strike hasta la fecha siguiente:</p>
+      <div class="formula">\[ D_i \le K\left[1 - e^{-r(t_{i+1} - t_i)}\right] \]</div>
+      <p>La <strong>aproximación de Black</strong> valúa dos opciones europeas y se queda con la mayor: una que vence en \(T\) y otra que vence justo antes de la última fecha ex-dividendo.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo (Hull, continuación)</p>
+        <p>Si el call anterior es americano: antes del primer dividendo, \(K[1 - e^{-0{,}09 \times 3/12}] = 0{,}89 \gt 0{,}50\), así que no conviene ejercer. Antes del segundo, \(K[1 - e^{-0{,}09 \times 1/12}] = 0{,}30 \lt 0{,}50\): podría convenir.</p>
+        <p>Call europeo que vence a los 5 meses (justo antes del segundo dividendo): \(S_0 - D = 40 - 0{,}50\,e^{-0{,}09 \times 2/12} = 39{,}5074\) y \(T = 5/12\), así que vale 3,52.</p>
+        <p>Aproximación de Black: \(C \approx \max(3{,}67;\ 3{,}52) = \mathbf{3{,}67}\).</p>
+      </div>
+
+      <div class="caja error">
+        <p class="caja-titulo">Errores frecuentes</p>
+        <ul>
+          <li><strong>Restar los dividendos sin descontar</strong> (\(S_0 - 1\) en lugar de \(S_0 - 0{,}9742\)).</li>
+          <li><strong>Incluir dividendos con fecha ex-dividendo posterior al vencimiento</strong>: no afectan a la opción.</li>
+          <li><strong>Usar Black-Scholes para un put americano.</strong> No hay fórmula cerrada; se usa un árbol.</li>
+        </ul>
+      </div>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="3">
+          <p class="qr-enunciado">¿Por qué el rendimiento esperado \(\mu\) no aparece en la ecuación de Black-Scholes-Merton?</p>
+          <ol class="qr-op">
+            <li>Porque se supone que \(\mu = 0\).</li>
+            <li>Porque la volatilidad ya incluye a \(\mu\).</li>
+            <li>Porque la cartera de la opción y \(\Delta\) acciones no tiene riesgo, y \(\mu\) se cancela al armarla.</li>
+          </ol>
+          <p class="qr-explicacion">Los términos con \(dz\) se cancelan, y con ellos \(\mu\). Por eso se puede valuar suponiendo \(\mu = r\).</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">Un call europeo vence en 6 meses y la acción paga un dividendo de 1 dentro de 8 meses. ¿Cómo se ajusta \(S_0\)?</p>
+          <ol class="qr-op">
+            <li>\(S_0 - 1\)</li>
+            <li>No se ajusta.</li>
+            <li>\(S_0 - e^{-r \times 8/12}\)</li>
+          </ol>
+          <p class="qr-explicacion">Solo se restan los dividendos con fecha ex-dividendo antes del vencimiento de la opción.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">En Black-Scholes, \(N(d_2)\) es…</p>
+          <ol class="qr-op">
+            <li>La probabilidad neutral al riesgo de que el call se ejerza.</li>
+            <li>La probabilidad real de que el call se ejerza.</li>
+            <li>El delta del call.</li>
+          </ol>
+          <p class="qr-explicacion">Está calculado con \(r\), no con \(\mu\). El delta del call es \(N(d_1)\).</p>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Las griegas</h2>
+
+      <p>Quien vende una opción a un cliente queda expuesto a varios riesgos: que se mueva el precio del subyacente, que cambie la volatilidad, que cambie la tasa. Las <strong>griegas</strong> miden la sensibilidad del valor de una opción, o de una cartera \(\Pi\), a cada una de esas variables. Sirven para saber cuánto riesgo se tiene y cómo cubrirlo.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">El ejemplo que vamos a usar (Hull)</p>
+        <p>Un banco vendió en 300.000 un call europeo sobre 100.000 acciones de una empresa que no paga dividendos. \(S_0 = 49\), \(K = 50\), \(r = 5\%\), \(\sigma = 20\%\), \(T = 20\) semanas (0,3846 años) y \(\mu = 13\%\). El precio de Black-Scholes es 2,40 por acción, es decir, 240.000: el banco cobró 60.000 por encima del valor teórico, pero tiene que cubrir el riesgo.</p>
+        <p>No hacer nada (posición <strong>descubierta</strong>) sale bien si la acción termina debajo de 50, pero si termina en 60 le cuesta 1.000.000. Comprar ya las 100.000 acciones (posición <strong>cubierta</strong>) sale bien si se ejerce, pero si la acción cae a 40 pierde 900.000 en las acciones. Ninguna de las dos es una buena cobertura. La respuesta es la cobertura delta.</p>
+      </div>
+
+      <h3>Delta</h3>
+      <div class="formula con-nombre"><span class="nombre-formula">Delta</span>\[ \Delta = \frac{\partial \Pi}{\partial S} \qquad\qquad \Delta_{\text{call}} = N(d_1) \qquad\qquad \Delta_{\text{put}} = N(d_1) - 1 \]</div>
+      <p>El delta de un call está entre 0 y 1; el de un put, entre −1 y 0. Si el activo paga un rendimiento \(q\): \(\Delta_{\text{call}} = e^{-qT}N(d_1)\) y \(\Delta_{\text{put}} = e^{-qT}[N(d_1) - 1]\).</p>
+      <p>En el ejemplo, \(\Delta = N(0{,}0542) = 0{,}522\). Para quedar <strong>delta neutral</strong>, el banco, vendido en 100.000 calls (delta de la posición: \(-52.200\)), tiene que comprar <strong>52.200 acciones</strong>. Si la acción sube $1, pierde unos 52.200 en los calls y gana 52.200 en las acciones.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Guía U6, ej. 12</p>
+        <p>Que el delta de un call sea 0,70 significa que, si la acción sube $1, el call sube aproximadamente $0,70. Una posición corta en 1.000 calls tiene delta \(-1.000 \times 0{,}70 = -700\). Para cubrirla se <strong>compran 700 acciones</strong> (delta \(+700\)):</p>
+        <div class="tabla-wrap">
+          <table class="tabla compacta">
+            <thead><tr><th>Posición</th><th class="num">Cantidad</th><th class="num">Delta unitario</th><th class="num">Delta total</th></tr></thead>
+            <tbody>
+              <tr><td>Calls vendidos</td><td class="num">−1.000</td><td class="num">0,70</td><td class="num">−700</td></tr>
+              <tr><td>Acciones compradas</td><td class="num">700</td><td class="num">1</td><td class="num">700</td></tr>
+              <tr class="total"><td>Cartera</td><td class="num"></td><td class="num"></td><td class="num">0</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Guía U6, ej. 13 y ej. 9</p>
+        <p><strong>Ej. 13.</strong> Call at the money a seis meses, \(r = 10\%\), \(\sigma = 25\%\): \(d_1 = \dfrac{0 + (0{,}10 + 0{,}25^2/2) \times 0{,}5}{0{,}25\sqrt{0{,}5}} = 0{,}3712\) y \(\Delta = N(0{,}3712) = 0{,}6448\). (La guía informa 0,6447 porque trunca el cuarto decimal.) Un call ATM tiene delta mayor que 0,5, porque \(d_1\) incluye \(r + \sigma^2/2\).</p>
+        <p><strong>Ej. 9.</strong> Put con \(S_0 = K = 50\), \(r = 10\%\), \(\sigma = 30\%\), tres meses: vale 2,38. \(N(d_1) = 0{,}5955\) es el delta del <strong>call</strong> (la "Delta = 0,60" de la respuesta de la guía); el delta del put es \(0{,}5955 - 1 = -0{,}4045\). Si la acción pasa a 51, el put baja a 2,00 (cae 0,38, cerca de lo que anticipaba su delta) y el call sube de 3,61 a 4,23 (sube 0,62, un poco más que 0,60 por efecto de la gamma).</p>
+      </div>
+
+      <p><strong>La cobertura delta es dinámica.</strong> El delta cambia con el precio y con el tiempo, así que la posición en acciones se rebalancea periódicamente. En el ejemplo de Hull, si en la primera semana la acción baja a 48,12, el delta cae a 0,458 y el banco vende 6.400 acciones. A lo largo de la vida de la opción, el banco compra después de las subas y vende después de las bajas. El costo total de cubrirse, traído a hoy, se parece al precio de Black-Scholes (240.000), y se parece más cuanto más seguido se rebalancea. Podés verlo en la <a href="u6-simulacion.html#cobertura-delta">simulación de cobertura delta</a>, que reproduce el ejemplo de Hull y su medida de desempeño (OFOD, tablas 19.2 a 19.4; en la edición en español, tablas 15.3 y 15.4).</p>
+
+      <h4>Delta de un forward y de un futuro (guía U6, ej. 17)</h4>
+      <p>Un forward largo sobre una acción sin dividendos vale \(f = S_0 - Ke^{-rT}\): si \(S_0\) sube $1, \(f\) sube $1. Su delta es <strong>1</strong>. Un futuro, en cambio, tiene precio \(F_0 = S_0e^{rT}\): si \(S_0\) sube $1, el precio futuro sube \(e^{rT}\), y como el futuro se ajusta todos los días, esa ganancia se cobra enseguida. El delta del futuro es <strong>\(e^{rT}\)</strong>, un poco mayor que el del forward, aunque los dos precios sean iguales. (Con rendimiento \(q\), el delta del futuro es \(e^{(r-q)T}\).)</p>
+      <p>Por eso, para lograr con futuros un delta equivalente a \(H_A\) unidades del activo hace falta una posición en futuros de \(H_F = e^{-rT}H_A\). Por ejemplo, con \(r = 8\%\) y futuros a nueve meses, el equivalente a 1.000 acciones son \(1.000\,e^{-0{,}06} = 941{,}76\) acciones en futuros.</p>
+
+      <h4>Delta de una cartera</h4>
+      <p>El delta de una cartera de opciones sobre el mismo subyacente es la suma de los deltas de cada posición, ponderados por la cantidad: \(\Delta_\Pi = \sum_i w_i\,\Delta_i\).</p>
+
+      <h3>Gamma</h3>
+      <div class="formula con-nombre"><span class="nombre-formula">Gamma (call y put)</span>\[ \Gamma = \frac{\partial^2 \Pi}{\partial S^2} = \frac{\partial \Delta}{\partial S} = \frac{N'(d_1)}{S_0\,\sigma\sqrt{T}} \qquad\qquad N'(x) = \frac{1}{\sqrt{2\pi}}\,e^{-x^2/2} \]</div>
+      <p>La gamma mide cuánto cambia el delta cuando se mueve el subyacente: es la "aceleración" del precio de la opción, la <strong>curvatura</strong> de la curva precio de la opción contra precio de la acción. En el ejemplo, \(\Gamma = 0{,}0655\): si la acción pasa de 49 a 50, el delta pasa de 0,522 a aproximadamente \(0{,}522 + 0{,}0655 = 0{,}587\).</p>
+
+      <figure class="figura">
+        <div class="svg-scroll"><!--SVG:gamma--></div>
+        <figcaption>La cobertura delta supone que el call se mueve sobre la recta tangente (pendiente Δ). Por la curvatura (gamma), ante un movimiento grande el call vale distinto: la diferencia es el error de cobertura.</figcaption>
+      </figure>
+
+      <p>Para una cartera delta neutral, en un intervalo corto:</p>
+      <div class="formula">\[ \Delta\Pi \approx \Theta\,\Delta t + \tfrac{1}{2}\,\Gamma\,(\Delta S)^2 \]</div>
+      <ul>
+        <li><strong>Gamma positiva</strong> (posiciones compradas en opciones): la cartera gana con los movimientos grandes del subyacente, para cualquier lado, y pierde de a poco si el precio no se mueve (theta negativa).</li>
+        <li><strong>Gamma negativa</strong> (posiciones vendidas en opciones): gana de a poco si el precio no se mueve y pierde con los movimientos grandes. Ejemplo de Hull: una cartera delta neutral con \(\Gamma = -10.000\) pierde aproximadamente \(\tfrac12 \times 10.000 \times 2^2 = 20.000\) si el subyacente se mueve 2 en cualquier sentido.</li>
+      </ul>
+      <p>La gamma es máxima para opciones <strong>cerca del dinero</strong> y aumenta a medida que se acerca el vencimiento: una opción ATM a punto de vencer pasa de delta 0 a delta 1 con un movimiento chico de la acción.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Guía U6, ej. 14 y 16</p>
+        <p><strong>Ej. 14.</strong> Una posición con delta cero y gamma grande y negativa (típicamente, vendida en opciones) está cubierta solo para movimientos chicos. Ante un movimiento grande del subyacente, <strong>en cualquier dirección</strong>, pierde, y pierde cada vez más rápido: el delta se mueve en su contra y la cobertura deja de servir. Lo que para el comprador es una ventaja (la convexidad) para el lanzador es una desventaja.</p>
+        <p><strong>Ej. 16.</strong> Una empresa cubre en delta una cartera de posiciones <strong>largas</strong> en calls y puts sobre una divisa: tiene gamma positiva. Le resultan más favorables las <strong>grandes variaciones</strong> en el tipo de cambio (opción b): con gamma positiva, el delta subestima las ganancias y sobrestima las pérdidas.</p>
+      </div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Guía U6, ej. 18</p>
+        <p>La posición de un banco en opciones sobre el tipo de cambio (dólares por euro) tiene delta 30.000 y gamma −80.000, con el tipo de cambio en 0,90.</p>
+        <ul>
+          <li><strong>Interpretación.</strong> Si el tipo de cambio sube 0,01, la posición gana aproximadamente \(30.000 \times 0{,}01 = 300\) dólares (se comporta como 30.000 euros comprados), y el delta baja en \(80.000 \times 0{,}01 = 800\).</li>
+          <li><strong>Delta neutral.</strong> Hay que vender (<em>short</em>) 30.000 euros.</li>
+          <li><strong>Si el tipo de cambio pasa a 0,93.</strong> Nuevo delta \(\approx 30.000 + (-80.000) \times 0{,}03 = 27.600\). La venta de 30.000 euros ahora sobra: hay que <strong>comprar 2.400 euros</strong> para quedar vendido en 27.600.</li>
+          <li><strong>Resultado de la cobertura.</strong> Perdió dinero, por la gamma negativa: \(\Delta\Pi \approx \tfrac12 \times (-80.000) \times 0{,}03^2 = -36\) dólares (sin contar el efecto del tiempo).</li>
+        </ul>
+      </div>
+
+      <p><strong>Neutralizar la gamma.</strong> La acción y los forwards tienen gamma cero: para cambiar la gamma de una cartera hace falta una opción. Si la cartera tiene gamma \(\Gamma\) y una opción negociada tiene gamma \(\Gamma_T\), hay que agregar \(-\Gamma/\Gamma_T\) opciones, y después reajustar el delta con acciones. Ejemplo (Hull): una cartera delta neutral con \(\Gamma = -3.000\) y una opción con \(\Delta = 0{,}62\) y \(\Gamma = 1{,}50\): se compran \(3.000/1{,}50 = 2.000\) opciones, que agregan un delta de \(2.000 \times 0{,}62 = 1.240\), así que se venden 1.240 acciones.</p>
+
+      <h3>Theta</h3>
+      <div class="formula con-nombre"><span class="nombre-formula">Theta (por año)</span>\[ \Theta_{\text{call}} = -\frac{S_0\,N'(d_1)\,\sigma}{2\sqrt{T}} - rKe^{-rT}N(d_2) \qquad\qquad \Theta_{\text{put}} = -\frac{S_0\,N'(d_1)\,\sigma}{2\sqrt{T}} + rKe^{-rT}N(-d_2) \]</div>
+      <p>La theta mide cuánto cambia el valor de la posición con el paso del tiempo, si todo lo demás queda igual: es el <strong>decaimiento temporal</strong>. Las fórmulas dan theta <strong>por año</strong>; por día calendario se divide por 365 y por día hábil, por 252.</p>
+      <p>En el ejemplo, \(\Theta = -4{,}31\) por año, es decir, \(-4{,}31/365 = -0{,}0118\) por día calendario (\(-0{,}0171\) por día hábil). Si pasa un día y nada más cambia, el call pierde algo más de un centavo por acción.</p>
+      <p>La theta de una opción comprada suele ser negativa: al acortarse el plazo, se pierde valor tiempo. Es más negativa para las opciones cerca del dinero. (Una excepción: un put europeo muy dentro del dinero puede tener theta positiva.) La theta no es un riesgo que se cubra, porque el paso del tiempo es seguro; pero en una cartera delta neutral funciona como espejo de la gamma.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Guía U6, ej. 15</p>
+        <p>Una theta de −0,1 con el tiempo medido en años significa que, si nada más cambia, la posición pierde 0,1 de valor por año que pasa; en un día, \(0{,}1/365 = 0{,}00027\). Si un operador cree que no van a cambiar ni el precio de la acción ni su volatilidad implícita, le conviene <strong>vender opciones</strong> (theta positiva), en especial las de mayor theta: cerca del dinero y de corto plazo. Es una apuesta a gamma negativa: pierde si el precio se mueve mucho.</p>
+      </div>
+
+      <h3>Vega</h3>
+      <div class="formula con-nombre"><span class="nombre-formula">Vega (call y put)</span>\[ \mathcal{V} = \frac{\partial \Pi}{\partial \sigma} = S_0\sqrt{T}\,N'(d_1) \]</div>
+      <p>La vega mide la sensibilidad a la volatilidad. (No es una letra griega, pero el nombre quedó.) En el ejemplo, \(\mathcal{V} = 12{,}1\): si la volatilidad pasa de 20 % a 21 % (\(+0{,}01\)), el call sube unos \(12{,}1 \times 0{,}01 = 0{,}121\). Las opciones compradas tienen vega positiva; la acción tiene vega cero. Para neutralizar a la vez gamma y vega hacen falta, en general, dos opciones distintas.</p>
+
+      <h3>Rho</h3>
+      <div class="formula con-nombre"><span class="nombre-formula">Rho</span>\[ \rho_{\text{call}} = K\,T\,e^{-rT}N(d_2) \qquad\qquad \rho_{\text{put}} = -K\,T\,e^{-rT}N(-d_2) \]</div>
+      <p>La rho mide la sensibilidad a la tasa de interés. En el ejemplo, \(\rho = 8{,}91\): si la tasa pasa de 5 % a 6 %, el call sube unos 0,089. Una tasa más alta abarata el valor presente del strike: beneficia al call y perjudica al put.</p>
+
+      <h3>Relación entre las griegas</h3>
+      <p>Escrita con griegas, la ecuación diferencial de Black-Scholes-Merton dice que, para cualquier cartera de derivados sobre una acción sin dividendos:</p>
+      <div class="formula">\[ \Theta + r\,S\,\Delta + \tfrac{1}{2}\,\sigma^2 S^2\,\Gamma = r\,\Pi \]</div>
+      <p>En el ejemplo: \(-4{,}3053 + 0{,}05 \times 49 \times 0{,}5216 + \tfrac12 \times 0{,}04 \times 49^2 \times 0{,}0655 = -4{,}3053 + 1{,}2779 + 3{,}1474 = 0{,}1200\), y \(r\,\Pi = 0{,}05 \times 2{,}4005 = 0{,}1200\). En una cartera delta neutral queda \(\Theta + \tfrac12\sigma^2S^2\Gamma = r\Pi\): cuando la theta es grande y positiva, la gamma es grande y negativa, y al revés.</p>
+
+      <h3>Resumen de signos</h3>
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th>Posición</th><th class="num">Delta</th><th class="num">Gamma</th><th class="num">Theta</th><th class="num">Vega</th><th class="num">Rho</th></tr></thead>
+          <tbody>
+            <tr><td>Long call</td><td class="num pos">+</td><td class="num pos">+</td><td class="num neg">−</td><td class="num pos">+</td><td class="num pos">+</td></tr>
+            <tr><td>Short call</td><td class="num neg">−</td><td class="num neg">−</td><td class="num pos">+</td><td class="num neg">−</td><td class="num neg">−</td></tr>
+            <tr><td>Long put</td><td class="num neg">−</td><td class="num pos">+</td><td class="num neg">− (casi siempre)</td><td class="num pos">+</td><td class="num neg">−</td></tr>
+            <tr><td>Short put</td><td class="num pos">+</td><td class="num neg">−</td><td class="num pos">+ (casi siempre)</td><td class="num neg">−</td><td class="num pos">+</td></tr>
+            <tr><td>Acción comprada</td><td class="num">1</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th>Griega (acción sin dividendos)</th><th>Call europeo</th><th>Put europeo</th><th>Ejemplo de Hull (call)</th></tr></thead>
+          <tbody>
+            <tr><td>Delta</td><td>\(N(d_1)\)</td><td>\(N(d_1) - 1\)</td><td>0,522</td></tr>
+            <tr><td>Gamma</td><td colspan="2">\(N'(d_1)/(S_0\sigma\sqrt{T})\)</td><td>0,0655</td></tr>
+            <tr><td>Theta (por año)</td><td>\(-\frac{S_0N'(d_1)\sigma}{2\sqrt{T}} - rKe^{-rT}N(d_2)\)</td><td>\(-\frac{S_0N'(d_1)\sigma}{2\sqrt{T}} + rKe^{-rT}N(-d_2)\)</td><td>−4,31 (−0,0118 por día)</td></tr>
+            <tr><td>Vega</td><td colspan="2">\(S_0\sqrt{T}\,N'(d_1)\)</td><td>12,1 (0,121 por punto)</td></tr>
+            <tr><td>Rho</td><td>\(KTe^{-rT}N(d_2)\)</td><td>\(-KTe^{-rT}N(-d_2)\)</td><td>8,91 (0,089 por punto)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="caja error">
+        <p class="caja-titulo">Errores frecuentes</p>
+        <ul>
+          <li><strong>Mezclar unidades</strong>: la theta de la fórmula es por año (hay que dividir por 365 o por 252 para tenerla por día) y la vega y la rho son por 1,00 de cambio (100 puntos): para un punto porcentual se multiplica por 0,01.</li>
+          <li><strong>Creer que una cartera delta neutral no tiene riesgo.</strong> Está cubierta solo ante movimientos chicos; la gamma, la vega y el paso del tiempo siguen actuando.</li>
+          <li><strong>Usar el delta del call para el put</strong> (como la respuesta "0,60" de la guía, ej. 9): el delta del put es \(N(d_1) - 1\).</li>
+          <li><strong>Cubrir con futuros como si fueran forwards</strong>: el delta de un futuro es \(e^{rT}\), no 1.</li>
+        </ul>
+      </div>
+
+      <p>En el <a href="u6-simulacion.html#black-scholes">explorador de griegas</a> podés ver cómo cambian delta, gamma, theta y vega con el precio, el plazo y la volatilidad.</p>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">Vendiste 1.000 calls con delta 0,7. ¿Cómo quedás delta neutral?</p>
+          <ol class="qr-op">
+            <li>Vendiendo 700 acciones.</li>
+            <li>Comprando 700 acciones.</li>
+            <li>Comprando 300 acciones.</li>
+          </ol>
+          <p class="qr-explicacion">La posición tiene delta \(-700\); se compensa con \(+700\) acciones (guía, ej. 12).</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">¿Qué posición tiene delta positivo y gamma negativa?</p>
+          <ol class="qr-op">
+            <li>Short put.</li>
+            <li>Long call.</li>
+            <li>Short call.</li>
+          </ol>
+          <p class="qr-explicacion">El lanzador de un put gana si la acción sube (delta +) y, como toda posición vendida en opciones, tiene gamma negativa.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="3">
+          <p class="qr-enunciado">Un call tiene theta de −4,31 por año. ¿Cuánto pierde, aproximadamente, en un día calendario si nada más cambia?</p>
+          <ol class="qr-op">
+            <li>4,31</li>
+            <li>0,0171</li>
+            <li>0,0118</li>
+          </ol>
+          <p class="qr-explicacion">\(4{,}31/365 = 0{,}0118\). Dividir por 252 da la theta por día hábil.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">¿Dónde es máxima la gamma de un call europeo?</p>
+          <ol class="qr-op">
+            <li>Muy dentro del dinero y con mucho plazo.</li>
+            <li>Cerca del dinero y cerca del vencimiento.</li>
+            <li>Muy fuera del dinero.</li>
+          </ol>
+          <p class="qr-explicacion">Cerca del dinero el delta cambia rápido, y más cuanto menos plazo queda.</p>
+        </div>
+      </div>
+
+      <div class="caja argentina">
+        <p class="caja-titulo">En Argentina: valuar las opciones de BYMA</p>
+        <p>Las opciones sobre acciones de BYMA (Unidad V) son <strong>americanas</strong> y sus subyacentes suelen pagar dividendos. Para valuarlas con lo de esta unidad hay que tener en cuenta tres cosas:</p>
+        <ul>
+          <li><strong>El modelo.</strong> Black-Scholes vale para europeas. Para un put americano, o para un call cuando hay un dividendo antes del vencimiento, se usa un árbol binomial (con el dividendo descontado del precio) o, para el call, la aproximación de Black.</li>
+          <li><strong>La tasa.</strong> Como \(r\) se usa una tasa en pesos de corto plazo y al plazo de la opción; por ejemplo, la de caución bursátil.</li>
+          <li><strong>La volatilidad.</strong> Se puede estimar con la volatilidad histórica de la acción (con los cierres diarios y 252 ruedas al año) o despejar la volatilidad implícita de las primas publicadas, con la caja de herramientas. Si se comparan las implícitas de distintos strikes del mismo vencimiento, casi nunca son iguales: es la <em>sonrisa de volatilidad</em>, una señal de que el mercado no cree del todo en el supuesto de volatilidad constante.</li>
+        </ul>
+        <p>Como las primas se cotizan por acción y cada contrato es de 100 acciones, el delta de un contrato es \(100 \times \Delta\): para cubrir 10 calls vendidos con delta 0,60 hacen falta 600 acciones.</p>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Resumen</h2>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">Para recordar</p>
+        <ul>
+          <li>Se valúa por replicación: dos carteras con los mismos pagos valen lo mismo (ley del precio único).</li>
+          <li>Binomial de un paso: \(\Delta = \frac{C_u - C_d}{S_0(u-d)}\), \(C_0 = \Delta S_0 + B\).</li>
+          <li>Neutral al riesgo: \(C_0 = e^{-rT}[p C_u + (1-p) C_d]\) con \(p = \frac{e^{rT} - d}{u - d}\) (con rendimiento \(q\): \(e^{(r-q)\Delta t}\); futuros: \(p = \frac{1-d}{u-d}\)).</li>
+          <li>Precios de Arrow-Debreu: \(\pi_j = e^{-rT}\binom{n}{j}p^j(1-p)^{n-j}\); \(V_0 = \sum \pi_j\,\text{payoff}_j\); \(\sum\pi_j = e^{-rT}\).</li>
+          <li>Calibración: \(u = e^{\sigma\sqrt{\Delta t}}\), \(d = 1/u\). Debe cumplirse \(d \lt e^{r\Delta t} \lt u\).</li>
+          <li>Americanas: en cada nodo, el máximo entre ejercer y mantener. El \(\Delta\) cambia de nodo en nodo: la cobertura es dinámica.</li>
+          <li>Proceso de Wiener: \(\Delta z = \varepsilon\sqrt{\Delta t}\); varianza \(T\). MBG: \(dS = \mu S\,dt + \sigma S\,dz\). Lema de Itô: \(d\ln S = (\mu - \sigma^2/2)\,dt + \sigma\,dz\).</li>
+          <li>Lognormal: \(\ln S_T \sim N[\ln S_0 + (\mu - \sigma^2/2)T;\ \sigma\sqrt{T}]\), \(E(S_T) = S_0e^{\mu T}\). Probabilidad real de ejercicio: \(N(\hat d_2)\) con \(\mu\).</li>
+          <li>Volatilidad histórica: \(\hat\sigma = s/\sqrt{\tau}\) con rendimientos logarítmicos y 252 días hábiles; error estándar \(\hat\sigma/\sqrt{2n}\).</li>
+          <li>Ecuación BSM: \(f_t + rSf_S + \tfrac12\sigma^2S^2f_{SS} = rf\); no depende de \(\mu\).</li>
+          <li>Black-Scholes: \(c = S_0 N(d_1) - K e^{-rT} N(d_2)\), con \(N(d_1) = \Delta\) y \(N(d_2)\) la probabilidad neutral al riesgo de ejercicio. Dividendos: \(S_0e^{-qT}\) o \(S_0 - D\); calls americanos: aproximación de Black.</li>
+          <li>Griegas: \(\Delta\) (call \(N(d_1)\), put \(N(d_1) - 1\)), \(\Gamma\), \(\Theta\) (por año), vega, rho; \(\Theta + rS\Delta + \tfrac12\sigma^2S^2\Gamma = r\Pi\). Delta de un forward: 1; de un futuro: \(e^{rT}\).</li>
+        </ul>
+      </div>
+
+      <div class="caja hull">
+        <p class="caja-titulo">Para leer en Hull</p>
+        <p><strong>Edición en español</strong> (<em>Introducción a los mercados de futuros y opciones</em>): capítulo 10 (árboles binomiales: un paso, valuación neutral al riesgo, dos pasos, opciones americanas, delta y árboles en la práctica); capítulo 11 (el modelo Black-Scholes: modelo lognormal, rendimiento esperado, 11.3 volatilidad y su estimación con la tabla 11.1, supuestos, análisis de Black-Scholes, fórmulas, valuación neutral al riesgo, volatilidad implícita, dividendos y aproximación de Black); capítulo 15 (las letras griegas: cobertura delta con las tablas 15.3 y 15.4, theta, gamma, relación entre delta, theta y gamma, vega y rho).</p>
+        <p><strong><em>Options, Futures and Other Derivatives</em></strong>: cap. 13 (<em>Binomial trees</em>), cap. 14 (<em>Wiener processes and Itô's lemma</em>), cap. 15 (<em>The Black-Scholes-Merton model</em>) y cap. 19 (<em>The Greek letters</em>).</p>
+      </div>
+    </article>
+  </main>
+
+  <nav class="pie-navegacion" id="pie-navegacion"></nav>
+
+  <script src="vendor/katex/katex.min.js"></script>
+  <script src="vendor/katex/contrib/auto-render.min.js"></script>
+  <script src="vendor/chartjs/chart.umd.min.js"></script>
+  <script src="js/calculos.js"></script>
+  <script src="js/comun.js"></script>
+</body>
+</html>

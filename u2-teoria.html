@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Cobertura y especulación con futuros · Teoría</title>
+  <link rel="stylesheet" href="vendor/fuentes/fuentes.css">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="css/libro.css">
+</head>
+<body data-unidad="u2" data-seccion="teoria">
+  <div id="encabezado"></div>
+
+  <main class="pagina con-indice">
+    <aside class="indice" id="indice"></aside>
+
+    <article class="contenido">
+      <h1>Estrategias de cobertura y especulación con futuros</h1>
+      <p class="bajada">Cómo usar forwards y futuros para fijar un precio, por qué la cobertura casi nunca es perfecta (riesgo de base), cuántos contratos conviene tomar, cómo cubrir o modificar la beta de una cartera de acciones y qué cambia cuando el objetivo es especular.</p>
+      <span class="etiqueta-hull">Hull OFOD cap. 3 (cronograma)</span>
+      <span class="etiqueta-hull">Cap. 4 en la edición en español del material</span>
+
+      <div class="objetivos">
+        <p>Objetivos de la unidad</p>
+        <ul>
+          <li>Decidir si una exposición se cubre con una posición corta o larga en futuros y calcular el resultado de la cobertura.</li>
+          <li>Discutir cuándo conviene cubrirse y cuándo no, más allá de la reducción del riesgo.</li>
+          <li>Calcular la base, el precio efectivo \(F_1 + b_2\) y explicar el efecto de un fortalecimiento o un debilitamiento de la base.</li>
+          <li>Estimar el ratio de cobertura de mínima varianza y el número óptimo de contratos, con y sin ajuste por liquidación diaria.</li>
+          <li>Cubrir una cartera de acciones con futuros sobre índices y cambiar su beta.</li>
+          <li>Entender el rolleo de coberturas, el riesgo de liquidez que genera y el apalancamiento de la especulación con futuros.</li>
+        </ul>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Principios básicos de la cobertura</h2>
+
+      <p>Un <strong>coberturista</strong> (<em>hedger</em>) es alguien que ya tiene una exposición al precio de un activo por su propio negocio y usa derivados para <strong>neutralizarla</strong>. El productor de petróleo pierde si el petróleo baja; la fábrica que compra cobre pierde si el cobre sube; el importador pierde si sube el dólar. Una cobertura (<em>hedge</em>) agrega una posición en futuros cuyo resultado se mueve al revés que el negocio: cuando el negocio pierde, el futuro gana, y viceversa.</p>
+
+      <p>En esta unidad estudiamos coberturas <strong>estáticas</strong> (Hull las llama <em>hedge and forget</em>, "cubrir y olvidarse"): se abre la posición en futuros al principio y se cierra al final, sin ajustarla en el medio. Una <strong>cobertura perfecta</strong> elimina todo el riesgo; en la práctica son raras, y buena parte de la unidad trata de cómo acercarse a ella.</p>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">Definición</p>
+        <p>Una <strong>cobertura corta</strong> (<em>short hedge</em>) consiste en <strong>vender</strong> futuros. Es la adecuada cuando el coberturista <strong>va a vender</strong> el activo en el futuro (ya lo tiene o lo va a tener): gana si el precio sube y pierde si baja, así que necesita una posición que gane cuando el precio baja.</p>
+        <p>Una <strong>cobertura larga</strong> (<em>long hedge</em>) consiste en <strong>comprar</strong> futuros. Es la adecuada cuando el coberturista <strong>va a comprar</strong> el activo en el futuro: pierde si el precio sube, así que necesita una posición que gane cuando el precio sube.</p>
+      </div>
+
+      <p>Una regla práctica: <strong>la cobertura toma en futuros la posición opuesta a la que tenés en el activo</strong>. Si vas a vender, estás "largo" en el activo (te conviene que suba): vendés futuros. Si vas a comprar, estás "corto" (te conviene que baje): comprás futuros.</p>
+
+      <h3>Cobertura corta: un productor de petróleo</h3>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: cobertura corta</p>
+        <p>Es 15 de mayo. Una petrolera acordó vender 1.000.000 de barriles el 15 de agosto, al precio contado de ese día. Hoy el contado está a USD 72,00 y el futuro de agosto a USD 70,50 por barril. Cada contrato es por 1.000 barriles, así que la empresa <strong>vende 1.000 contratos</strong> de agosto y los cierra el 15 de agosto. Como agosto es el mes de entrega, ese día el futuro cotiza prácticamente igual que el contado.</p>
+        <div class="tabla-wrap">
+          <table class="tabla">
+            <thead><tr><th>15 de agosto</th><th class="num">Precio baja a 64,00</th><th class="num">Precio sube a 78,00</th></tr></thead>
+            <tbody>
+              <tr><td>Venta del petróleo al contado</td><td class="num">64.000.000</td><td class="num">78.000.000</td></tr>
+              <tr><td>Resultado de los futuros: \((70{,}50 - S_2) \times 1.000.000\)</td><td class="num pos">+6.500.000</td><td class="num neg">−7.500.000</td></tr>
+              <tr class="total"><td>Total</td><td class="num">70.500.000</td><td class="num">70.500.000</td></tr>
+              <tr><td>Precio por barril</td><td class="num">70,50</td><td class="num">70,50</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Pase lo que pase, la empresa termina cobrando USD 70,50 por barril: el precio del futuro que vendió el 15 de mayo.</p>
+      </div>
+
+      <figure class="figura">
+        <div class="svg-scroll">
+          <svg viewBox="0 0 640 300" role="img" aria-label="Ingreso por barril con y sin cobertura en función del precio de agosto">
+            <line x1="70" y1="260" x2="610" y2="260" class="s-trazo" stroke-width="1.2"/>
+            <line x1="70" y1="30" x2="70" y2="260" class="s-trazo" stroke-width="1.2"/>
+            <g font-size="12" text-anchor="middle" class="s-suave">
+              <text x="70" y="276">55</text><text x="158.3" y="276">60</text><text x="246.7" y="276">65</text><text x="335" y="276">70</text><text x="423.3" y="276">75</text><text x="511.7" y="276">80</text><text x="600" y="276">85</text>
+            </g>
+            <g font-size="12" text-anchor="end" class="s-suave">
+              <text x="62" y="227">60</text><text x="62" y="190">65</text><text x="62" y="154">70</text><text x="62" y="117">75</text><text x="62" y="81">80</text>
+            </g>
+            <text x="340" y="296" font-size="12.5" text-anchor="middle" class="s-suave">Precio contado del petróleo el 15 de agosto (S₂)</text>
+            <text x="76" y="24" font-size="12.5" class="s-suave">USD por barril cobrados</text>
+            <line x1="70" y1="260" x2="600" y2="40" class="s-trazo" stroke-width="2" stroke-dasharray="7 5"/>
+            <line x1="70" y1="146.3" x2="600" y2="146.3" class="s-acento-trazo" stroke-width="3"/>
+            <rect x="227.5" y="154" width="3" height="40" class="s-ganancia"/>
+            <polygon points="222,157 236,157 229,146.3" class="s-ganancia"/>
+            <rect x="474.8" y="91.3" width="3" height="46" class="s-perdida"/>
+            <polygon points="469.3,136 483.3,136 476.3,146.3" class="s-perdida"/>
+            <circle cx="229" cy="194" r="4.5" class="s-acento"/>
+            <circle cx="476.3" cy="91.3" r="4.5" class="s-acento"/>
+            <text x="220" y="176" font-size="13" text-anchor="end" class="s-texto">+6,50 de los futuros</text>
+            <text x="486" y="116" font-size="13" class="s-texto">−7,50 de los futuros</text>
+            <text x="330" y="72" font-size="13" class="s-texto">Sin cobertura: cobra S₂</text>
+            <text x="470" y="170" font-size="13" font-weight="700" class="s-texto">Con cobertura: 70,50</text>
+          </svg>
+        </div>
+        <figcaption>La venta sin cubrir (línea punteada) sube y baja con el precio de agosto. Los futuros vendidos suman lo que falta cuando el precio baja y restan lo que sobra cuando sube: el ingreso total queda fijo en 70,50.</figcaption>
+      </figure>
+
+      <h3>Cobertura larga: un comprador de cobre</h3>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: cobertura larga</p>
+        <p>Es 15 de enero. Un fabricante de cables va a necesitar 100.000 libras de cobre el 15 de mayo. El contado está a USD 4,30 por libra y el futuro de mayo a USD 4,20. Cada contrato es por 25.000 libras: el fabricante <strong>compra 4 contratos</strong> de mayo y los cierra el 15 de mayo.</p>
+        <div class="tabla-wrap">
+          <table class="tabla">
+            <thead><tr><th>15 de mayo</th><th class="num">Cobre sube a 4,60</th><th class="num">Cobre baja a 3,90</th></tr></thead>
+            <tbody>
+              <tr><td>Compra del cobre al contado</td><td class="num">−460.000</td><td class="num">−390.000</td></tr>
+              <tr><td>Resultado de los futuros: \((S_2 - 4{,}20) \times 100.000\)</td><td class="num pos">+40.000</td><td class="num neg">−30.000</td></tr>
+              <tr class="total"><td>Costo neto</td><td class="num">−420.000</td><td class="num">−420.000</td></tr>
+              <tr><td>Costo por libra</td><td class="num">4,20</td><td class="num">4,20</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>El costo queda fijo en USD 4,20 por libra. ¿Por qué no comprar el cobre hoy al contado? Porque pagaría 4,30, tendría que financiar la compra cuatro meses y guardar el cobre. Comprar futuros evita esos costos; solo conviene tener el físico si se lo necesita antes (lo que Hull llama el <em>rendimiento de conveniencia</em>, que se ve en la Unidad III).</p>
+      </div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo de la cátedra: cubrir una compra de trigo en un mercado invertido</p>
+        <p>En 3 meses hay que comprar 50 toneladas de trigo. Hoy el contado está a 220 y el futuro a 3 meses a 200: el futuro cotiza <strong>por debajo</strong> del contado, el mercado está en <em>backwardation</em> (invertido). Con una cobertura larga se compran futuros a 200.</p>
+        <p>Si al vencimiento \(S_T = F_T = 195\), se compra el trigo a 195 y se pierden 5 en el futuro: costo 200. Si \(S_T = F_T = 205\), se paga 205 y se ganan 5: costo 200. En los dos casos el precio queda fijo en 200.</p>
+        <p>Fijar 200 cuando el contado vale 220 parece un buen negocio, pero el futuro no es "barato" por casualidad: está por debajo del contado porque tener trigo hoy vale más que tenerlo dentro de 3 meses (escasez, necesidad de abastecerse). Ese beneficio de tener el físico es el <strong>rendimiento de conveniencia</strong>, que puede cambiar la decisión de cómo cubrirse. Lo vemos más abajo.</p>
+      </div>
+      <h3>Qué se logra y qué se resigna</h3>
+      <ul>
+        <li><strong>Se logra fijar un precio:</strong> aproximadamente el precio del futuro al momento de cubrirse, \(F_1\). Ojo: <strong>no</strong> el precio contado de hoy. La petrolera fijó 70,50, no 72,00; el fabricante fijó 4,20, no 4,30.</li>
+        <li><strong>Se resigna el escenario favorable:</strong> si el petróleo sube a 78, la petrolera sin cubrir habría cobrado 78; cubierta, cobra 70,50. La cobertura elimina tanto las malas sorpresas como las buenas. Para quedarse con el escenario favorable y protegerse del malo hay que pagar una prima: eso es una opción (Unidad V).</li>
+        <li><strong>Se asume un riesgo de liquidez:</strong> los futuros se liquidan todos los días. Si el precio se mueve en contra de la posición en futuros, hay que poner dinero en la cuenta de margen <em>antes</em> de cobrar la compensación del negocio físico.</li>
+      </ul>
+
+      <p>La misma cobertura puede hacerse con un <strong>forward</strong> acordado con un banco. El forward se hace a medida (cantidad, fecha y activo exactos) y no tiene márgenes diarios, pero tiene riesgo de contraparte y es más difícil de cerrar antes de tiempo. El futuro es estandarizado y líquido, pero casi nunca coincide exactamente con la exposición: de esa diferencia nace el <strong>riesgo de base</strong>.</p>
+
+      <div class="caja error">
+        <p class="caja-titulo">Errores frecuentes</p>
+        <ul>
+          <li>Creer que la cobertura "asegura el precio de hoy". Asegura el precio <strong>futuro</strong> \(F_1\) (más la base final, como vamos a ver).</li>
+          <li>Elegir el lado por intuición ("me preocupa que baje, compro"). Preguntate qué vas a hacer con el activo: si lo vas a vender, vendés futuros; si lo vas a comprar, comprás futuros.</li>
+          <li>Evaluar la cobertura mirando solo la pata de futuros. La pérdida en futuros de la petrolera cuando el petróleo sube no es un error: se compensa con lo que gana en la venta física.</li>
+        </ul>
+      </div>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">Una minera va a vender 5.000 toneladas de cobre dentro de cuatro meses. ¿Cómo se cubre con futuros?</p>
+          <ol class="qr-op">
+            <li>Compra futuros de cobre: cobertura larga.</li>
+            <li>Vende futuros de cobre: cobertura corta.</li>
+            <li>No necesita cubrirse, porque el cobre ya es suyo.</li>
+          </ol>
+          <p class="qr-explicacion">La minera pierde si el cobre baja. La posición que gana cuando el precio baja es la venta de futuros: una cobertura corta.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="3">
+          <p class="qr-enunciado">El fabricante del ejemplo compró futuros a 4,20. En mayo el cobre cotiza a 3,90. ¿Qué pasó?</p>
+          <ol class="qr-op">
+            <li>Pagó 3,90 por libra: la cobertura no se usó.</li>
+            <li>Pagó 4,30 por libra, el contado de enero.</li>
+            <li>Pagó 3,90 en el contado y perdió 0,30 en los futuros: el costo neto es 4,20.</li>
+          </ol>
+          <p class="qr-explicacion">La cobertura funciona en los dos sentidos: el ahorro en el contado se compensa con la pérdida en los futuros. El costo neto es el precio del futuro de mayo, 4,20.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">¿Qué resigna una empresa que se cubre con futuros?</p>
+          <ol class="qr-op">
+            <li>La ganancia que obtendría si el precio se moviera a su favor.</li>
+            <li>La prima que paga para entrar en el contrato.</li>
+            <li>Nada: la cobertura con futuros solo tiene ventajas.</li>
+          </ol>
+          <p class="qr-explicacion">Entrar en un futuro no cuesta una prima (solo se deposita un margen). Lo que se resigna es el escenario favorable: el precio queda fijo para bien y para mal.</p>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>¿Cubrirse o no? Argumentos a favor y en contra</h2>
+
+      <p>El argumento a favor es simple: la mayoría de las empresas se dedican a producir, comerciar o prestar servicios, no a pronosticar el precio del petróleo, la tasa de interés o el tipo de cambio. Tiene sentido que cubran esos riesgos y se concentren en lo que saben hacer. La cobertura además reduce la probabilidad de caer en dificultades financieras por una mala racha de precios y hace más previsible el flujo de fondos para planificar inversiones. Aun así, en la práctica muchos riesgos se dejan sin cubrir. Hull da varias razones.</p>
+
+      <h3>Los accionistas pueden diversificar</h3>
+      <p>Un argumento en contra es que los accionistas pueden cubrirse por su cuenta, o mejor todavía, <strong>diversificar</strong>: quien tiene acciones de una empresa que compra cobre y también de una que lo produce queda poco expuesto al precio del cobre. Si la empresa actúa a favor de accionistas bien diversificados, cubrirse sería innecesario.</p>
+      <p>El argumento tiene límites. Supone que los accionistas conocen los riesgos de la empresa tan bien como la dirección, lo que casi nunca pasa. Además, cubrirse cuesta menos por peso cubierto cuando se hace en grande, y muchos contratos de futuros son demasiado grandes para un inversor individual.</p>
+
+      <h3>La competencia y la industria</h3>
+      <p>Si en una industria nadie se cubre, los precios de venta suelen acompañar los costos: cuando sube la materia prima, todos suben sus precios. La empresa que no se cubre tiene un <strong>margen</strong> estable. La que se cubre, en cambio, queda con el costo fijo mientras sus precios de venta siguen al mercado: <strong>su margen pasa a fluctuar</strong>.</p>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th>Precio del oro</th><th>Precio de las joyas</th><th>Margen del joyero que no se cubre (como el resto)</th><th>Margen del joyero que se cubre</th></tr></thead>
+          <tbody>
+            <tr><td>Sube</td><td>Sube</td><td>No cambia</td><td class="pos">Sube</td></tr>
+            <tr><td>Baja</td><td>Baja</td><td>No cambia</td><td class="neg">Baja (puede volverse negativo)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>La lección es mirar el cuadro completo: lo que hay que cubrir es el riesgo sobre el <strong>resultado</strong> de la empresa, no el precio de un insumo aislado.</p>
+
+      <h3>Con cobertura, el resultado ex post puede ser peor</h3>
+      <p>Volvé a la petrolera. Si el petróleo baja, el tesorero queda como un genio: la empresa pierde en la venta física y gana en futuros. Si el petróleo sube a 78, la empresa pierde USD 7,5 millones en futuros. Esa pérdida está más que compensada por lo que ganó de más al vender el petróleo, pero en el directorio la conversación suele ser otra: "perdimos 7,5 millones jugando con futuros". Hull lo ilustra con un diálogo entre el presidente y el tesorero que termina sin bonificación para el tesorero.</p>
+      <p>La cobertura reduce el riesgo de la empresa, pero puede aumentar el riesgo <strong>personal</strong> de quien la ejecuta si el resto de la organización no la entiende. La solución es que la política de cobertura la apruebe el directorio, por escrito y antes de operar, y que se evalúe el resultado <strong>conjunto</strong> (negocio más derivados), nunca la pata de derivados sola.</p>
+
+      <h3>El tratamiento contable</h3>
+      <p>Los futuros se valúan a mercado todos los días. Si el resultado del derivado se reconoce en el estado de resultados de un trimestre y el de la operación cubierta (la venta de agosto) en el siguiente, los balances muestran ganancias y pérdidas que en la economía de la empresa se compensan. Para evitarlo, las normas contables prevén la <strong>contabilidad de coberturas</strong> (<em>hedge accounting</em>; en las NIIF, la NIIF 9): si la cobertura está designada y documentada desde el inicio y es eficaz, el resultado del derivado se reconoce en el mismo período que el de la partida cubierta. Sin esa designación, una empresa bien cubierta puede mostrar resultados contables más volátiles que una sin cubrir, y eso desalienta coberturas razonables.</p>
+
+      <!-- ================================================================== -->
+      <h2>Riesgo de base</h2>
+
+      <p>Los ejemplos anteriores fueron casi demasiado buenos: el coberturista conocía la fecha exacta, el activo era el mismo que el del futuro y la cobertura se cerraba en el mes de entrega. En la práctica aparecen tres problemas:</p>
+      <ol>
+        <li>El activo que se quiere cubrir no es exactamente el subyacente del futuro (combustible de aviones cubierto con futuros de <em>heating oil</em>).</li>
+        <li>No se sabe con certeza la fecha en que se va a comprar o vender.</li>
+        <li>La cobertura obliga a cerrar el futuro antes de su vencimiento.</li>
+      </ol>
+      <p>Los tres generan <strong>riesgo de base</strong> (<em>basis risk</em>).</p>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">Definición</p>
+        <p>La <strong>base</strong> (<em>basis</em>) es la diferencia entre el precio contado del activo que se cubre y el precio del futuro que se usa:</p>
+        <div class="formula">\[ \text{Base} = \text{Precio contado} - \text{Precio futuro} = S - F \]</div>
+        <p>Si el activo cubierto es el mismo que el subyacente del futuro, la base tiende a cero al vencimiento del futuro (<strong>convergencia</strong>). Antes del vencimiento puede ser positiva o negativa.</p>
+      </div>
+
+      <p>Cuando el contado sube más que el futuro (o baja menos), la base aumenta: es un <strong>fortalecimiento</strong> de la base (<em>strengthening</em>). Cuando el futuro sube más que el contado, la base disminuye: es un <strong>debilitamiento</strong> (<em>weakening</em>). Algunos textos, sobre todo para futuros financieros, definen la base al revés (\(F - S\)); en este libro usamos siempre \(S - F\).</p>
+
+      <p>Para analizar el riesgo usamos esta notación: la cobertura se abre en \(t_1\) y se cierra en \(t_2\); \(S_1, S_2\) son los precios contado, \(F_1, F_2\) los precios del futuro y \(b_1 = S_1 - F_1\), \(b_2 = S_2 - F_2\) las bases en esos momentos.</p>
+
+      <figure class="figura">
+        <div class="svg-scroll">
+          <svg viewBox="0 0 640 290" role="img" aria-label="Evolución del precio contado y del precio futuro entre t1 y t2, con la base en cada momento">
+            <line x1="70" y1="250" x2="615" y2="250" class="s-trazo" stroke-width="1.2"/>
+            <line x1="70" y1="40" x2="70" y2="250" class="s-trazo" stroke-width="1.2"/>
+            <g font-size="12" text-anchor="end" class="s-suave">
+              <text x="62" y="220">42</text><text x="62" y="187">44</text><text x="62" y="154">46</text><text x="62" y="121">48</text><text x="62" y="87">50</text>
+            </g>
+            <line x1="170" y1="45" x2="170" y2="250" class="s-trazo" stroke-width="1" stroke-dasharray="3 4"/>
+            <line x1="480" y1="45" x2="480" y2="250" class="s-trazo" stroke-width="1" stroke-dasharray="3 4"/>
+            <line x1="590" y1="45" x2="590" y2="250" class="s-trazo" stroke-width="1" stroke-dasharray="3 4"/>
+            <g font-size="13" text-anchor="middle" class="s-texto">
+              <text x="170" y="268">t₁ (se abre)</text><text x="480" y="268">t₂ (se cierra)</text><text x="590" y="268">T (vence)</text>
+            </g>
+            <text x="340" y="286" font-size="12.5" text-anchor="middle" class="s-suave">Tiempo</text>
+            <path d="M170,116.7 C240,100 290,150 350,140 S440,170 480,183.3" class="s-acento-trazo" stroke-width="2.8"/>
+            <path d="M480,183.3 L590,191.7" class="s-acento-trazo" stroke-width="2" stroke-dasharray="4 4"/>
+            <path d="M170,83.3 C240,90 280,130 350,150 S440,190 480,200" class="s-trazo" stroke-width="2.4" stroke-dasharray="8 5"/>
+            <path d="M480,200 L590,191.7" class="s-trazo" stroke-width="1.6" stroke-dasharray="3 4"/>
+            <line x1="170" y1="83.3" x2="170" y2="116.7" class="s-acento-trazo" stroke-width="5" opacity="0.35"/>
+            <line x1="480" y1="183.3" x2="480" y2="200" class="s-acento-trazo" stroke-width="5" opacity="0.35"/>
+            <circle cx="170" cy="116.7" r="4" class="s-acento"/><circle cx="170" cy="83.3" r="4" class="s-flecha"/>
+            <circle cx="480" cy="183.3" r="4" class="s-acento"/><circle cx="480" cy="200" r="4" class="s-flecha"/>
+            <g font-size="13" class="s-texto">
+              <text x="162" y="87" text-anchor="end">F₁ = 50</text>
+              <text x="162" y="121" text-anchor="end">S₁ = 48</text>
+              <text x="490" y="176">S₂ = 44</text>
+              <text x="490" y="217">F₂ = 43</text>
+            </g>
+            <text x="178" y="64" font-size="13" font-weight="700" class="s-texto">b₁ = 48 − 50 = −2</text>
+            <text x="490" y="238" font-size="13" font-weight="700" class="s-texto">b₂ = +1</text>
+            <line x1="420" y1="40" x2="450" y2="40" class="s-acento-trazo" stroke-width="2.8"/><text x="456" y="44" font-size="12.5" class="s-texto">Precio contado S</text>
+            <line x1="420" y1="60" x2="450" y2="60" class="s-trazo" stroke-width="2.4" stroke-dasharray="8 5"/><text x="456" y="64" font-size="12.5" class="s-texto">Precio futuro F</text>
+          </svg>
+        </div>
+        <figcaption>La base es la distancia vertical entre las dos curvas. Entre \(t_1\) y \(t_2\) pasó de −2 a +1: se <strong>fortaleció</strong>. Al vencimiento \(T\) convergería a cero, pero la cobertura se cierra antes, en \(t_2\).</figcaption>
+      </figure>
+
+      <h3>El precio efectivo: \(F_1 + b_2\)</h3>
+      <p>Pensá en una cobertura <strong>corta</strong>: quien va a vender el activo en \(t_2\) vende futuros en \(t_1\). En \(t_2\) vende el activo a \(S_2\) y cierra el futuro con un resultado de \(F_1 - F_2\). Lo que obtiene en total es</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Precio efectivo con cobertura</span>\[ S_2 + (F_1 - F_2) = F_1 + \underbrace{(S_2 - F_2)}_{b_2} = F_1 + b_2 \]</div>
+      <p>En una cobertura <strong>larga</strong>, quien compra el activo en \(t_2\) paga \(S_2\) y gana \(F_2 - F_1\) en los futuros: el costo neto es \(S_2 - (F_2 - F_1) = F_1 + b_2\). <strong>Es la misma expresión.</strong></p>
+      <p>La interpretación es la clave de toda la sección: \(F_1\) se conoce cuando se abre la cobertura; \(b_2\), no. Si \(b_2\) se conociera, la cobertura sería perfecta. El riesgo que queda es la incertidumbre sobre la base final: <strong>la cobertura cambia riesgo de precio por riesgo de base</strong>. Es un buen negocio porque la base suele variar mucho menos que el precio.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: la base de la figura</p>
+        <p>\(S_1 = 48\), \(F_1 = 50\), \(S_2 = 44\), \(F_2 = 43\). Entonces \(b_1 = -2\) y \(b_2 = +1\).</p>
+        <ul>
+          <li><strong>Cobertura corta:</strong> vende el activo a 44 y gana \(50 - 43 = 7\) en los futuros. Total: \(44 + 7 = 51 = F_1 + b_2 = 50 + 1\). La base se fortaleció y eso le jugó a favor: obtuvo 1 más que \(F_1\).</li>
+          <li><strong>Cobertura larga:</strong> compra el activo a 44 y pierde 7 en los futuros. Costo: \(44 + 7 = 51\). El mismo fortalecimiento le jugó en contra: pagó 1 más que \(F_1\).</li>
+        </ul>
+      </div>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th>Cambio inesperado de la base</th><th>Cobertura corta (vende futuros)</th><th>Cobertura larga (compra futuros)</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Fortalecimiento</strong> (\(S\) sube más o baja menos que \(F\))</td><td class="pos">Mejora: precio efectivo más alto</td><td class="neg">Empeora: costo efectivo más alto</td></tr>
+            <tr><td><strong>Debilitamiento</strong> (\(F\) sube más o baja menos que \(S\))</td><td class="neg">Empeora: precio efectivo más bajo</td><td class="pos">Mejora: costo efectivo más bajo</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>¿Por qué? El que vende futuros está, en términos netos, "largo en contado y corto en futuro": está largo en la base. Le conviene que la base suba. El que compra futuros está "corto en contado y largo en futuro": está corto en la base. Fijate que importa el cambio <strong>inesperado</strong>: si la base final que el coberturista esperaba ya estaba incorporada en su presupuesto, solo lo afecta la diferencia respecto de esa expectativa.</p>
+
+      <h3>Rendimiento de conveniencia y forma de la curva de futuros</h3>
+      <p>El <strong>rendimiento de conveniencia</strong> (<em>convenience yield</em>, \(y\)) es el beneficio no monetario de tener físicamente el activo en lugar de una posición en su futuro: poder usarlo ya, no frenar la producción si falta, aprovechar una escasez. La cátedra lo presenta así, junto con el costo de tenencia:</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Costo de tenencia con rendimiento de conveniencia</span>\[ F_0 = S_0\,e^{(r + c - y)\,T} \qquad\Rightarrow\qquad y = r + c - \frac{1}{T}\ln\frac{F_0}{S_0} \]</div>
+      <p>donde \(r\) es la tasa libre de riesgo, \(c\) los costos de almacenamiento expresados como tasa (en la Unidad III se los llama \(u\)) y \(y\) el rendimiento de conveniencia. (Ojo con la notación: en la Unidad III la letra \(c\) se usa para el costo de tenencia total, \(r - q + u\).) Si \(y \gt r + c\), el beneficio de tener el bien supera lo que cuesta financiarlo y guardarlo, y el futuro cotiza <strong>por debajo</strong> del contado. Si \(y \lt r + c\), el futuro cotiza <strong>por encima</strong> del contado. Que \(y\) supere solo a \(c\) no alcanza: con \(c \lt y \lt r + c\) el futuro sigue por encima del contado.</p>
+      <ul>
+        <li><strong>Contango:</strong> mercado bien abastecido, costos de almacenamiento bajos y rendimiento de conveniencia bajo: los futuros cotizan <strong>por encima</strong> del contado.</li>
+        <li><strong>Backwardation:</strong> mercado ajustado, oferta incierta, rendimiento de conveniencia alto: los futuros cotizan <strong>por debajo</strong> del contado. Ejemplo típico: ante un riesgo de escasez de petróleo, las empresas prefieren guardar barriles físicos y el futuro cae por debajo del contado.</li>
+      </ul>
+      <p>Qué mueve a \(y\): la <strong>disponibilidad</strong> (con el mercado bien abastecido es bajo), los <strong>costos de almacenamiento</strong> (los productos caros de guardar tienden a tener un \(y\) menor) y la <strong>escasez</strong> esperada (si hay dudas sobre la oferta futura, sube).</p>
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>En el caso del trigo, con \(S_0 = 220\), \(F_0 = 200\), \(T = 0{,}25\), \(r = 4\%\) y costos de almacenamiento \(c = 2\%\) anual: \(y = 0{,}04 + 0{,}02 - \tfrac{1}{0{,}25}\ln\tfrac{200}{220} = 0{,}06 + 0{,}3812 = 44{,}1\%\) anual. Un número tan alto indica que el mercado paga mucho por tener trigo ya. (Datos de tasas y costos ilustrativos.)</p>
+      </div>
+      <h3>Activos de inversión y de consumo</h3>
+      <p>Para <strong>activos de inversión</strong> (monedas, índices, oro) el arbitraje ata el futuro al contado mediante el costo de tenencia (Unidad III), así que la base es bastante predecible y el riesgo de base viene sobre todo de cambios en las tasas de interés. Para <strong>commodities de consumo</strong> (petróleo, granos, ganado), los desequilibrios de oferta y demanda y las dificultades de almacenamiento mueven el rendimiento de conveniencia, y la base puede variar mucho más.</p>
+
+      <h3>Cobertura cruzada</h3>
+      <p>Hay <strong>cobertura cruzada</strong> (<em>cross hedging</em>) cuando el activo cubierto no es el subyacente del futuro: una aerolínea cubre combustible de aviones con futuros de <em>heating oil</em>; una cartera de acciones se cubre con un futuro sobre un índice. Si \(S_2^*\) es el precio contado en \(t_2\) del subyacente del futuro, el precio efectivo se descompone en</p>
+      <div class="formula">\[ S_2 + F_1 - F_2 = F_1 + \underbrace{(S_2^* - F_2)}_{\text{base del mismo activo}} + \underbrace{(S_2 - S_2^*)}_{\text{diferencia entre activos}} \]</div>
+      <p>Aparecen dos fuentes de riesgo de base: la del propio futuro y la diferencia de precio entre los dos activos. Por eso la base suele ser mayor en una cobertura cruzada, y por eso en ese caso el ratio de cobertura óptimo ya no es 1, como vamos a ver en la sección siguiente.</p>
+
+      <h3>Elección del contrato</h3>
+      <p>El riesgo de base depende mucho de qué futuro se use. La elección tiene dos partes:</p>
+      <ol>
+        <li><strong>El activo subyacente.</strong> Si existe un futuro sobre el mismo activo, se usa ese. Si no, se busca el futuro cuyo precio esté más correlacionado con el del activo a cubrir.</li>
+        <li><strong>El mes de vencimiento.</strong> Primera aproximación: el vencimiento <strong>más cercano posterior</strong> al fin de la cobertura. No conviene uno anterior (habría que rolar y quedaría un tramo sin cubrir) ni el del mismo mes (en el mes de entrega los precios pueden ser erráticos y quien está largo corre el riesgo de recibir el activo físico). Cuanto más lejos esté el vencimiento del fin de la cobertura, mayor el riesgo de base.</li>
+      </ol>
+
+      <div class="tabla-wrap">
+        <table class="tabla compacta">
+          <thead><tr><th>Si los vencimientos son marzo, junio, septiembre y diciembre y la cobertura termina en…</th><th>Contrato a usar</th></tr></thead>
+          <tbody>
+            <tr><td>diciembre, enero o febrero</td><td>marzo</td></tr>
+            <tr><td>marzo, abril o mayo</td><td>junio</td></tr>
+            <tr><td>junio, julio o agosto</td><td>septiembre</td></tr>
+            <tr><td>septiembre, octubre o noviembre</td><td>diciembre</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Esta regla supone que todos los vencimientos tienen liquidez suficiente. En la práctica, los contratos más cercanos son los más líquidos, y a veces conviene usar uno cercano y rolarlo (lo vemos más adelante).</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: cobertura corta con riesgo de base</p>
+        <p>Es 1 de marzo. Una empresa estadounidense va a cobrar EUR 1.000.000 a fines de julio. Supongamos que los futuros de euro vencen en marzo, junio, septiembre y diciembre y que cada contrato es por EUR 125.000. Elige el de <strong>septiembre</strong> y vende \(1.000.000 / 125.000 = 8\) contratos a \(F_1 = 1{,}1200\) dólares por euro.</p>
+        <p>A fines de julio cobra los euros y cierra los futuros: el contado está a \(S_2 = 1{,}0800\) y el futuro de septiembre a \(F_2 = 1{,}0850\).</p>
+        <ul>
+          <li>Base al cerrar: \(b_2 = 1{,}0800 - 1{,}0850 = -0{,}0050\).</li>
+          <li>Ganancia en futuros: \(1{,}1200 - 1{,}0850 = 0{,}0350\) por euro.</li>
+          <li>Precio efectivo: \(1{,}0800 + 0{,}0350 = 1{,}1150\), que es \(F_1 + b_2 = 1{,}1200 - 0{,}0050\). En total, USD 1.115.000.</li>
+        </ul>
+      </div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: cobertura larga con riesgo de base</p>
+        <p>Es 8 de junio. Una refinería va a comprar 20.000 barriles de petróleo en algún momento de octubre o noviembre. Como no sabe la fecha exacta, usa el futuro de <strong>diciembre</strong>: compra 20 contratos a \(F_1 = 68{,}00\). El 10 de noviembre está lista para comprar; el contado está a 70,00 y el futuro de diciembre a 69,10.</p>
+        <ul>
+          <li>Base al cerrar: \(b_2 = 70{,}00 - 69{,}10 = 0{,}90\).</li>
+          <li>Ganancia en futuros: \(69{,}10 - 68{,}00 = 1{,}10\) por barril.</li>
+          <li>Costo efectivo: \(70{,}00 - 1{,}10 = 68{,}90 = F_1 + b_2\). En total, \(68{,}90 \times 20.000 = 1.378.000\) dólares.</li>
+        </ul>
+      </div>
+
+      <div class="caja prueba">
+        <p class="caja-titulo">Probá vos</p>
+        <p>Un acopiador vende futuros de soja a 300 para cubrir una venta futura. Al cerrar, el contado está a 285 y el futuro a 291. ¿Cuál es la base final y qué precio efectivo obtuvo? Si la base inicial era −5, ¿se fortaleció o se debilitó? ¿Le convino?</p>
+        <details class="desplegable">
+          <summary>Ver la resolución</summary>
+          <p>\(b_2 = 285 - 291 = -6\). Precio efectivo: \(F_1 + b_2 = 300 - 6 = 294\) (vende a 285 y gana 9 en futuros). La base pasó de −5 a −6: se <strong>debilitó</strong>. Al que vende futuros eso lo perjudica: obtiene 1 menos de lo que habría obtenido si la base se hubiera mantenido.</p>
+        </details>
+      </div>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">Una cobertura corta se abrió con \(F_1 = 33\) y se cierra con \(S_2 = 30\) y \(F_2 = 31{,}5\). ¿Cuál es el precio efectivo?</p>
+          <ol class="qr-op">
+            <li>31,5</li>
+            <li>30</li>
+            <li>34,5</li>
+          </ol>
+          <p class="qr-explicacion">\(b_2 = 30 - 31{,}5 = -1{,}5\) y el precio efectivo es \(F_1 + b_2 = 33 - 1{,}5 = 31{,}5\). Equivale a vender a 30 y ganar 1,5 en los futuros. 34,5 sale de sumar la base con el signo cambiado.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">La base pasa inesperadamente de +0,5 a −0,3. ¿A quién perjudica?</p>
+          <ol class="qr-op">
+            <li>A quien tiene una cobertura larga.</li>
+            <li>A quien tiene una cobertura corta.</li>
+            <li>A los dos por igual.</li>
+          </ol>
+          <p class="qr-explicacion">La base bajó: se debilitó. Quien vende futuros está largo en la base (\(F_1 + b_2\) es lo que cobra), así que pierde. Al que compra futuros le baja el costo efectivo.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="3">
+          <p class="qr-enunciado">Los vencimientos disponibles son marzo, mayo, julio, septiembre y diciembre. La cobertura termina a fines de junio. ¿Qué contrato conviene, en primera aproximación?</p>
+          <ol class="qr-op">
+            <li>Mayo, porque es el más cercano.</li>
+            <li>Diciembre, porque es el más líquido.</li>
+            <li>Julio, el vencimiento más cercano posterior al fin de la cobertura.</li>
+          </ol>
+          <p class="qr-explicacion">Con mayo quedaría junio sin cubrir (habría que rolar). Con diciembre aumenta el riesgo de base. La regla es el vencimiento más cercano posterior: julio.</p>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Ratio de cobertura de mínima varianza</h2>
+
+      <p>El <strong>ratio de cobertura</strong> (<em>hedge ratio</em>) es el cociente entre el tamaño de la posición en futuros y el tamaño de la exposición. Hasta ahora usamos siempre 1: 1.000.000 de barriles cubiertos con futuros por 1.000.000 de barriles. Cuando el activo del futuro es el mismo que el cubierto, tiene sentido. Pero en una cobertura cruzada, si el precio del futuro se mueve más (o menos) que el del activo, un ratio de 1 cubre de más (o de menos).</p>
+
+      <div class="formula con-nombre"><span class="nombre-formula">Ratio de cobertura (definición de la cátedra)</span>\[ h = \frac{N \times Q_F}{Q_A} = \frac{\text{tamaño de la posición en futuros}}{\text{tamaño de la exposición}} \]</div>
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo de la cátedra</p>
+        <p>Un productor va a cosechar 1.000 toneladas de soja en 3 meses y hace una cobertura corta con 10 contratos de 100 toneladas: \(h = 10 \times 100 / 1.000 = 1\). Cuando el futuro es sobre el mismo activo que se cubre, lo natural es \(h = 1\); si el subyacente es otro, el ratio que minimiza el riesgo puede ser distinto de 1.</p>
+      </div>
+      <h3>De dónde sale la fórmula</h3>
+      <p>Sea \(\Delta S\) el cambio en el precio contado durante la cobertura y \(\Delta F\) el cambio en el precio del futuro; \(\sigma_S\) y \(\sigma_F\) sus desvíos estándar y \(\rho\) la correlación entre ellos. Quien va a vender una unidad del activo y vende \(h\) unidades en futuros tiene un resultado que cambia en</p>
+      <div class="formula">\[ \Delta V = \Delta S - h\,\Delta F \]</div>
+      <p>La varianza de ese cambio es</p>
+      <div class="formula">\[ \sigma_V^2 = \sigma_S^2 + h^2 \sigma_F^2 - 2h\,\rho\,\sigma_S\,\sigma_F \]</div>
+      <p>Es una parábola en \(h\) que abre hacia arriba. Con \(h = 0\) (sin cobertura) la varianza es \(\sigma_S^2\). Si \(h\) crece, el futuro compensa parte del movimiento del contado y la varianza baja; pero si \(h\) es demasiado grande, la posición en futuros pasa a dominar y la varianza vuelve a subir. El mínimo está donde la derivada se anula:</p>
+      <div class="formula">\[ \frac{d\sigma_V^2}{dh} = 2h\,\sigma_F^2 - 2\rho\,\sigma_S\,\sigma_F = 0 \]</div>
+      <div class="formula con-nombre"><span class="nombre-formula">Ratio de cobertura de mínima varianza</span>\[ h^* = \rho\,\frac{\sigma_S}{\sigma_F} \]</div>
+      <p>Para una cobertura larga (\(\Delta V = h\,\Delta F - \Delta S\)) la varianza es la misma y se llega al mismo \(h^*\).</p>
+
+      <figure class="figura">
+        <div class="svg-scroll">
+          <svg viewBox="0 0 640 290" role="img" aria-label="Varianza de la posición cubierta en función del ratio de cobertura">
+            <line x1="70" y1="250" x2="610" y2="250" class="s-trazo" stroke-width="1.2"/>
+            <line x1="70" y1="30" x2="70" y2="250" class="s-trazo" stroke-width="1.2"/>
+            <g font-size="12" text-anchor="middle" class="s-suave">
+              <text x="70" y="267">0</text><text x="200" y="267">0,4</text><text x="330" y="267">0,8</text><text x="460" y="267">1,2</text><text x="590" y="267">1,6</text>
+            </g>
+            <g font-size="12" text-anchor="end" class="s-suave">
+              <text x="62" y="254">0 %</text><text x="62" y="162">50 %</text><text x="62" y="71">100 %</text>
+            </g>
+            <line x1="70" y1="66.7" x2="600" y2="66.7" class="s-trazo" stroke-width="0.8" stroke-dasharray="2 4"/>
+            <text x="340" y="285" font-size="12.5" text-anchor="middle" class="s-suave">Ratio de cobertura h</text>
+            <text x="76" y="22" font-size="12.5" class="s-suave">Varianza de la posición cubierta (en % de la varianza sin cubrir)</text>
+            <path d="M70.0,66.7 L78.1,76.6 L86.3,86.3 L94.4,95.6 L102.5,104.6 L110.6,113.2 L118.8,121.6 L126.9,129.6 L135.0,137.3 L143.1,144.6 L151.3,151.7 L159.4,158.4 L167.5,164.8 L175.6,170.8 L183.8,176.6 L191.9,182.0 L200.0,187.1 L208.1,191.9 L216.3,196.3 L224.4,200.4 L232.5,204.2 L240.6,207.7 L248.8,210.8 L256.9,213.7 L265.0,216.2 L273.1,218.3 L281.3,220.2 L289.4,221.7 L297.5,222.9 L305.6,223.8 L313.8,224.3 L321.9,224.5 L330.0,224.4 L338.1,224.0 L346.3,223.3 L354.4,222.2 L362.5,220.8 L370.6,219.1 L378.8,217.0 L386.9,214.7 L395.0,212.0 L403.1,208.9 L411.3,205.6 L419.4,201.9 L427.5,197.9 L435.6,193.6 L443.8,189.0 L451.9,184.0 L460.0,178.7 L468.1,173.1 L476.3,167.1 L484.4,160.9 L492.5,154.3 L500.6,147.4 L508.8,140.1 L516.9,132.5 L525.0,124.7 L533.1,116.4 L541.3,107.9 L549.4,99.0 L557.5,89.8 L565.6,80.3 L573.8,70.5 L581.9,60.3 L590.0,49.8" class="s-acento-trazo" stroke-width="2.8"/>
+            <line x1="323.4" y1="224.6" x2="323.4" y2="250" class="s-trazo" stroke-width="1" stroke-dasharray="3 3"/>
+            <circle cx="70" cy="66.7" r="5" class="s-flecha"/>
+            <circle cx="323.4" cy="224.6" r="5.5" class="s-acento"/>
+            <circle cx="395" cy="212" r="5" class="s-flecha"/>
+            <text x="82" y="56" font-size="13" class="s-texto">h = 0, sin cobertura: 100 %</text>
+            <text x="330" y="192" font-size="13" font-weight="700" class="s-texto" text-anchor="middle">h* = 0,78: 14 % (= 1 − ρ²)</text>
+            <text x="405" y="230" font-size="13" class="s-texto">h = 1: 21 %</text>
+          </svg>
+        </div>
+        <figcaption>Con los datos del ejemplo del combustible (\(\rho = 0{,}928\), \(\sigma_S = 0{,}0263\), \(\sigma_F = 0{,}0313\)). Cubrir uno a uno deja el 21 % de la varianza; el ratio óptimo, el 14 %.</figcaption>
+      </figure>
+
+      <p>Casos que ayudan a fijar la intuición:</p>
+      <ul>
+        <li>Si \(\rho = 1\) y \(\sigma_F = \sigma_S\), entonces \(h^* = 1\): el futuro replica exactamente al contado.</li>
+        <li>Si \(\rho = 1\) y \(\sigma_F = 2\sigma_S\), entonces \(h^* = 0{,}5\): el futuro se mueve el doble, así que alcanza con la mitad.</li>
+        <li>Si \(\rho = 0\), entonces \(h^* = 0\): un futuro no correlacionado no reduce el riesgo; solo lo agrega.</li>
+      </ul>
+
+      <h3>Interpretación: la pendiente de una regresión</h3>
+      <p>Si estimás por mínimos cuadrados la regresión \(\Delta S = a + b\,\Delta F + \varepsilon\), la pendiente es \(b = \operatorname{Cov}(\Delta S, \Delta F)/\sigma_F^2 = \rho\,\sigma_S\sigma_F/\sigma_F^2 = \rho\,\sigma_S/\sigma_F\). Es decir, <strong>\(h^*\) es la pendiente de la recta de regresión de \(\Delta S\) sobre \(\Delta F\)</strong>: cuánto se mueve en promedio el contado por cada peso que se mueve el futuro. Si el contado se mueve 0,78 por cada 1 del futuro, vender 0,78 de futuro por unidad compensa ese movimiento promedio.</p>
+
+      <h3>Efectividad de la cobertura</h3>
+      <p>Reemplazando \(h^*\) en la varianza, \(\sigma_V^2 = \sigma_S^2(1 - \rho^2)\). La <strong>efectividad</strong> de la cobertura, la proporción de la varianza que se elimina, es entonces</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Efectividad de la cobertura</span>\[ \text{Efectividad} = \frac{\sigma_S^2 - \sigma_V^2}{\sigma_S^2} = \rho^2 = \frac{h^{*2}\sigma_F^2}{\sigma_S^2} \]</div>
+      <p>Es el \(R^2\) de la regresión. Una cobertura con \(\rho = 0{,}9\) elimina el 81 % de la varianza; con \(\rho = 0{,}5\), apenas el 25 %.</p>
+
+      <p>Los parámetros se estiman con datos históricos de \(\Delta S\) y \(\Delta F\) en intervalos de igual longitud que no se superpongan. Lo ideal es que cada intervalo dure lo mismo que la cobertura; como eso deja pocos datos, en la práctica se suelen usar intervalos más cortos (por ejemplo, cambios diarios). Implícitamente se supone que la relación del pasado se mantiene.</p>
+
+      <h3>Número óptimo de contratos</h3>
+      <p>Si \(Q_A\) es el tamaño de la posición a cubrir (en unidades) y \(Q_F\) el tamaño de un contrato, la posición en futuros debe tener un nominal de \(h^* Q_A\) unidades, así que</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Número óptimo de contratos</span>\[ N^* = \frac{h^*\,Q_A}{Q_F} \]</div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: combustible de aviones cubierto con heating oil</p>
+        <p>Una aerolínea va a comprar 2.000.000 de galones de combustible de aviones dentro de un mes. No hay futuros sobre ese combustible, así que usa futuros de <em>heating oil</em> (gasóleo de calefacción), de 42.000 galones por contrato. Con 15 meses de datos de cambios mensuales (la tabla de Hull, que podés desplegar abajo y cargar en la <a href="u2-simulacion.html#estimar-h-con-datos">simulación</a>) se obtiene:</p>
+        <ul>
+          <li>\(\sigma_F = 0{,}0313\), \(\sigma_S = 0{,}0263\) y \(\rho = 0{,}928\).</li>
+          <li>\(h^* = 0{,}928 \times \dfrac{0{,}0263}{0{,}0313} = 0{,}78\).</li>
+          <li>\(N^* = \dfrac{0{,}78 \times 2.000.000}{42.000} = 37{,}14\): <strong>compra 37 contratos</strong> (es una cobertura larga).</li>
+          <li>Efectividad: \(\rho^2 = 0{,}928^2 = 0{,}86\). La cobertura elimina el 86 % de la varianza. El desvío del costo de la compra baja de \(0{,}0263 \times 2.000.000 = 52.600\) dólares a \(52.600 \times \sqrt{1 - 0{,}928^2} \approx 19.600\) dólares.</li>
+        </ul>
+        <p>¿Por qué \(h^* \lt 1\)? Porque el futuro de heating oil es más volátil que el combustible (\(\sigma_F \gt \sigma_S\)) y además no se mueven en perfecta sincronía (\(\rho \lt 1\)). Cubrir uno a uno sobrerreaccionaría a los movimientos del futuro.</p>
+        <details class="desplegable">
+          <summary>Ver los datos (Hull, tabla 4.6 de la edición en español)</summary>
+          <div class="tabla-wrap">
+            <table class="tabla compacta">
+              <thead><tr><th>Mes</th><th class="num">ΔF heating oil (USD/galón)</th><th class="num">ΔS combustible (USD/galón)</th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td class="num">0,021</td><td class="num">0,029</td></tr>
+                <tr><td>2</td><td class="num">0,035</td><td class="num">0,020</td></tr>
+                <tr><td>3</td><td class="num">−0,046</td><td class="num">−0,044</td></tr>
+                <tr><td>4</td><td class="num">0,001</td><td class="num">0,008</td></tr>
+                <tr><td>5</td><td class="num">0,044</td><td class="num">0,026</td></tr>
+                <tr><td>6</td><td class="num">−0,029</td><td class="num">−0,019</td></tr>
+                <tr><td>7</td><td class="num">−0,026</td><td class="num">−0,010</td></tr>
+                <tr><td>8</td><td class="num">−0,029</td><td class="num">−0,007</td></tr>
+                <tr><td>9</td><td class="num">0,048</td><td class="num">0,043</td></tr>
+                <tr><td>10</td><td class="num">−0,006</td><td class="num">0,011</td></tr>
+                <tr><td>11</td><td class="num">−0,036</td><td class="num">−0,036</td></tr>
+                <tr><td>12</td><td class="num">−0,011</td><td class="num">−0,018</td></tr>
+                <tr><td>13</td><td class="num">0,019</td><td class="num">0,009</td></tr>
+                <tr><td>14</td><td class="num">−0,027</td><td class="num">−0,032</td></tr>
+                <tr><td>15</td><td class="num">0,029</td><td class="num">0,023</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Sumas: \(\sum x = -0{,}013\), \(\sum x^2 = 0{,}0138\), \(\sum y = 0{,}003\), \(\sum y^2 = 0{,}0097\), \(\sum xy = 0{,}0107\), con \(x = \Delta F\) e \(y = \Delta S\). Con los datos sin redondear, \(h^* = 0{,}7777\); Hull redondea los desvíos y obtiene 0,78.</p>
+        </details>
+      </div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo de la cátedra: una cervecería argentina</p>
+        <p>Una cervecería va a importar 1.200 toneladas de cebada dentro de dos meses. No hay futuros de cebada, así que se cubre con futuros de trigo, muy correlacionados: \(\sigma_F = 0{,}022\) (trigo), \(\sigma_S = 0{,}027\) (cebada), \(\rho = 0{,}91\) y contratos de 25 toneladas.</p>
+        <div class="formula">\[ h^* = 0{,}91 \times \frac{0{,}027}{0{,}022} = 1{,}117 \qquad N^* = \frac{1{,}117 \times 1.200}{25} = 53{,}6 \approx 54 \text{ contratos (largos)} \]</div>
+        <p>Como la cebada es más volátil que el trigo (\(\sigma_S \gt \sigma_F\)), hace falta <strong>más</strong> nominal en futuros que la exposición: \(h^* \gt 1\). Si el futuro fuera más volátil que el activo, \(h^*\) sería menor y harían falta menos contratos.</p>
+      </div>
+
+      <div class="caja error">
+        <p class="caja-titulo">Error frecuente: "h* = 1 es una cobertura perfecta"</p>
+        <p>No. Que \(h^* = 1\) solo dice cuántos contratos usar. La cobertura es perfecta solo si \(\rho = 1\). Por ejemplo, con \(\rho = 0{,}5\) y \(\sigma_S = 2\sigma_F\) da \(h^* = 0{,}5 \times 2 = 1\), pero la efectividad es apenas \(\rho^2 = 25\%\): queda el 75 % de la varianza.</p>
+      </div>
+      <h3>Ajuste por liquidación diaria (<em>tailing the hedge</em>)</h3>
+      <p>La fórmula anterior trata al futuro como si fuera un forward. Pero el futuro se liquida todos los días: las ganancias y pérdidas se cobran o pagan diariamente, y lo que importa cada día es cuánto cambia el <strong>valor</strong> de la exposición frente a cuánto cambia el <strong>valor</strong> de un contrato. Por eso el número de contratos se calcula con valores, no con unidades:</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Número de contratos con ajuste por liquidación diaria</span>\[ N^* = \frac{h^*\,V_A}{V_F} \qquad V_A = S \cdot Q_A, \quad V_F = F \cdot Q_F \]</div>
+      <p>donde \(h^*\) se estima en este caso con cambios <strong>porcentuales</strong> de un día. Comparado con la fórmula sin ajuste, equivale a multiplicar el número de contratos por \(S/F\). Como en general \(F = S\,e^{(r - \ldots)T}\), ese factor actúa como un descuento: las ganancias de los futuros se cobran antes y rinden intereses hasta el final de la cobertura, así que hace falta una posición un poco más chica para lograr el mismo efecto.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: el combustible con ajuste</p>
+        <p>Supongamos que el combustible cotiza a 2,40 dólares el galón y el futuro de heating oil a 2,46, y que \(h^* = 0{,}78\) (estimado con cambios diarios). Entonces \(V_A = 2.000.000 \times 2{,}40 = 4.800.000\) y \(V_F = 42.000 \times 2{,}46 = 103.320\):</p>
+        <div class="formula">\[ N^* = \frac{0{,}78 \times 4.800.000}{103.320} = 36{,}24 \]</div>
+        <p>La aerolínea compra 36 contratos en vez de 37. Si la cobertura dura varios días, el ajuste se recalcula a medida que cambian \(S\) y \(F\).</p>
+      </div>
+
+      <div class="caja prueba">
+        <p class="caja-titulo">Probá vos</p>
+        <p>Una empresa va a comprar 500.000 galones de diésel. Usa futuros de 42.000 galones con \(\rho = 0{,}9\), \(\sigma_S = 0{,}04\) y \(\sigma_F = 0{,}05\). Calculá \(h^*\), la efectividad y el número de contratos (sin ajuste).</p>
+        <details class="desplegable">
+          <summary>Ver la resolución</summary>
+          <p>\(h^* = 0{,}9 \times 0{,}04 / 0{,}05 = 0{,}72\). Efectividad: \(0{,}9^2 = 0{,}81\), el 81 % de la varianza. \(N^* = 0{,}72 \times 500.000 / 42.000 = 8{,}57\): compra 9 contratos.</p>
+        </details>
+      </div>
+
+      <div class="caja error">
+        <p class="caja-titulo">Errores frecuentes</p>
+        <ul>
+          <li>Usar \(\sigma_S/\sigma_F\) sin multiplicar por \(\rho\), o invertir el cociente (\(\sigma_F/\sigma_S\)).</li>
+          <li>Calcular \(N^* = Q_A/Q_F\) (ratio 1) cuando se pide el ratio de mínima varianza.</li>
+          <li>Confundir la efectividad (\(\rho^2\)) con la correlación (\(\rho\)): con \(\rho = 0{,}9\) se elimina el 81 % de la varianza, no el 90 %.</li>
+        </ul>
+      </div>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">\(\rho = 0{,}8\), \(\sigma_S = 2\) y \(\sigma_F = 4\). ¿Cuál es el ratio de cobertura de mínima varianza?</p>
+          <ol class="qr-op">
+            <li>0,5</li>
+            <li>0,4</li>
+            <li>1,6</li>
+          </ol>
+          <p class="qr-explicacion">\(h^* = 0{,}8 \times 2/4 = 0{,}4\). El 0,5 olvida la correlación y el 1,6 invierte el cociente.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="3">
+          <p class="qr-enunciado">La correlación entre \(\Delta S\) y \(\Delta F\) es 0,9. ¿Qué proporción de la varianza elimina la cobertura de mínima varianza?</p>
+          <ol class="qr-op">
+            <li>90 %</li>
+            <li>10 %</li>
+            <li>81 %</li>
+          </ol>
+          <p class="qr-explicacion">La efectividad es \(\rho^2 = 0{,}81\). Queda el 19 % de la varianza original.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">Con el ajuste por liquidación diaria y un futuro que cotiza por encima del contado (\(F \gt S\)), el número de contratos…</p>
+          <ol class="qr-op">
+            <li>es menor que sin el ajuste, porque se multiplica por \(S/F \lt 1\).</li>
+            <li>es mayor que sin el ajuste, porque los futuros cuestan más.</li>
+            <li>no cambia: el ajuste solo importa para forwards.</li>
+          </ol>
+          <p class="qr-explicacion">\(N^* = h^* V_A/V_F = (h^* Q_A/Q_F) \times S/F\). Con \(F \gt S\) el factor es menor que 1: las ganancias diarias de los futuros rinden intereses y alcanza con menos contratos.</p>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Futuros sobre índices bursátiles</h2>
+
+      <p>Un <strong>índice bursátil</strong> sigue el valor de una cartera teórica de acciones (el S&amp;P 500 en Estados Unidos, el S&amp;P Merval en la Argentina). Un futuro sobre índice no se entrega físicamente: se liquida en efectivo, y cada contrato vale el precio del futuro multiplicado por un <strong>multiplicador</strong> fijo en moneda. Por ejemplo, el E-mini S&amp;P 500 del CME vale 50 dólares por punto: con el futuro a 5.000, un contrato representa 250.000 dólares de acciones.</p>
+
+      <h3>Cubrir una cartera con beta</h3>
+      <p>Si la cartera replica el índice, alcanza con vender futuros por su mismo valor. Si no, se usa la <strong>beta</strong> (\(\beta\)) del modelo CAPM: la pendiente de la regresión del exceso de rendimiento de la cartera sobre la tasa libre de riesgo contra el exceso de rendimiento del mercado. Con \(\beta = 1{,}5\), cuando el mercado rinde 1 % por encima de la tasa libre de riesgo, la cartera tiende a rendir 1,5 % por encima. Una cartera de valor \(V_A\) se comporta como \(\beta V_A\) invertidos en el índice, y por eso hay que vender futuros por ese monto:</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Contratos para cubrir una cartera de acciones</span>\[ N^* = \beta\,\frac{V_A}{V_F} \qquad V_F = F_0 \times \text{multiplicador} \]</div>
+      <p>La beta cumple el papel de \(h^*\) (es la pendiente de una regresión) y usar el valor del futuro \(F_0\) en el denominador es el ajuste por liquidación diaria que vimos recién. Algunos textos, como la edición en español de Hull, usan el valor del índice en lugar del futuro; la diferencia es chica.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: cubrir una cartera durante tres meses</p>
+        <p>Un fondo tiene una cartera de USD 10.100.000 con \(\beta = 1{,}5\) y quiere cubrirse durante los próximos 3 meses. El índice está en 5.000, la tasa libre de riesgo es 4 % anual y el índice rinde dividendos del 1 % anual. Usa un futuro con vencimiento en 4 meses y multiplicador 50, que cotiza a</p>
+        <div class="formula">\[ F_0 = 5.000\,e^{(0{,}04 - 0{,}01) \times 4/12} = 5.050{,}25 \]</div>
+        <p>(la fórmula del precio futuro de un índice se estudia en la Unidad III). Un contrato vale \(V_F = 5.050{,}25 \times 50 = 252.512{,}50\). El número de contratos a vender es</p>
+        <div class="formula">\[ N^* = 1{,}5 \times \frac{10.100.000}{252.512{,}50} = 60{,}0 \]</div>
+        <p><strong>Si el índice cae a 4.500</strong> (−10 %) a los 3 meses, el futuro (al que le queda 1 mes) cotiza a \(4.500\,e^{0{,}03/12} = 4.511{,}26\).</p>
+        <ul>
+          <li>Ganancia en futuros: \(60 \times (5.050{,}25 - 4.511{,}26) \times 50 = 1.616.970\).</li>
+          <li>Rendimiento del índice en 3 meses, con dividendos: \(-10\,\% + 0{,}25\,\% = -9{,}75\,\%\). La tasa libre de riesgo trimestral es 1 %.</li>
+          <li>Rendimiento esperado de la cartera según el CAPM: \(1\,\% + 1{,}5 \times (-9{,}75\,\% - 1\,\%) = -15{,}125\,\%\). La cartera pasa a valer \(10.100.000 \times (1 - 0{,}15125) = 8.572.375\).</li>
+          <li>Posición cubierta: \(8.572.375 + 1.616.970 = 10.189.345\). Sin cobertura, el fondo habría perdido USD 1.527.625; cubierto, gana 0,89 % en el trimestre.</li>
+        </ul>
+      </div>
+
+      <div class="tabla-wrap">
+        <table class="tabla compacta">
+          <thead><tr><th>Índice a los 3 meses</th><th class="num">4.500</th><th class="num">4.750</th><th class="num">5.000</th><th class="num">5.250</th><th class="num">5.500</th></tr></thead>
+          <tbody>
+            <tr><td>Futuro a los 3 meses</td><td class="num">4.511,26</td><td class="num">4.761,89</td><td class="num">5.012,52</td><td class="num">5.263,14</td><td class="num">5.513,77</td></tr>
+            <tr><td>Resultado de 60 futuros vendidos</td><td class="num pos">1.616.970</td><td class="num pos">865.080</td><td class="num pos">113.190</td><td class="num neg">−638.670</td><td class="num neg">−1.390.560</td></tr>
+            <tr><td>Rendimiento del índice con dividendos</td><td class="num">−9,75 %</td><td class="num">−4,75 %</td><td class="num">0,25 %</td><td class="num">5,25 %</td><td class="num">10,25 %</td></tr>
+            <tr><td>Rendimiento esperado de la cartera (CAPM)</td><td class="num">−15,125 %</td><td class="num">−7,625 %</td><td class="num">−0,125 %</td><td class="num">7,375 %</td><td class="num">14,875 %</td></tr>
+            <tr><td>Valor de la cartera sin cubrir</td><td class="num">8.572.375</td><td class="num">9.329.875</td><td class="num">10.087.375</td><td class="num">10.844.875</td><td class="num">11.602.375</td></tr>
+            <tr class="total"><td>Valor de la posición cubierta</td><td class="num">10.189.345</td><td class="num">10.194.955</td><td class="num">10.200.565</td><td class="num">10.206.205</td><td class="num">10.211.815</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>La posición cubierta termina cerca de USD 10.200.000 en todos los escenarios, alrededor de un 1 % más que el valor inicial. No es casualidad: <strong>una cartera con beta cero rinde la tasa libre de riesgo</strong> (1 % trimestral). Si eliminás todo el riesgo de mercado, el CAPM dice que lo que queda es un activo sin riesgo. Las pequeñas diferencias entre columnas vienen de redondear a 60 contratos y de que el futuro no se mueve exactamente igual que el índice con dividendos. En la práctica la cobertura funciona peor que en la tabla, porque la cartera no sigue al CAPM al pie de la letra.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo de la cátedra (con los números de Hull)</p>
+        <p>Un gestor quiere cubrir durante 3 meses un fondo de acciones con futuros del S&amp;P 500 a 4 meses (cada contrato vale 250 dólares por el índice). Índice: 1.000; futuro: 1.010; tasa libre de riesgo: 4 % anual; dividendos del índice: 1 % anual; valor de la cartera: USD 5.050.000; \(\beta = 1{,}5\).</p>
+        <div class="formula">\[ N^* = 1{,}5 \times \frac{5.050.000}{250 \times 1.010} = 30 \text{ contratos vendidos} \]</div>
+        <p>A los 3 meses el índice está en 900 y el futuro en 902.</p>
+        <ul>
+          <li>Ganancia en futuros: \(30 \times (1.010 - 902) \times 250 = 810.000\).</li>
+          <li>El índice rindió −10 %; con dividendos, −9,75 % en el trimestre. Rendimiento de la cartera por CAPM: \(\tfrac{0{,}04}{4} + 1{,}5 \times \left(-0{,}10 + \tfrac{0{,}01}{4} - \tfrac{0{,}04}{4}\right) = -15{,}125\%\). La cartera vale \(5.050.000 \times (1 - 0{,}15125) = 4.286.187\).</li>
+          <li>Valor cubierto: \(4.286.187 + 810.000 = 5.096.187\), un 0,9 % más que al inicio.</li>
+        </ul>
+        <p>La cobertura tiene riesgo de base, pero la posición termina ganando aproximadamente la tasa libre de riesgo. Fijate que el futuro cotiza 1 % por encima del índice, \(1.010/1.000 - 1 = 1\%\): es el costo de tenencia neto de un futuro a 4 meses, \((r - q) \times \tfrac{4}{12} = (4\% - 1\%) \times \tfrac{4}{12} = 1\%\) (Unidad III). Que coincida con la tasa trimestral \(0{,}04/4\) es una casualidad de estos números.</p>
+      </div>
+      <h3>¿Para qué cubrirse si el resultado es la tasa libre de riesgo?</h3>
+      <p>Si el objetivo fuera solo ganar la tasa libre de riesgo, alcanzaría con vender las acciones y comprar letras del Tesoro. Hay dos buenas razones para usar futuros:</p>
+      <ul>
+        <li><strong>Proteger una selección de acciones (<em>stock picking</em>).</strong> Si el gestor cree que sus acciones van a rendir más que lo que predice el CAPM (un <strong>alfa</strong> positivo) pero no sabe qué va a hacer el mercado, la cobertura elimina el riesgo de mercado y lo deja expuesto solo al desempeño relativo: el rendimiento cubierto es aproximadamente la tasa libre de riesgo <strong>más el alfa</strong>.</li>
+        <li><strong>Cubrirse temporalmente sin vender.</strong> Quien piensa mantener la cartera a largo plazo y solo teme un período turbulento evita los costos de vender y volver a comprar (comisiones, impacto en precios, impuestos) con una posición en futuros que se deshace en un día.</li>
+      </ul>
+
+      <h3>Cambiar la beta de una cartera</h3>
+      <p>Cubrir del todo lleva la beta a cero. Con futuros también se puede llevar la beta a cualquier valor objetivo \(\beta^*\):</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Cambiar la beta de β a β*</span>\[ N = (\beta - \beta^*)\,\frac{V_A}{V_F} \]</div>
+      <p>Si \(N\) es positivo (se quiere <strong>bajar</strong> la beta), se <strong>venden</strong> \(N\) contratos; si es negativo (se quiere <strong>subir</strong> la beta), se <strong>compran</strong> \(|N|\) contratos. En el ejemplo, \(V_A/V_F = 40\):</p>
+      <ul>
+        <li>Para bajar la beta de 1,5 a 0,75: \(N = (1{,}5 - 0{,}75) \times 40 = 30\) contratos vendidos.</li>
+        <li>Para subirla de 1,5 a 2: \(N = (1{,}5 - 2) \times 40 = -20\): se compran 20 contratos.</li>
+      </ul>
+      <p>Así un gestor puede ajustar su exposición al mercado en minutos, sin tocar las acciones que eligió. Probalo en la <a href="u2-simulacion.html#cubrir-o-cambiar-la-beta-de-una-cartera">simulación</a>.</p>
+
+      <h3>Una sola acción</h3>
+      <p>Una posición en una acción individual también se puede cubrir con futuros sobre índice: \(N^* = \beta V_A/V_F\), con la beta de la acción. Pero la cobertura funciona mucho peor que con una cartera, porque solo elimina el riesgo de mercado (sistemático), que en una acción individual es una parte chica del riesgo total. Tiene sentido para quien confía en la acción pero no en el mercado, o para un banco que suscribió una emisión de acciones y quiere protegerse de una caída general.</p>
+
+      <div class="caja prueba">
+        <p class="caja-titulo">Probá vos</p>
+        <p>Un inversor tiene 20.000 acciones de una empresa que cotizan a USD 100, con \(\beta = 1{,}1\). Quiere cubrirse un mes con el futuro del ejemplo (\(V_F = 252.512{,}50\)). ¿Cuántos contratos vende? Si la acción sube 25 % y el futuro sube de 5.050,25 a 5.400, ¿cuánto gana o pierde en total?</p>
+        <details class="desplegable">
+          <summary>Ver la resolución</summary>
+          <p>\(N^* = 1{,}1 \times 2.000.000 / 252.512{,}50 = 8{,}71\): vende 9 contratos. Gana \(20.000 \times 25 = 500.000\) en las acciones y pierde \(9 \times (5.400 - 5.050{,}25) \times 50 = 157.387{,}50\) en los futuros. Total: \(+342.612{,}50\). La cobertura recortó la ganancia, como era de esperar: transforma los escenarios favorables en menos favorables a cambio de suavizar los desfavorables.</p>
+        </details>
+      </div>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="3">
+          <p class="qr-enunciado">Una cartera de USD 2.000.000 tiene \(\beta = 0{,}8\). El futuro sobre el índice cotiza a 4.000 con multiplicador 50. ¿Cuántos contratos hay que vender para cubrirla?</p>
+          <ol class="qr-op">
+            <li>10</li>
+            <li>12,5</li>
+            <li>8</li>
+          </ol>
+          <p class="qr-explicacion">\(V_F = 4.000 \times 50 = 200.000\). \(N^* = 0{,}8 \times 2.000.000/200.000 = 8\). El 10 ignora la beta y el 12,5 divide por la beta.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">Una cartera con \(\beta = 1{,}2\) se cubre totalmente con futuros sobre índice. Según el CAPM, ¿qué rendimiento esperás para la posición cubierta?</p>
+          <ol class="qr-op">
+            <li>Aproximadamente la tasa libre de riesgo, más el alfa de la selección de acciones.</li>
+            <li>Cero, porque la cobertura elimina todo el rendimiento.</li>
+            <li>1,2 veces el rendimiento del índice.</li>
+          </ol>
+          <p class="qr-explicacion">Con beta cero no queda riesgo de mercado, y una posición sin riesgo de mercado rinde la tasa libre de riesgo. Si las acciones elegidas superan al CAPM, se suma ese alfa.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">Un gestor quiere subir la beta de su cartera de 0,9 a 1,3 sin comprar acciones. ¿Qué hace?</p>
+          <ol class="qr-op">
+            <li>Vende \((1{,}3 - 0{,}9)\,V_A/V_F\) futuros sobre índice.</li>
+            <li>Compra \((1{,}3 - 0{,}9)\,V_A/V_F\) futuros sobre índice.</li>
+            <li>Compra \(1{,}3\,V_A/V_F\) futuros sobre índice.</li>
+          </ol>
+          <p class="qr-explicacion">\(N = (\beta - \beta^*)V_A/V_F = -0{,}4\,V_A/V_F\), negativo: hay que comprar. Comprar futuros agrega exposición al mercado.</p>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Rolar la cobertura y el riesgo de liquidez</h2>
+
+      <p>A veces la cobertura dura más que todos los vencimientos disponibles, o los vencimientos lejanos no tienen liquidez. Entonces se <strong>rola</strong> la cobertura (<em>rolling the hedge forward</em>): se cierra un futuro cercano y se abre la misma posición en uno de vencimiento posterior, tantas veces como haga falta. Para una cobertura corta:</p>
+      <ul>
+        <li>En \(t_1\): vender el futuro 1.</li>
+        <li>En \(t_2\): cerrar el futuro 1 y vender el futuro 2. Y así sucesivamente.</li>
+        <li>En \(T\): cerrar el último futuro y vender el activo.</li>
+      </ul>
+      <p>Cuando una empresa tiene compromisos a muchos plazos y los cubre acumulando ("apilando") posiciones en los vencimientos cercanos, que son los más líquidos, y las va rolando, se habla de <strong>apilar y rolar</strong> (<em>stack and roll</em>).</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: tres rolleos</p>
+        <p>En abril de 2026 una petrolera sabe que va a vender 100.000 barriles en junio de 2027. El contado está a 72. Solo los vencimientos de los próximos seis meses tienen liquidez, así que rola tres veces, siempre con 100 contratos vendidos:</p>
+        <div class="tabla-wrap">
+          <table class="tabla compacta">
+            <thead><tr><th>Contrato</th><th>Se vende en</th><th class="num">a</th><th>Se cierra en</th><th class="num">a</th><th class="num">Ganancia por barril</th></tr></thead>
+            <tbody>
+              <tr><td>Octubre 2026</td><td>abril 2026</td><td class="num">71,20</td><td>septiembre 2026</td><td class="num">70,10</td><td class="num pos">+1,10</td></tr>
+              <tr><td>Marzo 2027</td><td>septiembre 2026</td><td class="num">69,80</td><td>febrero 2027</td><td class="num">69,10</td><td class="num pos">+0,70</td></tr>
+              <tr><td>Julio 2027</td><td>febrero 2027</td><td class="num">68,90</td><td>junio 2027</td><td class="num">68,40</td><td class="num pos">+0,50</td></tr>
+              <tr class="total"><td colspan="5">Total de los futuros</td><td class="num">+2,30</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>En junio de 2027 el contado está en 68. La empresa vende a 68 y suma 2,30 de los futuros: precio efectivo 70,30 (USD 7.030.000 en total). El petróleo cayó 4 y los futuros compensaron 2,30.</p>
+        <p>¿Por qué no compensaron todo? Porque los futuros estaban por debajo del contado. Cada vez que rola, la empresa recompra un contrato y vende el siguiente más barato, y "pierde" esa diferencia: \(70{,}30 = 71{,}20 - (70{,}10 - 69{,}80) - (69{,}10 - 68{,}90) + (68{,}00 - 68{,}40)\). Lo más que podía aspirar a fijar era el precio de un futuro de junio de 2027, si hubiera existido con liquidez desde el principio, no el contado de abril de 2026.</p>
+      </div>
+
+      <figure class="figura">
+        <div class="svg-scroll">
+          <svg viewBox="0 0 640 210" role="img" aria-label="Línea de tiempo de los tres contratos usados para rolar la cobertura">
+            <line x1="40" y1="170" x2="615" y2="170" class="s-trazo" stroke-width="1.2"/>
+            <rect x="60" y="28" width="189.3" height="28" rx="5" class="s-relleno"/>
+            <rect x="249.3" y="72" width="189.3" height="28" rx="5" class="s-relleno"/>
+            <rect x="438.6" y="116" width="151.4" height="28" rx="5" class="s-relleno"/>
+            <g font-size="12.5" font-weight="700" class="s-texto">
+              <text x="70" y="47">Futuro oct-2026</text>
+              <text x="259" y="91">Futuro mar-2027</text>
+              <text x="448" y="135">Futuro jul-2027</text>
+            </g>
+            <g font-size="12.5" class="s-texto">
+              <text x="258" y="47">71,20 → 70,10: +1,10</text>
+              <text x="447" y="91">69,80 → 69,10: +0,70</text>
+              <text x="430" y="135" text-anchor="end">68,90 → 68,40: +0,50</text>
+            </g>
+            <g class="s-trazo" stroke-width="1">
+              <line x1="60" y1="165" x2="60" y2="175"/><line x1="249.3" y1="165" x2="249.3" y2="175"/><line x1="438.6" y1="165" x2="438.6" y2="175"/><line x1="590" y1="165" x2="590" y2="175"/>
+            </g>
+            <g font-size="12" text-anchor="middle" class="s-suave">
+              <text x="60" y="190">abr-2026</text><text x="249.3" y="190">sep-2026</text><text x="438.6" y="190">feb-2027</text><text x="590" y="190">jun-2027</text>
+            </g>
+            <text x="325" y="206" font-size="12" text-anchor="middle" class="s-suave">Contado: 72 en abril de 2026 · 68 en junio de 2027</text>
+          </svg>
+        </div>
+        <figcaption>Cada barra es el período en que la empresa mantiene vendidos 100 contratos de ese vencimiento; al lado, el precio de venta y el de cierre.</figcaption>
+      </figure>
+
+      <h3>Metallgesellschaft: cuando la cobertura se queda sin caja</h3>
+      <p>Rolar puede generar fuertes tensiones de liquidez. A principios de los años noventa, Metallgesellschaft (MG), un grupo alemán, vendió a sus clientes contratos de suministro de combustible para calefacción y nafta a precio fijo por 5 a 10 años, 6 a 8 centavos por encima del precio de mercado. Cubrió esa posición corta con futuros <strong>comprados</strong> de vencimiento cercano, que iba rolando.</p>
+      <p>El precio del petróleo bajó. Económicamente, la caída beneficiaba a los contratos de suministro (MG iba a comprar más barato lo que había vendido caro), pero esa ganancia se iba a cobrar a lo largo de años. Las pérdidas de los futuros, en cambio, se pagaban todos los días con llamados de margen (<em>margin calls</em>). Además, el mercado pasó a <em>contango</em> (futuros por encima del contado) y cada rolleo costaba dinero. La dirección y los bancos se alarmaron por la salida de caja, cerraron las coberturas y acordaron con los clientes abandonar los contratos. La pérdida fue de USD 1.330 millones.</p>
+      <p>La lección: <strong>una cobertura correcta en términos de valor puede fallar por falta de liquidez</strong>. Quien se cubre con futuros tiene que prever cómo va a financiar los márgenes mientras espera la compensación del negocio físico, y la dirección tiene que entender la estrategia antes de que aparezcan las pérdidas en la pata de futuros.</p>
+
+      <!-- ================================================================== -->
+      <h2>Especulación con futuros</h2>
+
+      <p>El <strong>especulador</strong> usa los mismos contratos con el objetivo opuesto: no tiene una exposición previa que compensar, sino que <strong>toma</strong> riesgo para ganar con un movimiento de precios que anticipa. La diferencia no está en el instrumento sino en la posición de partida: comprar futuros reduce el riesgo del fabricante que va a comprar cobre y aumenta el riesgo del inversor que no tiene nada que ver con el cobre.</p>
+      <p>Los futuros son atractivos para especular por el <strong>apalancamiento</strong>: para tomar una posición solo hace falta depositar el margen inicial, una fracción chica del valor del contrato. Las ganancias y las pérdidas se calculan sobre el valor total, pero el capital comprometido es solo el margen.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: rendimiento sobre el margen</p>
+        <p>Un especulador cree que el mercado va a subir y compra 4 futuros sobre un índice a 5.000 puntos, con multiplicador 50. El valor de la posición es \(4 \times 5.000 \times 50 = 1.000.000\). Supongamos un margen inicial de 15.000 por contrato (ilustrativo): deposita 60.000.</p>
+        <ul>
+          <li>Si el índice sube 3 % (a 5.150), gana \(4 \times 150 \times 50 = 30.000\): un <strong>50 % sobre el margen</strong>.</li>
+          <li>Si el índice cae 3 % (a 4.850), pierde 30.000: un <strong>−50 % sobre el margen</strong>.</li>
+          <li>Una caída de 300 puntos (6 %) se lleva todo el margen. Mucho antes, el mercado le va a pedir que reponga fondos (llamado de margen).</li>
+        </ul>
+        <p>El apalancamiento es \(1.000.000/60.000 = 16{,}7\) veces: cada 1 % que se mueve el índice es un 16,7 % del capital invertido. Comprar las acciones del índice por 1.000.000 daría el mismo resultado en pesos, pero exigiría invertir el millón completo.</p>
+      </div>
+
+      <div class="caja importante">
+        <p class="caja-titulo">Cobertura y especulación, lado a lado</p>
+        <ul>
+          <li><strong>Objetivo:</strong> el coberturista quiere reducir un riesgo que ya tiene; el especulador busca una ganancia y acepta riesgo.</li>
+          <li><strong>Resultado de los futuros:</strong> para el coberturista, una pérdida en futuros suele venir acompañada de una ganancia en el negocio; para el especulador, la pérdida es pérdida.</li>
+          <li><strong>Margen:</strong> los dos deben depositarlo y responder a los llamados de margen. Por eso el coberturista también necesita liquidez (recordá Metallgesellschaft).</li>
+          <li><strong>Utilidad social:</strong> los especuladores aportan liquidez y toman el riesgo que los coberturistas quieren ceder.</li>
+        </ul>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>La cobertura en la Argentina</h2>
+
+      <div class="caja argentina">
+        <p class="caja-titulo">En Argentina: cobertura con dólar futuro en A3</p>
+        <p>El instrumento de cobertura más usado en el país es el <strong>dólar futuro</strong> de A3 Mercados (el mercado surgido de la fusión de Matba Rofex y MAE; la contraparte central es Argentina Clearing y Registro). Cada contrato es por USD 1.000 y cotiza en pesos por dólar. El subyacente es el tipo de cambio mayorista de referencia del BCRA (Comunicación "A" 3500), los vencimientos son mensuales, el último día hábil de cada mes, y se liquida por diferencias en pesos, con ajuste diario: no se entregan dólares.</p>
+        <p><strong>Importador (cobertura larga).</strong> Una empresa tiene que pagar USD 200.000 a un proveedor el último día hábil de septiembre. Con números ilustrativos: el A3500 está hoy en 1.400 y el futuro de septiembre en 1.456. Compra <strong>200 contratos</strong> a 1.456.</p>
+        <div class="tabla-wrap">
+          <table class="tabla compacta">
+            <thead><tr><th>Al vencimiento</th><th class="num">A3500 = 1.520</th><th class="num">A3500 = 1.420</th></tr></thead>
+            <tbody>
+              <tr><td>Compra de USD 200.000 (pesos)</td><td class="num">−304.000.000</td><td class="num">−284.000.000</td></tr>
+              <tr><td>Resultado del futuro: \((A3500 - 1.456) \times 1.000 \times 200\)</td><td class="num pos">+12.800.000</td><td class="num neg">−7.200.000</td></tr>
+              <tr class="total"><td>Costo neto</td><td class="num">−291.200.000</td><td class="num">−291.200.000</td></tr>
+              <tr><td>Pesos por dólar</td><td class="num">1.456</td><td class="num">1.456</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><strong>Exportador (cobertura corta).</strong> Una empresa que va a cobrar USD 500.000 a fin de octubre vende 500 contratos de octubre y fija, aproximadamente, el precio de ese futuro para los dólares que va a liquidar.</p>
+        <p><strong>¿Dónde está el riesgo de base?</strong> El futuro converge al A3500 del último día hábil del mes. Si el pago o el cobro cae a mitad de mes, hay que usar el vencimiento de ese mes y cerrarlo antes, con una base desconocida. Y si la empresa compra o vende los dólares a un tipo de cambio distinto del A3500 (por ejemplo, el de su banco, con su diferencial), esa diferencia funciona como el componente \(S_2 - S_2^*\) de una cobertura cruzada. Como el ajuste es diario y en pesos, también hay que tener pesos disponibles para cubrir las diferencias si el dólar baja.</p>
+        <p><strong>Una cartera de acciones locales.</strong> A3 también lista futuros sobre índices. Antes de usarlos, consultá en el sitio del mercado las especificaciones vigentes (índice, multiplicador, vencimientos) y la liquidez. La lógica es la misma de esta unidad: con una cartera de 500 millones de pesos, beta 1,2 respecto del índice y un contrato que valga 10 millones de pesos (precio del futuro por multiplicador, número ilustrativo), habría que vender \(1{,}2 \times 500/10 = 60\) contratos.</p>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Resumen</h2>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">Para recordar</p>
+        <ul>
+          <li>Quien va a <strong>vender</strong> el activo hace una cobertura <strong>corta</strong> (vende futuros); quien lo va a <strong>comprar</strong>, una cobertura <strong>larga</strong> (compra futuros). La cobertura fija aproximadamente \(F_1\), no el contado de hoy, y resigna el escenario favorable.</li>
+          <li>Cubrirse no siempre conviene: los accionistas pueden diversificar, la competencia puede no cubrirse, el resultado ex post puede ser peor y la contabilidad puede mostrar volatilidad si no se aplica contabilidad de coberturas.</li>
+          <li>Base: \(b = S - F\). Precio efectivo de una cobertura: \(F_1 + b_2\), tanto corta como larga. Un fortalecimiento inesperado de la base favorece a la cobertura corta y perjudica a la larga.</li>
+          <li>Contrato a elegir: el activo más correlacionado y el vencimiento más cercano posterior al fin de la cobertura.</li>
+          <li>Ratio de mínima varianza: \(h^* = \rho\,\sigma_S/\sigma_F\) (pendiente de la regresión de \(\Delta S\) sobre \(\Delta F\)). Efectividad: \(\rho^2\). Contratos: \(N^* = h^* Q_A/Q_F\); con ajuste por liquidación diaria, \(N^* = h^* V_A/V_F\).</li>
+          <li>Cartera de acciones: \(N^* = \beta V_A/V_F\), con \(V_F = F_0 \times\) multiplicador. Cubierta, rinde aproximadamente la tasa libre de riesgo más el alfa. Para cambiar la beta: \(N = (\beta - \beta^*)V_A/V_F\) (positivo, vender; negativo, comprar).</li>
+          <li>Rolar permite cubrir plazos largos, pero los márgenes diarios pueden generar una crisis de liquidez (Metallgesellschaft).</li>
+          <li>El especulador toma riesgo; el margen le da apalancamiento: el rendimiento sobre el margen es un múltiplo del movimiento del precio.</li>
+        </ul>
+      </div>
+
+      <div class="caja hull">
+        <p class="caja-titulo">Para leer en Hull</p>
+        <p><strong>Edición en español del material</strong> (<em>Introducción a los mercados de futuros y opciones</em>): capítulo 4, "Estrategias de cobertura con contratos de futuros": 4.1 Principios básicos, 4.2 Argumentos a favor y en contra de la cobertura, 4.3 Riesgo de base, 4.4 Ratio de cobertura de varianza mínima, 4.5 Futuros sobre índices bursátiles y 4.6 Enlace de coberturas (con el caso Metallgesellschaft). Para la especulación, la sección sobre especuladores del capítulo 1.</p>
+        <p><strong>OFOD</strong> (<em>Options, Futures and Other Derivatives</em>): capítulo 3, "Hedging strategies using futures" (3.1 a 3.6, incluido el ajuste por liquidación diaria en la sección de cobertura cruzada y el apéndice sobre el CAPM), y la sección 1.8 sobre especuladores.</p>
+      </div>
+    </article>
+  </main>
+
+  <nav class="pie-navegacion" id="pie-navegacion"></nav>
+
+  <script src="vendor/katex/katex.min.js"></script>
+  <script src="vendor/katex/contrib/auto-render.min.js"></script>
+  <script src="vendor/chartjs/chart.umd.min.js"></script>
+  <script src="js/calculos.js"></script>
+  <script src="js/comun.js"></script>
+</body>
+</html>

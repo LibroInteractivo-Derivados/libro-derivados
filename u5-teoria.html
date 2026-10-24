@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Introducción a las opciones · Teoría</title>
+  <link rel="stylesheet" href="vendor/fuentes/fuentes.css">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="css/libro.css">
+</head>
+<body data-unidad="u5" data-seccion="teoria">
+  <div id="encabezado"></div>
+
+  <main class="pagina con-indice">
+    <aside class="indice" id="indice"></aside>
+
+    <article class="contenido">
+      <h1>Introducción a las opciones</h1>
+      <p class="bajada">Mecánica de las opciones, cómo funcionan sus mercados, payoffs, variables que determinan su precio, límites de no arbitraje, paridad put-call (con y sin dividendos) y ejercicio anticipado.</p>
+      <span class="etiqueta-hull">Hull caps. 10 y 11 (cronograma)</span>
+      <span class="etiqueta-hull">Caps. 7 y 8 en la edición en español del material</span>
+
+      <div class="objetivos">
+        <p>Objetivos de la unidad</p>
+        <ul>
+          <li>Entender la mecánica de calls y puts: derechos, obligaciones, prima, payoff y beneficio de las cuatro posiciones básicas.</li>
+          <li>Conocer cómo funcionan los mercados de opciones: contratos estandarizados, creadores de mercado, cámara compensadora, ejercicio, asignación y garantías.</li>
+          <li>Explicar cómo afecta cada variable (\(S_0, K, T, \sigma, r, D\)) al precio de una opción y por qué.</li>
+          <li>Deducir los límites de no arbitraje y la paridad put-call, con y sin dividendos, y armar la estrategia de arbitraje cuando un precio de mercado los viola.</li>
+          <li>Analizar cuándo conviene ejercer anticipadamente una opción americana.</li>
+        </ul>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>¿Qué es una opción?</h2>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">Definición</p>
+        <p>Una <strong>opción</strong> es un contrato que le da a quien la compra el <strong>derecho, pero no la obligación</strong>, de comprar o vender un activo (el <strong>subyacente</strong>) a un precio fijado de antemano (el <strong>precio de ejercicio</strong> o <em>strike</em>, \(K\)), hasta una fecha determinada (el <strong>vencimiento</strong>, \(T\)).</p>
+      </div>
+
+      <ul>
+        <li>Un <strong>call</strong> (opción de compra) da el derecho a <strong>comprar</strong> el subyacente a \(K\).</li>
+        <li>Un <strong>put</strong> (opción de venta) da el derecho a <strong>vender</strong> el subyacente a \(K\).</li>
+        <li>Una opción <strong>europea</strong> solo puede ejercerse en la fecha de vencimiento; una <strong>americana</strong>, en cualquier momento hasta el vencimiento.</li>
+      </ul>
+
+      <p>Para adquirir ese derecho, el comprador paga una <strong>prima</strong>. Esta es una diferencia clave con los forwards y futuros: entrar en un forward no cuesta nada, pero obliga a las dos partes. En una opción, el comprador paga para tener la elección, y el vendedor cobra a cambio de asumir la obligación de cumplir si el comprador ejerce.</p>
+
+      <p>Hay entonces cuatro posiciones posibles. El comprador tiene la <strong>posición larga</strong> (<em>long</em>). El vendedor, también llamado <strong>lanzador</strong>, tiene la <strong>posición corta</strong> (<em>short</em>); vender una opción también se dice "lanzar" la opción.</p>
+
+      <!-- ================================================================== -->
+      <h2>Payoffs y beneficios</h2>
+
+      <p>El <strong>payoff bruto</strong> es lo que vale la opción al vencimiento, sin tener en cuenta la prima. Si al vencimiento el subyacente vale \(S_T\):</p>
+      <div class="formula">\[ \text{Call: } \max(S_T - K;\ 0) \qquad\qquad \text{Put: } \max(K - S_T;\ 0) \]</div>
+      <p>El comprador de un call solo ejerce si \(S_T \gt K\): compra a \(K\) algo que vale \(S_T\). El comprador de un put solo ejerce si \(S_T \lt K\): vende a \(K\) algo que vale \(S_T\). Para el vendedor, el payoff es exactamente el opuesto: <strong>lo que gana uno lo pierde el otro</strong>.</p>
+
+      <div class="grilla-graficos">
+        <figure class="grafico-payoff" data-patas="compra call 100 0" data-modo="payoff" data-desde="60" data-hasta="140"><figcaption>Long call: \(\max(S_T - K;\ 0)\)</figcaption></figure>
+        <figure class="grafico-payoff" data-patas="venta call 100 0" data-modo="payoff" data-desde="60" data-hasta="140"><figcaption>Short call: \(-\max(S_T - K;\ 0)\)</figcaption></figure>
+        <figure class="grafico-payoff" data-patas="compra put 100 0" data-modo="payoff" data-desde="60" data-hasta="140"><figcaption>Long put: \(\max(K - S_T;\ 0)\)</figcaption></figure>
+        <figure class="grafico-payoff" data-patas="venta put 100 0" data-modo="payoff" data-desde="60" data-hasta="140"><figcaption>Short put: \(-\max(K - S_T;\ 0)\)</figcaption></figure>
+      </div>
+
+      <p>El <strong>beneficio</strong> (profit) descuenta la prima: el comprador la pagó y el vendedor la cobró. Si \(c\) y \(p\) son las primas del call y del put:</p>
+      <div class="formula">\[ \text{Long call: } \max(S_T - K;\ 0) - c \qquad\qquad \text{Long put: } \max(K - S_T;\ 0) - p \]</div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>Un call con strike 100 cuesta 5. Al comprador le conviene ejercer siempre que \(S_T \gt 100\), pero recién <strong>gana dinero</strong> si \(S_T \gt 105\): ese es el <strong>break-even</strong>. Su pérdida máxima es la prima (5) y su ganancia es ilimitada. El lanzador tiene el resultado opuesto: gana como máximo 5 y su pérdida es ilimitada.</p>
+      </div>
+
+      <div class="grilla-graficos">
+        <figure class="grafico-payoff" data-patas="compra call 100 5" data-desde="70" data-hasta="130"><figcaption>Long call, K = 100, prima = 5. Break-even = 105.</figcaption></figure>
+        <figure class="grafico-payoff" data-patas="venta call 100 5" data-desde="70" data-hasta="130"><figcaption>Short call, K = 100, prima = 5. Break-even = 105.</figcaption></figure>
+        <figure class="grafico-payoff" data-patas="compra put 70 7" data-desde="40" data-hasta="100"><figcaption>Long put, K = 70, prima = 7. Break-even = 63.</figcaption></figure>
+        <figure class="grafico-payoff" data-patas="venta put 70 7" data-desde="40" data-hasta="100"><figcaption>Short put, K = 70, prima = 7. Break-even = 63.</figcaption></figure>
+      </div>
+
+      <p>Podés armar cualquiera de estas posiciones, cambiar el strike y la prima y mover \(S_T\) en la <a href="u5-simulacion.html#posiciones-basicas">simulación</a>: te explica en qué tramo estás y por qué.</p>
+
+      <div class="caja error">
+        <p class="caja-titulo">Errores frecuentes</p>
+        <ul>
+          <li><strong>Confundir payoff con beneficio.</strong> El payoff es lo que paga la opción al vencimiento; el beneficio le resta la prima (o se la suma, si sos el lanzador). Si el enunciado pide "ganancia o pérdida", tenés que considerar la prima.</li>
+          <li><strong>Olvidar el tamaño del contrato.</strong> Las primas se cotizan por acción y un contrato suele ser de 100 acciones. En la guía U5, ej. 1, la ganancia con \(S_T = 50\) es \((50 - 45 - 1) \times 100 = 400\), no 4.</li>
+          <li><strong>Creer que "se ejerce" equivale a "se gana".</strong> Un call con \(K = 100\) y prima 5 se ejerce con \(S_T = 103\) aunque el comprador termine perdiendo 2: ejercer reduce la pérdida de 5 a 2.</li>
+        </ul>
+      </div>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">Comprás un put con \(K = 70\) y prima 7. Al vencimiento la acción vale 66. ¿Qué hacés y cuál es tu resultado?</p>
+          <ol class="qr-op">
+            <li>Ejercés y perdés 3.</li>
+            <li>No ejercés y perdés 7.</li>
+            <li>Ejercés y ganás 4.</li>
+          </ol>
+          <p class="qr-explicacion">Con \(S_T = 66 \lt 70\) conviene ejercer: vendés a 70 algo que vale 66 (payoff 4). Como pagaste 7 de prima, el resultado es \(4 - 7 = -3\). Si no ejercieras perderías 7. "Ganás 4" es el payoff, no el beneficio.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">¿Cuál de estas posiciones tiene una pérdida potencial ilimitada?</p>
+          <ol class="qr-op">
+            <li>Long call.</li>
+            <li>Short call.</li>
+            <li>Short put.</li>
+          </ol>
+          <p class="qr-explicacion">El lanzador de un call tiene que vender a \(K\) por más que suba la acción, y la suba no tiene techo. La pérdida del short put está acotada: como mucho \(K\) menos la prima, si la acción llega a cero.</p>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Subyacentes y especificaciones</h2>
+
+      <ul>
+        <li><strong>Acciones:</strong> se negocian principalmente en bolsas (<em>exchanges</em>). En general un contrato equivale a un lote de 100 acciones.</li>
+        <li><strong>Monedas:</strong> mayormente OTC. El lote estándar suele ser de 10.000 unidades de moneda (1 millón en el caso del yen).</li>
+        <li><strong>Índices accionarios:</strong> en bolsa y OTC, en general europeas. El payoff es N veces el índice (generalmente 100 o 250) y se liquidan siempre en efectivo (<em>cash settlement</em>).</li>
+        <li><strong>Futuros:</strong> en bolsa y OTC, en general americanas. La opción vence un tiempo antes que el futuro. Al ejercer un call se obtiene la diferencia entre el precio futuro y el strike; al ejercer un put, la diferencia entre el strike y el precio futuro.</li>
+      </ul>
+
+      <p>En las opciones que cotizan en bolsa, el mercado define el vencimiento, los strikes disponibles (con "saltos" fijos), la posición máxima y cómo se tratan los dividendos y los splits:</p>
+      <ul>
+        <li><strong>Dividendos en efectivo:</strong> en bolsa, en general no se ajustan (salvo dividendos muy grandes); en OTC pueden ajustarse.</li>
+        <li><strong>Dividendos en acciones y splits:</strong> se ajusta el strike. Con un split de \(n\) por \(m\), el strike pasa a ser \(K \cdot m/n\) y la cantidad de acciones por contrato se multiplica por \(n/m\). Por ejemplo, en un split 2 por 1 el strike se divide por 2 y el contrato pasa a cubrir el doble de acciones.</li>
+      </ul>
+
+      <!-- ================================================================== -->
+      <h2>Cómo funcionan los mercados de opciones</h2>
+
+      <p>Hasta acá vimos qué paga una opción. Esta sección cuenta cómo se negocia: quién está del otro lado, cómo se sale de una posición, qué pasa cuando alguien ejerce y por qué solo el lanzador tiene que dejar garantías.</p>
+
+      <h3>Contratos estandarizados</h3>
+      <p>En una bolsa, cada <strong>serie</strong> de opciones queda definida por cuatro datos que fija el mercado: el subyacente, el tipo (call o put), el precio de ejercicio y el vencimiento. El tamaño del contrato también es fijo (en acciones, en general 100). Gracias a la estandarización, todos los que operan una misma serie negocian exactamente el mismo contrato, y eso es lo que da liquidez: cualquiera puede comprar hoy y vender mañana a otra persona.</p>
+      <ul>
+        <li><strong>Vencimientos:</strong> el mercado lista unos pocos vencimientos a la vez. En Estados Unidos, por ejemplo, las opciones mensuales sobre acciones vencen el tercer viernes del mes.</li>
+        <li><strong>Strikes:</strong> se listan con saltos fijos alrededor del precio de la acción (de 2,5, de 5 o de 10, según el precio). Cuando la acción se mueve mucho, el mercado agrega strikes nuevos para que siempre haya opciones cerca del dinero.</li>
+        <li><strong>Límites de posición y de ejercicio:</strong> el mercado limita cuántos contratos puede tener (y ejercer en pocos días) un mismo inversor de un mismo "lado" del mercado. Un long call y un short put cuentan del mismo lado, porque los dos ganan si sube la acción. El objetivo es que nadie pueda influir demasiado en el precio.</li>
+      </ul>
+
+      <h3>Creadores de mercado y diferencial bid-ask</h3>
+      <p>La mayoría de los mercados de opciones tienen <strong>creadores de mercado</strong> (<em>market makers</em>): operadores que se comprometen a cotizar en todo momento un precio al que compran (<em>bid</em>) y uno al que venden (<em>ask</em> u <em>offer</em>). Cuando cotizan no saben si quien pregunta quiere comprar o vender, así que tienen que dar las dos puntas.</p>
+      <p>El ask siempre es mayor que el bid, y la diferencia es el <strong>diferencial bid-ask</strong> (<em>bid-ask spread</em>). Es la ganancia del creador de mercado y un costo para el inversor. Si un call cotiza 4,00 / 4,50 y el precio "justo" es el promedio, 4,25, quien compra paga 0,25 de más por acción (25 por contrato de 100); si quisiera vender en el mismo instante, recibiría 4,00: la ida y vuelta le cuesta 0,50 por acción. A cambio, los creadores de mercado aportan <strong>liquidez</strong>: siempre hay alguien del otro lado. Ellos cubren el riesgo de las posiciones que acumulan con las técnicas de cobertura (las griegas) de la Unidad VI.</p>
+
+      <h3>Cerrar una posición: la orden compensatoria</h3>
+      <p>Casi nadie mantiene una opción hasta el vencimiento. Para salir, el comprador no "devuelve" la opción: <strong>vende la misma serie</strong>. El lanzador, a su vez, sale <strong>comprando la misma serie</strong>. Es una <strong>orden de cierre</strong> u orden compensatoria (<em>offsetting order</em>): la posición nueva cancela la anterior y el resultado es la diferencia entre las primas.</p>
+      <p>Esto se refleja en el <strong>interés abierto</strong> (<em>open interest</em>), la cantidad de contratos vigentes. Si los dos que operan abren posiciones nuevas, el interés abierto sube en un contrato; si uno abre y el otro cierra, no cambia; si los dos cierran, baja en un contrato.</p>
+
+      <h3>La cámara compensadora</h3>
+      <p>Igual que en los futuros, entre el comprador y el lanzador se interpone una <strong>cámara compensadora</strong> (en Estados Unidos, la <em>Options Clearing Corporation</em>, OCC). La cámara se convierte en la contraparte de los dos: le garantiza al comprador que el lanzador va a cumplir y lleva el registro de todas las posiciones largas y cortas. Por eso el comprador no necesita conocer ni evaluar al lanzador. Para poder garantizar, la cámara exige que sus miembros tengan un capital mínimo y aporten a un fondo común, y que los lanzadores dejen garantías.</p>
+
+      <h3>Ejercicio y asignación</h3>
+      <p>Cuando un comprador quiere ejercer, avisa a su agente, que pasa la orden a la cámara. La cámara elige <strong>al azar</strong> a uno de sus miembros que tenga lanzadores de esa serie, y ese miembro elige a uno de sus clientes lanzadores con un procedimiento fijado de antemano. A ese lanzador se le dice que fue <strong>asignado</strong> (<em>assigned</em>): si la opción es un call, tiene que vender las acciones a \(K\); si es un put, tiene que comprarlas a \(K\). Cada ejercicio reduce el interés abierto en un contrato.</p>
+      <p>El lanzador de una opción americana nunca sabe si lo van a asignar mañana: es un riesgo propio de la posición corta. Al vencimiento, las opciones dentro del dinero normalmente se ejercen de forma automática, salvo que los costos de transacción se coman la ganancia.</p>
+
+      <h3>Garantías: solo las deja el lanzador</h3>
+      <p>El comprador paga la prima completa al operar y con eso termina su obligación: lo peor que le puede pasar es perder la prima, así que no tiene que dejar garantías. Tampoco puede comprar opciones a crédito, porque la opción ya es un instrumento apalancado.</p>
+      <p>El lanzador está en otra situación. Cobró la prima, pero asumió una obligación que puede costarle mucho más (sin techo, en un call). Por eso tiene que mantener una <strong>cuenta de garantía</strong> (<em>margin account</em>), como en los futuros:</p>
+      <ul>
+        <li>En una opción <strong>descubierta</strong> (<em>naked</em>), es decir, sin una posición en el subyacente que la compense, la garantía inicial se calcula como la prima cobrada más un porcentaje del valor del subyacente, y es menor cuanto más fuera del dinero está la opción. La lógica: cuanto más probable y más grande es el pago que el lanzador puede llegar a hacer, más garantía se le pide.</li>
+        <li>La garantía se <strong>recalcula todos los días</strong> con los precios de mercado. Si la opción se mueve en contra del lanzador, se le pide más; si se mueve a favor, puede retirar el excedente.</li>
+        <li>En un call <strong>cubierto</strong> (el lanzador tiene las acciones que tendría que entregar) el riesgo es mucho menor: lo peor que le pasa es vender a \(K\) acciones que ya tiene. Por eso se exige poca o ninguna garantía adicional por la opción.</li>
+      </ul>
+
+      <h3>Comisiones</h3>
+      <p>Además del diferencial bid-ask, el inversor paga <strong>comisiones</strong> a su agente: en general, un monto fijo más un porcentaje del monto operado, con mínimos y máximos por contrato. Se pagan al abrir y otra vez al cerrar. Si en lugar de vender la opción se la ejerce, se paga la comisión de comprar o vender las acciones, que suele ser más alta porque se calcula sobre el valor de las acciones. Por eso, muchas veces quien tiene un call dentro del dinero prefiere <strong>venderlo</strong> antes que ejercerlo: se ahorra comisiones y cobra el valor tiempo que todavía le queda (lo vas a ver en <a href="#ejercicio-anticipado">Ejercicio anticipado</a>).</p>
+
+      <h3>Warrants, opciones para empleados y convertibles</h3>
+      <p>En una opción común sobre acciones, la empresa emisora de las acciones no participa: si se ejerce un call, el lanzador entrega acciones que ya existen. Hay tres instrumentos parecidos en los que <strong>la propia empresa</strong> es la lanzadora y, cuando se ejercen, <strong>emite acciones nuevas</strong>. Por eso diluyen a los accionistas actuales.</p>
+      <ul>
+        <li><strong>Warrants:</strong> calls emitidos por la empresa, muchas veces junto con una emisión de bonos para hacerla más atractiva. Suelen durar varios años y, una vez emitidos, se negocian por separado del bono.</li>
+        <li><strong>Opciones para empleados</strong> (<em>employee stock options</em>): calls que la empresa entrega a ejecutivos y empleados para alinear sus incentivos con los de los accionistas. Suelen emitirse en el dinero, tienen un período mínimo antes de poder ejercerse, duran muchos años y no se pueden vender.</li>
+        <li><strong>Bonos convertibles:</strong> bonos que el tenedor puede canjear por una cantidad fija de acciones de la empresa en ciertas fechas. Son un bono más un call sobre las acciones de la empresa.</li>
+      </ul>
+
+      <h3>Opciones OTC</h3>
+      <p>Fuera de las bolsas hay un mercado <em>over the counter</em> muy grande, sobre todo en opciones sobre monedas y tasas de interés. Su ventaja es que se diseñan a medida: strike, vencimiento, tamaño e incluso payoffs no estándar (las <em>opciones exóticas</em>). Su desventaja es el <strong>riesgo de crédito</strong>: no hay una cámara que garantice que el lanzador cumpla, y por eso es habitual pedirle garantías (<em>collateral</em>) a la contraparte.</p>
+
+      <div class="caja argentina">
+        <p class="caja-titulo">En Argentina</p>
+        <p>Las opciones sobre acciones locales se negocian en <strong>BYMA</strong> (Bolsas y Mercados Argentinos). Todo lo de esta sección se aplica, con estas características:</p>
+        <ul>
+          <li>Cada contrato es un <strong>lote de 100 acciones</strong> y las primas se cotizan por acción.</li>
+          <li>Son <strong>americanas</strong>: se pueden ejercer en cualquier momento hasta el vencimiento. Por eso, para las opciones locales importan el ejercicio anticipado y la banda \(S_0 - K \le C - P \le S_0 - Ke^{-rT}\), no la paridad exacta de las europeas.</li>
+          <li>La <strong>prima se liquida en el día</strong>: el comprador la paga y el lanzador la cobra el mismo día de la operación.</li>
+          <li><strong>Solo los lanzadores depositan garantías</strong>, por la lógica que vimos: el comprador ya pagó todo lo que puede perder.</li>
+          <li>Al vencimiento, las opciones <strong>dentro o en el dinero se ejercen automáticamente</strong> si el titular no da otra instrucción.</li>
+        </ul>
+        <p>Los números de los ejemplos de este libro son ilustrativos: para operar, consultá los precios, vencimientos y garantías vigentes en el mercado.</p>
+      </div>
+
+      <div class="caja error">
+        <p class="caja-titulo">Errores frecuentes</p>
+        <ul>
+          <li><strong>"Para salir de una opción comprada hay que ejercerla."</strong> No: se puede vender la misma serie con una orden de cierre. En general es mejor, porque al vender cobrás también el valor tiempo.</li>
+          <li><strong>"El comprador también deja garantías, como en los futuros."</strong> No: en los futuros las dos partes tienen obligaciones; en las opciones, solo el lanzador. El comprador paga la prima y no debe nada más.</li>
+          <li><strong>"Si ejerzo, me paga el que me vendió la opción."</strong> Tu contraparte es la cámara, que asigna el ejercicio al azar a algún lanzador de la misma serie.</li>
+        </ul>
+      </div>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">Un call cotiza 2,40 / 2,60 (bid / ask). Comprás 3 contratos de 100 acciones y los vendés en el mismo instante. Sin contar comisiones, ¿cuánto perdiste?</p>
+          <ol class="qr-op">
+            <li>Nada, porque el precio no cambió.</li>
+            <li>60.</li>
+            <li>0,20.</li>
+          </ol>
+          <p class="qr-explicacion">Comprás al ask (2,60) y vendés al bid (2,40): perdés 0,20 por acción. Con 3 contratos de 100 acciones son \(0{,}20 \times 300 = 60\). "0,20" olvida el tamaño del contrato.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">Compraste un put y querés cerrar la posición antes del vencimiento. ¿Qué hacés?</p>
+          <ol class="qr-op">
+            <li>Vendés un put de la misma serie.</li>
+            <li>Comprás un call con el mismo strike y vencimiento.</li>
+            <li>Le pedís al lanzador que te devuelva la prima.</li>
+          </ol>
+          <p class="qr-explicacion">La orden de cierre es la operación opuesta sobre la misma serie: quien compró, vende. Comprar un call no cancela el put: arma otra posición (por paridad, algo parecido a estar comprado en la acción).</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="3">
+          <p class="qr-enunciado">¿Quién deposita garantías en una operación de opciones en bolsa?</p>
+          <ol class="qr-op">
+            <li>El comprador y el lanzador, como en los futuros.</li>
+            <li>Solo el comprador, porque es quien puede ejercer.</li>
+            <li>Solo el lanzador.</li>
+          </ol>
+          <p class="qr-explicacion">El comprador ya pagó la prima, que es todo lo que puede perder. El lanzador asumió una obligación que puede costarle mucho más: por eso deja garantías, que se recalculan todos los días.</p>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Moneyness: dentro, fuera o en el dinero</h2>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th></th><th>Call</th><th>Put</th></tr></thead>
+          <tbody>
+            <tr><td><strong>In the money</strong> (ITM, dentro del dinero)</td><td>\(S \gt K\)</td><td>\(S \lt K\)</td></tr>
+            <tr><td><strong>At the money</strong> (ATM, en el dinero)</td><td>\(S = K\)</td><td>\(S = K\)</td></tr>
+            <tr><td><strong>Out of the money</strong> (OTM, fuera del dinero)</td><td>\(S \lt K\)</td><td>\(S \gt K\)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>El <strong>valor intrínseco</strong> es lo que se obtendría si la opción se ejerciera ahora: \(\max(S - K;\ 0)\) para un call y \(\max(K - S;\ 0)\) para un put. La parte de la prima que excede al valor intrínseco es el <strong>valor tiempo</strong>, y refleja la posibilidad de que la opción gane valor antes del vencimiento.</p>
+      <div class="formula">\[ \text{Prima} = \text{Valor intrínseco} + \text{Valor tiempo} \]</div>
+
+      <p>El valor tiempo es <strong>máximo cerca del dinero</strong>, donde el resultado final es más incierto, y se va <strong>consumiendo</strong> a medida que se acerca el vencimiento: el último día la prima es solo valor intrínseco. Lo podés ver en la simulación <a href="u5-simulacion.html#variables">¿Cómo cambia el precio de una opción?</a>: el área sombreada entre el precio y el valor intrínseco es el valor tiempo.</p>
+
+      <!-- ================================================================== -->
+      <h2>Variables que afectan el precio</h2>
+
+      <p>El precio de una opción sobre acciones depende de seis variables:</p>
+      <ul>
+        <li>\(S_0\): precio actual de la acción.</li>
+        <li>\(K\): precio de ejercicio.</li>
+        <li>\(T\): tiempo al vencimiento, en años.</li>
+        <li>\(\sigma\): volatilidad del subyacente.</li>
+        <li>\(r\): tasa libre de riesgo.</li>
+        <li>\(D\): dividendos esperados durante la vida de la opción.</li>
+      </ul>
+
+      <p>La tabla muestra el efecto de un <strong>aumento</strong> de cada variable, dejando las demás constantes (el signo de la derivada parcial). Las minúsculas \(c, p\) indican opciones europeas y las mayúsculas \(C, P\), americanas.</p>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th>Variable</th><th class="num">Call europeo (c)</th><th class="num">Put europeo (p)</th><th class="num">Call americano (C)</th><th class="num">Put americano (P)</th></tr></thead>
+          <tbody>
+            <tr><td>\(S_0\)</td><td class="num">+</td><td class="num">−</td><td class="num">+</td><td class="num">−</td></tr>
+            <tr><td>\(K\)</td><td class="num">−</td><td class="num">+</td><td class="num">−</td><td class="num">+</td></tr>
+            <tr><td>\(T\)</td><td class="num">?</td><td class="num">?</td><td class="num">+</td><td class="num">+</td></tr>
+            <tr><td>\(\sigma\)</td><td class="num">+</td><td class="num">+</td><td class="num">+</td><td class="num">+</td></tr>
+            <tr><td>\(r\)</td><td class="num">+</td><td class="num">−</td><td class="num">+</td><td class="num">−</td></tr>
+            <tr><td>\(D\)</td><td class="num">−</td><td class="num">+</td><td class="num">−</td><td class="num">+</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ul>
+        <li><strong>\(S_0\) y \(K\):</strong> se ven directamente en los payoffs. Un call gana con un \(S\) más alto y un \(K\) más bajo; el put, al revés.</li>
+        <li><strong>\(T\):</strong> una americana con más plazo vale más, porque tiene todas las oportunidades de ejercicio de la de menor plazo y algunas más. En las europeas el efecto no es seguro: lo explicamos en detalle más abajo.</li>
+        <li><strong>\(\sigma\):</strong> más volatilidad hace más probables los escenarios extremos. Como el payoff de una opción es <strong>asimétrico</strong> (los escenarios malos tienen pérdida acotada, pero los buenos no tienen techo), la volatilidad sube el valor de calls y puts. En un forward, cuyo payoff es lineal, la volatilidad no afecta el valor.</li>
+        <li><strong>\(r\):</strong> una tasa más alta reduce el valor presente de \(K\). Al call le conviene, porque va a pagar \(K\); al put lo perjudica, porque va a cobrar \(K\). En Black-Scholes la tasa aparece solo descontando el strike: \(c = S_0 N(d_1) - K e^{-rT} N(d_2)\).</li>
+        <li><strong>\(D\):</strong> el día del pago (ex-dividendo) el precio de la acción cae. Por eso los dividendos reducen el valor del call y aumentan el del put.</li>
+      </ul>
+
+      <h3>¿Por qué más plazo no siempre suma valor en una europea?</h3>
+      <p>Para una <strong>americana</strong> el argumento es directo: la que vence más tarde puede hacer todo lo que hace la que vence antes (incluso ejercer en la misma fecha) y además algo más. Un derecho que incluye a otro no puede valer menos, así que \(C\) y \(P\) crecen con \(T\).</p>
+      <p>Con una <strong>europea</strong> ese argumento se cae, porque la de mayor plazo <strong>no puede ejercerse antes</strong>: está obligada a esperar. Esperar tiene dos efectos opuestos. Por un lado, da más tiempo para que el precio se mueva a favor (más valor por volatilidad). Por el otro, puede hacer que el titular se pierda algo que solo se consigue ejerciendo antes. Hay dos casos típicos:</p>
+      <ol>
+        <li><strong>Un call y un dividendo grande.</strong> El día ex-dividendo la acción cae, aproximadamente, en el monto del dividendo, y el titular del call no lo cobra. Un call que vence <em>antes</em> de esa fecha se ejerce sobre la acción "con dividendo"; uno que vence <em>después</em>, sobre la acción ya "sin dividendo". Si el dividendo es grande, el segundo puede valer menos.</li>
+        <li><strong>Un put muy dentro del dinero.</strong> Si la acción vale casi cero, lo único que importa del put es cobrar \(K\), y cobrarlo más tarde vale menos: el put europeo vale casi \(Ke^{-rT} - S_0\), que baja cuando sube \(T\).</li>
+      </ol>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo numérico</p>
+        <p>\(S_0 = 50\), \(K = 50\), \(r = 5\%\), \(\sigma = 25\%\) y un dividendo de 4 dentro de 6 meses. Con el modelo de Black-Scholes que vas a ver en la Unidad VI (restándole a \(S_0\) el valor presente del dividendo cuando cae dentro de la vida de la opción):</p>
+        <ul>
+          <li>Call europeo a <strong>5 meses</strong> (vence antes del dividendo): vale 3,72.</li>
+          <li>Call europeo a <strong>7 meses</strong> (vence después): vale 2,50.</li>
+        </ul>
+        <p>Los dos meses extra no compensan la caída de 4 que tiene la acción el día del dividendo. Un call <em>americano</em> a 7 meses, en cambio, nunca vale menos que el de 5: podría ejercerse justo antes del dividendo.</p>
+        <p>Para el put: con \(S_0 = 10\), \(K = 50\), \(r = 5\%\), \(\sigma = 30\%\) y sin dividendos, el put europeo vale 38,77 a 6 meses, 37,56 a 1 año y 35,24 a 2 años. Cada vez menos, porque cobra el strike cada vez más tarde.</p>
+      </div>
+
+      <p>Sin dividendos, en cambio, el call europeo sí crece con \(T\). La razón es indirecta pero importante: como nunca conviene ejercer antes un call americano sobre una acción sin dividendos (lo vas a ver al final de la unidad), \(c = C\), y \(C\) crece con el plazo. Por eso en la tabla de signos el "?" de las europeas se explica por los dividendos (en el call) y por el valor tiempo del dinero (en el put).</p>
+
+      <p>En la <a href="u5-simulacion.html#variables">simulación</a> podés mover cada variable y leer, con números, cómo cambia el precio del call y del put y por qué.</p>
+
+      <div class="caja error">
+        <p class="caja-titulo">Errores frecuentes</p>
+        <ul>
+          <li><strong>"Una tasa más alta abarata el call porque se descuenta más."</strong> Lo que se descuenta es \(K\), que el titular del call <em>paga</em>: le conviene pagarlo "más barato" en valor presente. Al put, que <em>cobra</em> \(K\), lo perjudica.</li>
+          <li><strong>"Más plazo siempre sube el precio."</strong> Es cierto para americanas; para europeas es ambiguo (dividendos grandes, puts muy dentro del dinero).</li>
+          <li><strong>"La volatilidad sube el call y baja el put."</strong> Sube los dos: ambos tienen la pérdida acotada y ganan con los movimientos grandes en su dirección.</li>
+        </ul>
+      </div>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">Sube la tasa libre de riesgo y todo lo demás queda igual. ¿Qué pasa con las opciones europeas?</p>
+          <ol class="qr-op">
+            <li>El call sube y el put baja.</li>
+            <li>Los dos bajan, porque se descuenta más.</li>
+            <li>El call baja y el put sube.</li>
+          </ol>
+          <p class="qr-explicacion">La tasa reduce \(Ke^{-rT}\). El call paga \(K\) al ejercer (le conviene que valga menos hoy) y el put lo cobra (lo perjudica).</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">Dos calls europeos idénticos: uno vence justo antes de un dividendo muy grande y el otro, justo después. ¿Cuál puede valer más?</p>
+          <ol class="qr-op">
+            <li>El que vence antes del dividendo.</li>
+            <li>El que vence después, porque tiene más plazo.</li>
+            <li>Valen lo mismo: las opciones no cobran dividendos.</li>
+          </ol>
+          <p class="qr-explicacion">El que vence después se ejerce sobre una acción que ya cayó por el dividendo, y no puede ejercerse antes. Por eso puede valer menos aunque tenga más plazo. Que las opciones no cobren dividendos es justamente lo que las perjudica.</p>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Límites de precios (no arbitraje)</h2>
+
+      <p>Antes de calcular el precio exacto de una opción, se pueden fijar <strong>bandas</strong> dentro de las cuales tiene que estar. Si el precio se sale de esas bandas, hay una oportunidad de arbitraje.</p>
+
+      <h3>Límites superiores</h3>
+      <ul>
+        <li>Un <strong>call</strong> da derecho a comprar una acción, así que <strong>nunca puede valer más que la propia acción</strong>. Si valiera más, se vende el call, se compra la acción y se gana la diferencia hoy, sin riesgo.</li>
+        <li>Un <strong>put</strong> da derecho a vender una acción a \(K\), así que <strong>nunca puede valer más que el strike</strong>. Si es europeo, nunca más que el valor presente del strike. Si valiera más, se lanza el put y se coloca el dinero a la tasa libre de riesgo.</li>
+      </ul>
+      <div class="formula">\[ c \le S_0,\quad C \le S_0 \qquad\qquad p \le K e^{-rT},\quad P \le K \]</div>
+
+      <h3>Límite inferior de un call europeo</h3>
+      <p>Comparemos dos carteras:</p>
+      <ul>
+        <li><strong>Cartera A:</strong> un call europeo más un bono cupón cero que paga \(K\) en \(T\). Al vencimiento vale \(\max(S_T;\ K)\).</li>
+        <li><strong>Cartera B:</strong> una acción. Al vencimiento vale \(S_T\).</li>
+      </ul>
+      <p>A vale siempre igual o más que B al vencimiento, así que también tiene que valer igual o más hoy. Como además el call no puede valer menos que cero:</p>
+      <div class="formula">\[ c + K e^{-rT} \ge S_0 \quad\Rightarrow\quad c \ge \max\left(S_0 - K e^{-rT};\ 0\right) \]</div>
+
+      <h3>Límite inferior de un put europeo</h3>
+      <ul>
+        <li><strong>Cartera C:</strong> un put europeo más una acción. Al vencimiento vale \(\max(S_T;\ K)\).</li>
+        <li><strong>Cartera D:</strong> un bono cupón cero que paga \(K\) en \(T\). Al vencimiento vale \(K\).</li>
+      </ul>
+      <div class="formula">\[ p + S_0 \ge K e^{-rT} \quad\Rightarrow\quad p \ge \max\left(K e^{-rT} - S_0;\ 0\right) \]</div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>Una acción vale 52, el strike es 50, la tasa es 10 % y faltan 6 meses. Un call europeo tiene que valer al menos \(52 - 50e^{-0{,}1 \times 0{,}5} = 4{,}44\).</p>
+        <p>Con la acción a 38, strike 40, tasa 5 % y 6 meses, un put europeo tiene que valer al menos \(40e^{-0{,}05 \times 0{,}5} - 38 = 1{,}01\).</p>
+      </div>
+
+      <h3>Cómo se arbitra un precio por debajo del límite</h3>
+      <p>La regla es siempre la misma: <strong>comprar lo barato y vender lo caro</strong>. Si el call cotiza por debajo de su límite inferior, la cartera A (call + bono) está barata frente a la B (la acción): se compra el call, se vende en corto la acción y el dinero se coloca a la tasa libre de riesgo. Si el put está por debajo de su límite, la cartera C (put + acción) está barata frente a la D (el bono): se compran el put y la acción con dinero prestado.</p>
+
+      <div class="caja prueba">
+        <p class="caja-titulo">Probá vos (guía U5, ej. 3)</p>
+        <p>Un call europeo a 4 meses sobre una acción sin dividendos: \(S_0 = 28\), \(K = 25\), \(r = 8\%\). ¿Cuál es su límite inferior? Si cotiza a 3,50, diseñá una estrategia de arbitraje y calculá la ganancia si al vencimiento la acción vale 20 o 30.</p>
+        <details class="desplegable">
+          <summary>Ver la resolución</summary>
+          <p>Límite inferior: \(28 - 25e^{-0{,}08 \times 4/12} = 28 - 24{,}34 = 3{,}66\). El call cotiza a 3,50: está barato.</p>
+          <p>Estrategia: comprar el call (−3,50), vender en corto la acción (+28) y colocar los 24,50 que quedan durante 4 meses: \(24{,}50\,e^{0{,}08 \times 4/12} = 25{,}16\).</p>
+          <div class="tabla-wrap">
+            <table class="tabla">
+              <thead><tr><th>Operación</th><th class="num">Hoy</th><th class="num">\(S_T = 20\)</th><th class="num">\(S_T = 30\)</th></tr></thead>
+              <tbody>
+                <tr><td>Comprar el call</td><td class="num">−3,50</td><td class="num">0</td><td class="num">+5,00</td></tr>
+                <tr><td>Vender en corto la acción</td><td class="num">+28,00</td><td class="num">−20,00</td><td class="num">−30,00</td></tr>
+                <tr><td>Colocar el resto a 4 meses</td><td class="num">−24,50</td><td class="num">+25,16</td><td class="num">+25,16</td></tr>
+                <tr class="total"><td>Total</td><td class="num">0,00</td><td class="num pos">+5,16</td><td class="num pos">+0,16</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Con \(S_T = 30\) se ejerce el call: se compra la acción a 25 para devolverla. Con \(S_T = 20\) el call no se ejerce y la acción se recompra a 20. En ningún escenario se pierde. Podés reproducir este y otros casos de la guía en la simulación <a href="u5-simulacion.html#limites">Límites de precios y arbitraje paso a paso</a>.</p>
+        </details>
+      </div>
+
+      <div class="caja error">
+        <p class="caja-titulo">Errores frecuentes</p>
+        <ul>
+          <li><strong>No descontar el strike.</strong> El límite del call es \(S_0 - Ke^{-rT}\), no \(S_0 - K\). En el ejemplo de la guía, \(28 - 25 = 3\) daría a entender que un call a 3,50 está bien valuado, y no lo está.</li>
+          <li><strong>Usar el plazo en meses.</strong> Con \(r\) anual, \(T\) va en años: 4 meses es \(4/12\), no 4.</li>
+          <li><strong>Armar la estrategia al revés.</strong> Si el call está barato, se <em>compra</em> el call. Antes de armar la tabla, decí qué cartera está barata y cuál cara.</li>
+        </ul>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Paridad put-call</h2>
+
+      <p>Las carteras A y C de la sección anterior <strong>valen lo mismo al vencimiento</strong> en cualquier escenario, siempre que el call y el put tengan el mismo strike y el mismo vencimiento:</p>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th></th><th></th><th class="num">Si \(S_T \gt K\)</th><th class="num">Si \(S_T \lt K\)</th></tr></thead>
+          <tbody>
+            <tr><td rowspan="3"><strong>Cartera A</strong></td><td>Call</td><td class="num">\(S_T - K\)</td><td class="num">0</td></tr>
+            <tr><td>Bono cupón cero</td><td class="num">\(K\)</td><td class="num">\(K\)</td></tr>
+            <tr class="total"><td>Total</td><td class="num">\(S_T\)</td><td class="num">\(K\)</td></tr>
+            <tr><td rowspan="3"><strong>Cartera C</strong></td><td>Put</td><td class="num">0</td><td class="num">\(K - S_T\)</td></tr>
+            <tr><td>Acción</td><td class="num">\(S_T\)</td><td class="num">\(S_T\)</td></tr>
+            <tr class="total"><td>Total</td><td class="num">\(S_T\)</td><td class="num">\(K\)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Si dos carteras pagan lo mismo en el futuro, por no arbitraje tienen que valer lo mismo hoy. Así se llega a la <strong>paridad put-call</strong> para opciones europeas:</p>
+      <div class="formula">\[ c + K e^{-rT} = p + S_0 \]</div>
+
+      <p>La paridad vincula el precio del call con el del put. Si se conoce uno, se obtiene el otro. También permite armar posiciones <strong>sintéticas</strong>: por ejemplo, un call equivale a comprar un put y la acción, financiando parte con deuda: \(c = p + S_0 - K e^{-rT}\).</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: arbitraje cuando no se cumple la paridad</p>
+        <p>\(S_0 = 50\), \(K = 50\), \(r = 5\%\), \(T = 1\) año. El call cotiza a 5 y el put a 2. Entonces \(c + Ke^{-rT} = 5 + 47{,}56 = 52{,}56\), pero \(p + S_0 = 2 + 50 = 52\).</p>
+        <p>La cartera A está cara respecto de la C. El arbitraje consiste en <strong>vender lo caro y comprar lo barato</strong>: vender el call, comprar el put y la acción, y tomar prestado \(Ke^{-rT} = 47{,}56\). Hoy se cobra \(5 - 2 - 50 + 47{,}56 = 0{,}56\). Al vencimiento, pase lo que pase, se entrega o se vende la acción a 50 y con eso se cancela la deuda. Ganancia sin riesgo: 0,56.</p>
+      </div>
+
+      <h3>Opciones americanas</h3>
+      <p>Para americanas no vale la igualdad, pero sí una banda. El límite superior surge de comparar un call americano más un bono que paga \(K\) (cartera E) con un put americano más una acción (cartera F). El inferior, de comparar F con un call americano más \(K\) en efectivo (cartera G):</p>
+      <div class="formula">\[ S_0 - K \le C - P \le S_0 - K e^{-rT} \]</div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>Un call americano cuesta \(C = 1{,}5\), con \(K = 20\), \(S_0 = 19\), \(r = 10\%\) y \(T = 5\) meses. Entonces:</p>
+        <p>\(19 - 20 \le C - P \le 19 - 20e^{-0{,}10 \times 5/12}\), es decir, \(-1 \le C - P \le -0{,}18\).</p>
+        <p>Como \(C = 1{,}5\), el put americano tiene que valer entre \(1{,}68\) y \(2{,}50\).</p>
+      </div>
+
+      <p>En la <a href="u5-simulacion.html#paridad">simulación</a> podés ingresar precios de mercado (con o sin dividendos) y ver si hay arbitraje y cómo aprovecharlo.</p>
+
+      <!-- ================================================================== -->
+      <h2>Dividendos: límites y paridad</h2>
+
+      <p>Hasta ahora supusimos que la acción no paga dividendos. Si paga, el titular de una opción <strong>no cobra</strong> los dividendos (los cobra quien tiene la acción) y, el día ex-dividendo, el precio de la acción cae. Llamemos \(D\) al <strong>valor presente</strong> de los dividendos cuya fecha ex-dividendo cae durante la vida de la opción:</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Valor presente de los dividendos</span>\[ D = \sum_{i} d_i\, e^{-r t_i} \qquad (t_i \le T) \]</div>
+      <p>La acción vale hoy \(S_0\), pero \(D\) de ese valor corresponde a dividendos que el titular de la opción nunca va a ver. Para la opción, la parte relevante de la acción vale \(S_0 - D\). Por eso las fórmulas sin dividendos se ajustan, en esencia, reemplazando \(S_0\) por \(S_0 - D\).</p>
+
+      <h3>Límites inferiores</h3>
+      <p>Se repite el argumento de las carteras, ahora con efectivo por \(D + Ke^{-rT}\):</p>
+      <ul>
+        <li><strong>Cartera A:</strong> un call europeo más efectivo por \(D + Ke^{-rT}\). La parte \(D\) se coloca para que crezca igual que los dividendos, y la parte \(Ke^{-rT}\) se convierte en \(K\) al vencimiento. Al final vale \(\max(S_T;\ K)\) más los dividendos capitalizados.</li>
+        <li><strong>Cartera B:</strong> una acción, que al vencimiento vale \(S_T\) más los dividendos cobrados y reinvertidos.</li>
+      </ul>
+      <p>A vale al menos lo mismo que B en todos los escenarios, así que \(c + D + Ke^{-rT} \ge S_0\). Con el mismo razonamiento para el put (cartera C: put más acción; cartera D: efectivo por \(D + Ke^{-rT}\)):</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Límites inferiores con dividendos</span>\[ c \ge S_0 - D - K e^{-rT} \qquad\qquad p \ge D + K e^{-rT} - S_0 \]</div>
+      <p>Intuición: los dividendos <strong>bajan el piso del call</strong> (la acción que puede comprar va a valer menos) y <strong>suben el piso del put</strong> (la acción que puede vender va a valer menos).</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo (guía U5, ej. 6)</p>
+        <p>Un call europeo a 4 meses cotiza a 5. La acción vale 64, el strike es 60, la tasa es 12 % para todos los plazos y se espera un dividendo de 0,80 dentro de 1 mes.</p>
+        <p>\(D = 0{,}80\,e^{-0{,}12 \times 1/12} = 0{,}7920\) y \(Ke^{-rT} = 60\,e^{-0{,}12 \times 4/12} = 57{,}6474\).</p>
+        <p>\(c \ge 64 - 0{,}7920 - 57{,}6474 = 5{,}56\). El call cotiza a 5: está 0,56 por debajo de su límite y hay arbitraje.</p>
+        <p><strong>Estrategia:</strong> comprar el call y vender en corto la acción. De los \(64 - 5 = 59\) que quedan en la mano, se colocan 0,7920 a 1 mes para pagarle el dividendo de 0,80 al dueño de la acción prestada, y los 58,2080 restantes a 4 meses: al vencimiento son \(58{,}2080\,e^{0{,}12 \times 4/12} = 60{,}58\).</p>
+        <div class="tabla-wrap">
+          <table class="tabla">
+            <thead><tr><th>Operación</th><th class="num">Hoy</th><th class="num">\(S_T = 55\)</th><th class="num">\(S_T = 70\)</th></tr></thead>
+            <tbody>
+              <tr><td>Comprar el call</td><td class="num">−5,00</td><td class="num">0</td><td class="num">+10,00</td></tr>
+              <tr><td>Vender en corto la acción</td><td class="num">+64,00</td><td class="num">−55,00</td><td class="num">−70,00</td></tr>
+              <tr><td>Colocar el VP del dividendo a 1 mes (paga el dividendo)</td><td class="num">−0,79</td><td class="num">0</td><td class="num">0</td></tr>
+              <tr><td>Colocar el resto a 4 meses</td><td class="num">−58,21</td><td class="num">+60,58</td><td class="num">+60,58</td></tr>
+              <tr class="total"><td>Total</td><td class="num">0,00</td><td class="num pos">+5,58</td><td class="num pos">+0,58</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>El peor escenario es cuando se ejerce el call, y aun así se ganan 0,58: es la diferencia entre el límite y el precio, capitalizada, \((5{,}56 - 5)\,e^{0{,}04} = 0{,}58\).</p>
+      </div>
+
+      <h3>Paridad put-call con dividendos</h3>
+      <p>Las carteras A (call más efectivo por \(D + Ke^{-rT}\)) y C (put más acción) valen exactamente lo mismo al vencimiento: \(\max(S_T;\ K)\) más los dividendos capitalizados. Entonces:</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Paridad put-call con dividendos</span>\[ c + D + K e^{-rT} = p + S_0 \]</div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo (guía U5, ej. 8)</p>
+        <p>Un call europeo a 6 meses con \(K = 30\) cuesta 2. La acción vale 29 y paga dividendos de 0,50 dentro de 2 y de 5 meses. Todas las tasas son 10 %.</p>
+        <p>\(D = 0{,}50\,e^{-0{,}10 \times 2/12} + 0{,}50\,e^{-0{,}10 \times 5/12} = 0{,}4917 + 0{,}4796 = 0{,}9713\) y \(Ke^{-rT} = 30\,e^{-0{,}05} = 28{,}5369\).</p>
+        <p>\(p = c + D + Ke^{-rT} - S_0 = 2 + 0{,}9713 + 28{,}5369 - 29 = 2{,}51\).</p>
+        <p>Sin dividendos el put valdría \(2 + 28{,}5369 - 29 = 1{,}54\): los dividendos lo encarecen en 0,97, exactamente su valor presente.</p>
+      </div>
+
+      <h3>Opciones americanas con dividendos</h3>
+      <div class="formula con-nombre"><span class="nombre-formula">Banda para americanas con dividendos</span>\[ S_0 - D - K \le C - P \le S_0 - K e^{-rT} \]</div>
+      <p>Solo cambia el límite inferior, que baja en \(D\). Se deduce como antes, comparando un call americano más efectivo por \(D + K\) con un put americano más la acción. El superior no cambia: los dividendos bajan \(C\) y suben \(P\), así que \(C - P\) solo puede ser menor que sin dividendos, y el tope \(S_0 - Ke^{-rT}\) sigue valiendo.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo (guía U5, ej. 9, con un dividendo agregado)</p>
+        <p>\(C = 4\), \(S_0 = 31\), \(K = 30\), \(T = 3\) meses, \(r = 8\%\). Sin dividendos, la banda es \(1 \le C - P \le 31 - 30e^{-0{,}02} = 1{,}59\), y el put americano tiene que valer entre 2,41 y 3,00.</p>
+        <p>Si la acción paga un dividendo de 0,50 dentro de 1 mes, \(D = 0{,}50\,e^{-0{,}08/12} = 0{,}4967\) y la banda pasa a ser \(0{,}50 \le C - P \le 1{,}59\): el put tiene que valer entre 2,41 y 3,50. El dividendo agranda el valor máximo admisible del put.</p>
+      </div>
+
+      <p>En la simulación <a href="u5-simulacion.html#limites">Límites de precios y arbitraje paso a paso</a> podés cargar los ejercicios 3, 4, 6 y 7 de la guía y ver la estrategia, la tabla de flujos y el resultado en cada escenario.</p>
+
+      <div class="caja error">
+        <p class="caja-titulo">Errores frecuentes</p>
+        <ul>
+          <li><strong>Restar el dividendo sin descontarlo.</strong> \(D\) es un valor presente: 0,80 dentro de 1 mes al 12 % es 0,7920, no 0,80. La diferencia es chica, pero el resultado no coincide con el de la guía.</li>
+          <li><strong>Poner \(D\) del lado equivocado.</strong> Para el call, \(D\) resta (\(S_0 - D - Ke^{-rT}\)); para el put, suma (\(D + Ke^{-rT} - S_0\)). En la paridad, \(D\) va del lado del call: \(c + D + Ke^{-rT} = p + S_0\).</li>
+          <li><strong>Incluir dividendos que caen después del vencimiento.</strong> Solo cuentan los que tienen fecha ex-dividendo durante la vida de la opción.</li>
+          <li><strong>Olvidar el dividendo en la estrategia.</strong> Quien vende en corto una acción le debe los dividendos al dueño; quien compra la acción, los cobra.</li>
+        </ul>
+      </div>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="3">
+          <p class="qr-enunciado">\(S_0 = 40\), \(K = 40\) y, para simplificar, \(r = 0\). Se espera un dividendo de 1 durante la vida de las opciones. Si el call europeo vale 2, ¿cuánto vale el put europeo?</p>
+          <ol class="qr-op">
+            <li>1</li>
+            <li>2</li>
+            <li>3</li>
+          </ol>
+          <p class="qr-explicacion">\(p = c + D + Ke^{-rT} - S_0 = 2 + 1 + 40 - 40 = 3\). Sin dividendos valdría 2; el dividendo, que baja la acción, encarece el put en su valor presente.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">Se anuncia un dividendo que se paga durante la vida de un call europeo. ¿Qué pasa con su límite inferior?</p>
+          <ol class="qr-op">
+            <li>Baja en el valor presente del dividendo.</li>
+            <li>Sube en el valor presente del dividendo.</li>
+            <li>No cambia, porque el call no cobra dividendos.</li>
+          </ol>
+          <p class="qr-explicacion">\(c \ge S_0 - D - Ke^{-rT}\). Justamente porque el call no cobra el dividendo, la parte de la acción que le sirve vale \(S_0 - D\).</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">En la banda de opciones americanas con dividendos, ¿qué cambia respecto del caso sin dividendos?</p>
+          <ol class="qr-op">
+            <li>Los dos límites bajan en \(D\).</li>
+            <li>Solo el límite inferior: pasa a \(S_0 - D - K\).</li>
+            <li>Solo el límite superior: pasa a \(S_0 - D - Ke^{-rT}\).</li>
+          </ol>
+          <p class="qr-explicacion">\(S_0 - D - K \le C - P \le S_0 - Ke^{-rT}\). El tope superior no se mueve porque los dividendos solo pueden achicar \(C - P\).</p>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Ejercicio anticipado</h2>
+
+      <h3>Call americano sobre una acción sin dividendos</h3>
+      <p>Si la acción <strong>no paga dividendos</strong>, <strong>nunca conviene ejercer anticipadamente</strong> un call americano: siempre es mejor venderlo a valor de mercado. Las razones son:</p>
+      <ol>
+        <li>Ejercer obliga a pagar \(K\) antes de tiempo: se pierde el valor tiempo del dinero.</li>
+        <li>Como la acción no paga dividendos, no tener la acción no hace perder ningún flujo.</li>
+        <li>Si la idea es quedarse con la acción, conviene esperar: se demora el pago de \(K\) y existe la posibilidad de que el precio caiga por debajo de \(K\), en cuyo caso hubiera sido mejor no ejercer.</li>
+        <li>Si la idea es vender la acción después de ejercer, casi siempre es mejor vender el call a alguien que quiera la acción, en vez de quedarse solo con el valor intrínseco.</li>
+      </ol>
+      <p>Además, al ejercer se pierde un "seguro". Por la paridad americana, \(C \ge S_0 - K + P\): el call vale al menos su valor intrínseco <strong>más un put implícito</strong> que se pierde al ejercer. Con dividendos, ejercer justo antes del pago puede convenir, pero el dividendo tiene que superar el valor de ese put implícito más el valor tiempo del dinero de pagar \(K\) antes. Por eso, si conviene ejercer un call americano antes del vencimiento, es <strong>justo antes de una fecha ex-dividendo</strong>, nunca en otro momento.</p>
+      <p>Como nunca se ejerce antes, en este caso el call americano vale lo mismo que el europeo: \(C = c\). Su precio queda siempre por encima de \(\max(S_0 - Ke^{-rT};\ 0)\) y solo toca su valor intrínseco al vencimiento; si suben \(\sigma\), \(r\) o \(T\), toda la curva del precio del call se aleja más de ese piso.</p>
+
+      <h3>Put americano</h3>
+      <p>Un put americano sobre una acción sin dividendos <strong>sí puede convenir ejercerlo antes</strong>, si está muy dentro del dinero. Caso extremo: si la acción vale cero, no puede bajar más, así que conviene ejercer ya, cobrar \(K\) y empezar a ganar intereses. En general, cuanto más alta la tasa y más baja la volatilidad, más atractivo es el ejercicio anticipado del put.</p>
+      <p>Por eso el put americano vale más que el europeo (\(P \gt p\)) y sus bandas son distintas:</p>
+      <div class="formula">\[ \max(K e^{-rT} - S_0;\ 0) \le p \le K e^{-rT} \qquad\qquad \max(K - S_0;\ 0) \le P \le K \]</div>
+
+      <figure class="figura">
+        <div class="svg-scroll">
+<!--SVG-PUT-->
+        </div>
+        <figcaption>Put americano y europeo con \(K = 50\), \(r = 10\%\), \(\sigma = 25\%\) y \(T = 1\). El americano coincide con su valor intrínseco \(K - S_0\) para \(S_0\) por debajo del punto A (ahí conviene ejercer). El europeo queda <em>por debajo</em> del valor intrínseco a la izquierda del punto B, y en \(S_0 = 0\) vale \(Ke^{-rT}\) (punto E).</figcaption>
+      </figure>
+
+      <p>La figura muestra la diferencia. Por debajo del punto A (en el ejemplo, \(S_0 \approx 40{,}8\)) el put americano vale exactamente \(K - S_0\): ejercer ya es lo óptimo, y si la acción baja un peso el put sube un peso. El put europeo no puede ejercerse, así que para precios bajos de la acción vale menos que su valor intrínseco: a la izquierda del punto B (\(S_0 \approx 45{,}7\)) su valor tiempo es <strong>negativo</strong>, porque cobrar \(K\) recién en \(T\) vale \(Ke^{-rT} \lt K\). El punto B siempre queda a la derecha del A. Si sube la volatilidad o el plazo, o si baja la tasa, el punto A se corre hacia la izquierda: el ejercicio anticipado se vuelve menos atractivo.</p>
+
+      <!-- ================================================================== -->
+      <h2>Resumen</h2>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">Para recordar</p>
+        <ul>
+          <li>Call: derecho a comprar a \(K\). Put: derecho a vender a \(K\). El comprador paga la prima; el lanzador asume la obligación.</li>
+          <li>Payoffs: \(\max(S_T - K;\ 0)\) y \(\max(K - S_T;\ 0)\). El beneficio descuenta la prima.</li>
+          <li>En bolsa, los contratos son estandarizados; la cámara compensadora es la contraparte de todos, asigna los ejercicios al azar y exige garantías <strong>solo a los lanzadores</strong>. Una posición se cierra con la operación opuesta sobre la misma serie.</li>
+          <li>Prima = valor intrínseco + valor tiempo. El valor tiempo es máximo cerca del dinero y se consume al acercarse el vencimiento.</li>
+          <li>Más volatilidad aumenta el valor de calls y puts. Más plazo aumenta el de las americanas; en las europeas el efecto es ambiguo.</li>
+          <li>Límites: \(\max(S_0 - D - Ke^{-rT};\ 0) \le c \le S_0\) y \(\max(D + Ke^{-rT} - S_0;\ 0) \le p \le Ke^{-rT}\) (con \(D = 0\) si no hay dividendos).</li>
+          <li>Paridad put-call: \(c + D + Ke^{-rT} = p + S_0\). Americanas: \(S_0 - D - K \le C - P \le S_0 - Ke^{-rT}\).</li>
+          <li>Si un precio viola un límite: comprar lo barato, vender lo caro, y verificar en una tabla que no se pierde en ningún escenario.</li>
+          <li>Sin dividendos, el call americano no se ejerce antes (\(C = c\)); el put americano puede ejercerse antes (\(P \gt p\)).</li>
+        </ul>
+      </div>
+
+      <div class="caja hull">
+        <p class="caja-titulo">Para leer en Hull</p>
+        <p><strong>Edición en español del material:</strong> capítulo 7, "Funcionamiento de los mercados de opciones" (tipos de opciones y posiciones, activos subyacentes, especificaciones en 7.4, negociación y creadores de mercado en 7.6, comisiones en 7.7, garantías en 7.8, cámara de compensación, warrants, opciones para ejecutivos y convertibles en 7.12, mercados OTC) y capítulo 8, "Propiedades de las opciones sobre acciones" (factores que afectan el precio, límites, paridad put-call, ejercicio anticipado y efecto de los dividendos en 8.7).</p>
+        <p><strong>Options, Futures and Other Derivatives (OFOD):</strong> capítulo 10, "Mechanics of Options Markets", y capítulo 11, "Properties of Stock Options".</p>
+      </div>
+    </article>
+  </main>
+
+  <nav class="pie-navegacion" id="pie-navegacion"></nav>
+
+  <script src="vendor/katex/katex.min.js"></script>
+  <script src="vendor/katex/contrib/auto-render.min.js"></script>
+  <script src="vendor/chartjs/chart.umd.min.js"></script>
+  <script src="js/calculos.js"></script>
+  <script src="js/comun.js"></script>
+</body>
+</html>

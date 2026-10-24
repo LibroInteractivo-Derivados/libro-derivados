@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Introducción a los derivados · Teoría</title>
+  <link rel="stylesheet" href="vendor/fuentes/fuentes.css">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="css/libro.css">
+</head>
+<body data-unidad="u1" data-seccion="teoria">
+  <div id="encabezado"></div>
+
+  <main class="pagina con-indice">
+    <aside class="indice" id="indice"></aside>
+
+    <article class="contenido">
+      <h1>Introducción a la ingeniería financiera y al mercado de derivados</h1>
+      <p class="bajada">Qué es un derivado, dónde se negocia y cómo funcionan los forwards, los futuros y las opciones. La mecánica de los márgenes y del ajuste diario, y quiénes usan estos contratos y para qué.</p>
+      <span class="etiqueta-hull">Hull caps. 1 y 2 (cronograma)</span>
+      <span class="etiqueta-hull">Caps. 1 y 2 en la edición en español del material</span>
+
+      <div class="objetivos">
+        <p>Objetivos de la unidad</p>
+        <ul>
+          <li>Explicar qué hace la ingeniería financiera y por qué la replicación y el no arbitraje son la idea central del curso.</li>
+          <li>Definir un derivado, reconocer sus subyacentes y distinguir los mercados organizados de los OTC.</li>
+          <li>Calcular el resultado de posiciones largas y cortas en forwards y futuros, y el payoff de un call y de un put.</li>
+          <li>Llevar una cuenta de márgenes día por día: ajuste diario, margen de mantenimiento y llamado de margen.</li>
+          <li>Describir la especificación, la entrega y el cierre de un contrato de futuros, y compararlo con un forward.</li>
+          <li>Distinguir coberturistas, especuladores y arbitrajistas, y medir el apalancamiento de futuros y opciones.</li>
+        </ul>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2 id="ingenieria-financiera">¿Qué es la ingeniería financiera?</h2>
+
+      <p>La <strong>ingeniería financiera</strong> es el diseño de soluciones financieras a medida: productos, coberturas y estrategias que se arman <strong>combinando instrumentos más simples</strong>. Pensá en tres pedidos típicos. Un tesorero quiere saber hoy cuántos pesos le va a costar una importación que paga en dólares dentro de tres meses. Un banco quiere ofrecer una inversión que no pueda perder capital, pero que gane si sube la bolsa. Un productor de soja quiere asegurarse un precio mínimo para la cosecha sin renunciar a una suba. En los tres casos el trabajo es el mismo: partir del riesgo que se tiene, definir el riesgo que se quiere tener y encontrar la combinación de instrumentos que transforma uno en el otro.</p>
+
+      <p>Los <strong>derivados</strong> son los bloques con los que se hace ese trabajo. Con unas pocas piezas (el activo, un bono, un forward o un futuro, un call, un put y un swap) se puede construir casi cualquier perfil de resultados. A lo largo del curso vas a ver cómo se combinan. Por ejemplo, en la <a href="u8-teoria.html">Unidad VIII</a> una nota con capital protegido resulta ser un bono cupón cero más un call.</p>
+
+      <figure class="figura">
+        <div class="svg-scroll">
+          <svg viewBox="0 0 760 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Los instrumentos básicos se combinan para formar productos a medida">
+            <defs><marker id="u1-flecha-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="s-flecha"/></marker></defs>
+            <text x="20" y="22" font-size="13" class="s-suave">Bloques básicos</text>
+            <rect x="20" y="36" width="122" height="44" rx="8" class="s-caja" stroke-width="1.6"/>
+            <text x="81" y="63" text-anchor="middle" font-size="14" font-weight="600" class="s-texto">Activo</text>
+            <rect x="156" y="36" width="122" height="44" rx="8" class="s-caja" stroke-width="1.6"/>
+            <text x="217" y="63" text-anchor="middle" font-size="14" font-weight="600" class="s-texto">Bono</text>
+            <rect x="292" y="36" width="122" height="44" rx="8" class="s-caja" stroke-width="1.6"/>
+            <text x="353" y="63" text-anchor="middle" font-size="14" font-weight="600" class="s-texto">Forward / futuro</text>
+            <rect x="20" y="96" width="122" height="44" rx="8" class="s-caja" stroke-width="1.6"/>
+            <text x="81" y="123" text-anchor="middle" font-size="14" font-weight="600" class="s-texto">Call</text>
+            <rect x="156" y="96" width="122" height="44" rx="8" class="s-caja" stroke-width="1.6"/>
+            <text x="217" y="123" text-anchor="middle" font-size="14" font-weight="600" class="s-texto">Put</text>
+            <rect x="292" y="96" width="122" height="44" rx="8" class="s-caja" stroke-width="1.6"/>
+            <text x="353" y="123" text-anchor="middle" font-size="14" font-weight="600" class="s-texto">Swap</text>
+            <text x="217" y="170" text-anchor="middle" font-size="13" class="s-suave">cada uno con posición larga o corta</text>
+            <line x1="426" y1="88" x2="470" y2="88" class="s-trazo" stroke-width="1.8" marker-end="url(#u1-flecha-a)"/>
+            <text x="480" y="22" font-size="13" class="s-suave">Productos y estrategias</text>
+            <rect x="480" y="36" width="264" height="124" rx="8" class="s-relleno"/>
+            <rect x="480" y="36" width="264" height="124" rx="8" class="s-acento-trazo" stroke-width="1.6"/>
+            <text x="496" y="62" font-size="13" font-weight="700" class="s-texto">Capital protegido = bono + call</text>
+            <text x="496" y="90" font-size="13" font-weight="700" class="s-texto">Cartera asegurada = acción + put</text>
+            <text x="496" y="118" font-size="13" font-weight="700" class="s-texto">Precio fijo = activo + venta forward</text>
+            <text x="496" y="146" font-size="13" class="s-suave">y muchas otras combinaciones</text>
+          </svg>
+        </div>
+        <figcaption>La ingeniería financiera trabaja con pocas piezas. Lo que cambia es cómo se combinan y en qué cantidades.</figcaption>
+      </figure>
+
+      <h3>La idea central del curso: replicación y no arbitraje</h3>
+      <p>Un <strong>arbitraje</strong> es una estrategia que no requiere inversión neta, no puede perder y en algún escenario gana. En mercados con muchos participantes atentos esas oportunidades duran poco: apenas aparecen, alguien compra lo barato y vende lo caro hasta que los precios se alinean. De esa observación sale el principio que el libro usa para valuar todo.</p>
+
+      <div class="caja importante">
+        <p class="caja-titulo">Principio de no arbitraje</p>
+        <p>Si dos carteras pagan exactamente lo mismo en todos los escenarios futuros, hoy tienen que valer lo mismo. Por eso, si un derivado se puede <strong>replicar</strong> con una cartera de instrumentos que ya tienen precio, el precio del derivado es el costo de esa cartera.</p>
+      </div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: un primer caso de replicación</p>
+        <p>Un activo que no paga rentas vale hoy 100 y podés tomar prestado al 5 % anual con capitalización continua. Armá esta cartera: pedís prestado 100, comprás el activo y lo guardás un año. Dentro de un año tenés el activo y debés \(100\,e^{0{,}05} = 105{,}13\).</p>
+        <p>Eso es exactamente lo mismo que comprometerse hoy a comprar el activo dentro de un año a 105,13, sin poner un peso hoy: es un forward. Entonces el precio forward a un año tiene que ser 105,13. Si alguien te ofreciera vender el activo a un año a 108, le venderías el forward a 108 y cubrirías la entrega con la cartera: ganancia segura de \(108 - 105{,}13 = 2{,}87\) por unidad. Esta lógica, el <strong>costo de tenencia</strong> (<em>cost of carry</em>), se desarrolla en la <a href="u3-teoria.html">Unidad III</a>.</p>
+      </div>
+
+      <p>En esta unidad todavía no valuamos nada: alcanza con entender qué promete cada contrato, quién gana y quién pierde en cada escenario, y cómo funcionan los mercados donde se negocian.</p>
+
+      <!-- ================================================================== -->
+      <h2 id="que-es-un-derivado">¿Qué es un derivado?</h2>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">Definición</p>
+        <p>Un <strong>derivado</strong> es un instrumento financiero cuyo valor depende (deriva) del valor de otra variable, llamada <strong>subyacente</strong>. El derivado no es el activo: es un contrato que promete pagos que dependen de lo que pase con el activo. Los cuatro tipos básicos son los <strong>forwards</strong>, los <strong>futuros</strong>, las <strong>opciones</strong> y los <strong>swaps</strong>.</p>
+      </div>
+
+      <p>El subyacente casi siempre es el precio de un activo que se negocia, pero puede ser cualquier variable que se pueda medir sin ambigüedad:</p>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th>Subyacente</th><th>Ejemplos</th><th>Derivados típicos</th></tr></thead>
+          <tbody>
+            <tr><td>Commodities agrícolas</td><td>Soja, maíz, trigo, ganado</td><td>Futuros y opciones sobre granos (Chicago, A3 Mercados)</td></tr>
+            <tr><td>Energía y metales</td><td>Petróleo, gas natural, oro, cobre</td><td>Futuros de petróleo y de oro</td></tr>
+            <tr><td>Acciones</td><td>Una acción individual</td><td>Opciones sobre acciones (en Argentina, en BYMA)</td></tr>
+            <tr><td>Índices</td><td>S&amp;P 500, Merval</td><td>Futuros y opciones sobre índices, liquidados en efectivo</td></tr>
+            <tr><td>Tasas de interés</td><td>SOFR, rendimiento de un bono, tasas en pesos</td><td>Swaps de tasas, futuros sobre bonos y tasas</td></tr>
+            <tr><td>Monedas</td><td>Dólar, euro, real</td><td>Forwards de cambio, dólar futuro, swaps de monedas</td></tr>
+            <tr><td>Crédito</td><td>El riesgo de que una empresa o un país no pague</td><td>Credit default swaps (CDS)</td></tr>
+            <tr><td>Otros</td><td>Clima, electricidad, emisiones de carbono, inflación, volatilidad</td><td>Derivados climáticos, futuros sobre el índice de volatilidad VIX</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>¿Para qué se usan?</h3>
+      <ul>
+        <li><strong>Cubrir riesgos</strong> (<em>hedging</em>): fijar hoy un precio, un tipo de cambio o una tasa que se va a pagar o cobrar en el futuro.</li>
+        <li><strong>Especular</strong>: tomar posición sobre la dirección de un precio con una inversión inicial chica (apalancamiento).</li>
+        <li><strong>Arbitrar</strong>: aprovechar precios inconsistentes entre dos mercados o instrumentos.</li>
+        <li><strong>Transformar</strong> un pasivo o una inversión sin desarmarlos: por ejemplo, convertir una deuda a tasa variable en una a tasa fija con un swap (<a href="u4-teoria.html">Unidad IV</a>).</li>
+      </ul>
+
+      <p>Un derivado <strong>no crea ni destruye riqueza</strong>: entre las dos partes es un juego de suma cero, porque lo que gana la posición larga lo pierde la corta (antes de comisiones). Eso no quiere decir que no sirva. El coberturista que "pierde" con el derivado gana en su negocio lo mismo que pierde en el contrato; lo que compró es certidumbre.</p>
+
+      <!-- ================================================================== -->
+      <h2 id="mercados">Mercados organizados y mercados OTC</h2>
+
+      <h3>Mercados organizados (bolsas)</h3>
+      <p>En un <strong>mercado organizado</strong> (<em>exchange</em>) se negocian contratos <strong>estandarizados</strong>: el propio mercado define qué activo, cuánto, cuándo y dónde se entrega. La negociación es electrónica; antes se hacía a viva voz en un recinto (<em>open outcry</em>). Los precios son públicos y todas las operaciones pasan por una <strong>cámara compensadora</strong> que garantiza su cumplimiento. Ejemplos: CME Group (Chicago), Eurex (Europa) y, en la Argentina, A3 Mercados.</p>
+
+      <h3>Mercados extrabursátiles (OTC)</h3>
+      <p>En el mercado <strong>OTC</strong> (<em>over-the-counter</em>, extrabursátil) los contratos se pactan en forma bilateral entre instituciones financieras, o entre una institución financiera y sus clientes (empresas, fondos, gobiernos). Los bancos actúan como <strong>creadores de mercado</strong> (<em>market makers</em>): cotizan siempre un precio al que compran (<em>bid</em>) y uno al que venden (<em>offer</em> o <em>ask</em>). La gran ventaja es que el contrato se hace <strong>a medida</strong>: monto, fecha y condiciones exactas que necesita el cliente. La desventaja es el <strong>riesgo de crédito</strong> o de contraparte: la otra parte puede no cumplir. Los contratos suelen documentarse con un acuerdo marco estándar de la ISDA (International Swaps and Derivatives Association).</p>
+
+      <h3>La cámara compensadora: una contraparte central</h3>
+      <p>Cuando dos operadores cierran una operación en la bolsa, la cámara compensadora se interpone entre ellos: queda como <strong>vendedora frente al comprador</strong> y como <strong>compradora frente al vendedor</strong>. A este reemplazo se lo llama <strong>novación</strong>, y a la cámara, <strong>contraparte central</strong> (CCP, <em>central counterparty</em>). Cada parte ya no depende de que la otra cumpla: depende de la cámara, que se protege exigiendo márgenes y un fondo de garantía a sus miembros. Solo los <strong>miembros compensadores</strong> operan directamente con la cámara; los demás agentes liquidan a través de uno de ellos.</p>
+
+      <figure class="figura">
+        <div class="svg-scroll">
+          <svg viewBox="0 0 760 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Circuito de una operación de futuros entre comprador, vendedor, agentes, miembros compensadores y la cámara compensadora">
+            <defs><marker id="u1-flecha-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="s-flecha"/></marker></defs>
+            <!-- Comprador y vendedor -->
+            <rect x="20" y="20" width="180" height="52" rx="8" class="s-caja" stroke-width="2"/>
+            <text x="110" y="42" text-anchor="middle" font-size="15" font-weight="700" class="s-texto">Comprador</text>
+            <text x="110" y="61" text-anchor="middle" font-size="12" class="s-suave">posición larga</text>
+            <rect x="560" y="20" width="180" height="52" rx="8" class="s-caja" stroke-width="2"/>
+            <text x="650" y="42" text-anchor="middle" font-size="15" font-weight="700" class="s-texto">Vendedor</text>
+            <text x="650" y="61" text-anchor="middle" font-size="12" class="s-suave">posición corta</text>
+            <line x1="206" y1="46" x2="554" y2="46" class="s-trazo" stroke-width="1.4" stroke-dasharray="6 5" marker-start="url(#u1-flecha-b)" marker-end="url(#u1-flecha-b)"/>
+            <text x="380" y="36" text-anchor="middle" font-size="13" class="s-texto">operación pactada en el mercado</text>
+            <text x="380" y="66" text-anchor="middle" font-size="12" class="s-suave">la cámara se interpone (novación)</text>
+            <!-- Agentes -->
+            <rect x="20" y="135" width="180" height="50" rx="8" class="s-caja" stroke-width="1.6"/>
+            <text x="110" y="156" text-anchor="middle" font-size="14" font-weight="600" class="s-texto">Agente (ALyC)</text>
+            <text x="110" y="174" text-anchor="middle" font-size="12" class="s-suave">cuenta de márgenes del cliente</text>
+            <rect x="560" y="135" width="180" height="50" rx="8" class="s-caja" stroke-width="1.6"/>
+            <text x="650" y="156" text-anchor="middle" font-size="14" font-weight="600" class="s-texto">Agente (ALyC)</text>
+            <text x="650" y="174" text-anchor="middle" font-size="12" class="s-suave">cuenta de márgenes del cliente</text>
+            <!-- Miembros compensadores -->
+            <rect x="20" y="255" width="180" height="56" rx="8" class="s-caja" stroke-width="1.6"/>
+            <text x="110" y="288" text-anchor="middle" font-size="14" font-weight="600" class="s-texto">Miembro compensador</text>
+            <rect x="560" y="255" width="180" height="56" rx="8" class="s-caja" stroke-width="1.6"/>
+            <text x="650" y="288" text-anchor="middle" font-size="14" font-weight="600" class="s-texto">Miembro compensador</text>
+            <!-- Cámara -->
+            <rect x="300" y="245" width="160" height="76" rx="10" class="s-relleno"/>
+            <rect x="300" y="245" width="160" height="76" rx="10" class="s-acento-trazo" stroke-width="2.4"/>
+            <text x="380" y="272" text-anchor="middle" font-size="14" font-weight="700" class="s-texto">Cámara</text>
+            <text x="380" y="290" text-anchor="middle" font-size="14" font-weight="700" class="s-texto">compensadora</text>
+            <text x="380" y="308" text-anchor="middle" font-size="12" class="s-suave">contraparte central</text>
+            <!-- Flechas verticales -->
+            <line x1="110" y1="76" x2="110" y2="131" class="s-trazo" stroke-width="1.6" marker-start="url(#u1-flecha-b)" marker-end="url(#u1-flecha-b)"/>
+            <text x="120" y="100" font-size="12" class="s-texto">margen inicial y</text>
+            <text x="120" y="115" font-size="12" class="s-texto">ajustes diarios</text>
+            <line x1="110" y1="189" x2="110" y2="251" class="s-trazo" stroke-width="1.6" marker-start="url(#u1-flecha-b)" marker-end="url(#u1-flecha-b)"/>
+            <text x="120" y="218" font-size="12" class="s-texto">liquida a través de</text>
+            <text x="120" y="233" font-size="12" class="s-texto">un miembro</text>
+            <line x1="650" y1="76" x2="650" y2="131" class="s-trazo" stroke-width="1.6" marker-start="url(#u1-flecha-b)" marker-end="url(#u1-flecha-b)"/>
+            <text x="640" y="100" text-anchor="end" font-size="12" class="s-texto">margen inicial y</text>
+            <text x="640" y="115" text-anchor="end" font-size="12" class="s-texto">ajustes diarios</text>
+            <line x1="650" y1="189" x2="650" y2="251" class="s-trazo" stroke-width="1.6" marker-start="url(#u1-flecha-b)" marker-end="url(#u1-flecha-b)"/>
+            <text x="640" y="218" text-anchor="end" font-size="12" class="s-texto">liquida a través de</text>
+            <text x="640" y="233" text-anchor="end" font-size="12" class="s-texto">un miembro</text>
+            <!-- Miembros a cámara -->
+            <line x1="204" y1="290" x2="296" y2="290" class="s-trazo" stroke-width="1.6" marker-start="url(#u1-flecha-b)" marker-end="url(#u1-flecha-b)"/>
+            <text x="250" y="266" text-anchor="middle" font-size="11" class="s-suave">margen de</text>
+            <text x="250" y="279" text-anchor="middle" font-size="11" class="s-suave">compensación</text>
+            <line x1="464" y1="290" x2="556" y2="290" class="s-trazo" stroke-width="1.6" marker-start="url(#u1-flecha-b)" marker-end="url(#u1-flecha-b)"/>
+            <text x="510" y="266" text-anchor="middle" font-size="11" class="s-suave">margen de</text>
+            <text x="510" y="279" text-anchor="middle" font-size="11" class="s-suave">compensación</text>
+            <!-- Texto central -->
+            <text x="380" y="140" text-anchor="middle" font-size="13" font-weight="700" class="s-acento">Ajuste diario</text>
+            <text x="380" y="160" text-anchor="middle" font-size="12" class="s-texto">si el futuro sube, los cortos pagan</text>
+            <text x="380" y="177" text-anchor="middle" font-size="12" class="s-texto">y los largos cobran; si baja, al revés</text>
+            <text x="380" y="196" text-anchor="middle" font-size="12" class="s-suave">la cámara garantiza cada pago</text>
+          </svg>
+        </div>
+        <figcaption>Circuito de una operación de futuros. Comprador y vendedor pactan en el mercado, pero cada uno queda con la cámara como contraparte. Los márgenes y las diferencias diarias viajan por la cadena cliente → agente → miembro compensador → cámara.</figcaption>
+      </figure>
+
+      <h3>Los cambios después de la crisis de 2008</h3>
+      <p>Hasta 2008 casi todo el mercado OTC funcionaba en forma bilateral, con poca información pública sobre quién le debía a quién. La crisis mostró el problema: cuando quebró Lehman Brothers nadie sabía bien cuánto riesgo tenían sus contrapartes, y la aseguradora AIG, que había vendido protección crediticia por montos enormes sin garantías suficientes, tuvo que ser rescatada. En 2009 el G20 acordó una reforma que se aplicó con leyes como la Dodd-Frank en Estados Unidos (2010) y la EMIR en la Unión Europea (2012):</p>
+      <ul>
+        <li>Los derivados OTC <strong>estandarizados</strong> entre instituciones financieras (por ejemplo, la mayoría de los swaps de tasas) deben <strong>compensarse en una contraparte central</strong>, que funciona como la cámara de una bolsa: exige margen inicial y margen de variación diario.</li>
+        <li>Esas operaciones deben negociarse en plataformas electrónicas y <strong>reportarse</strong> a registros centrales (<em>trade repositories</em>).</li>
+        <li>Los contratos que siguen siendo <strong>bilaterales</strong> (no compensados) deben cubrirse con <strong>márgenes inicial y de variación</strong> entre las partes, y los bancos deben mantener más capital por ellos.</li>
+      </ul>
+      <p>El resultado es que hoy el mercado OTC se parece mucho más a una bolsa en cuanto a garantías, aunque los contratos sigan pactándose a medida.</p>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th></th><th>Mercado organizado</th><th>Mercado OTC</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Contratos</strong></td><td>Estandarizados por el mercado</td><td>A medida, pactados entre las partes</td></tr>
+            <tr><td><strong>Contraparte</strong></td><td>La cámara compensadora</td><td>La otra parte (o una CCP, si el contrato es estándar)</td></tr>
+            <tr><td><strong>Riesgo de crédito</strong></td><td>Prácticamente nulo</td><td>Existe; se mitiga con garantías</td></tr>
+            <tr><td><strong>Márgenes</strong></td><td>Siempre, con ajuste diario</td><td>Según el acuerdo; obligatorios desde las reformas</td></tr>
+            <tr><td><strong>Precios</strong></td><td>Públicos</td><td>Se conocen entre las partes</td></tr>
+            <tr><td><strong>Ejemplos</strong></td><td>Futuros, opciones listadas</td><td>Forwards, swaps, opciones a medida</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="caja error">
+        <p class="caja-titulo">Error frecuente</p>
+        <p>"Como hay una cámara compensadora, operar futuros no tiene riesgo." Falso. La cámara elimina en la práctica el riesgo de que <strong>la contraparte no pague</strong>, pero no el <strong>riesgo de mercado</strong>: si el precio se mueve en tu contra, perdés exactamente lo mismo, y la cámara se encarga de que lo pagues todos los días.</p>
+      </div>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">¿Qué riesgo elimina, en la práctica, la cámara compensadora?</p>
+          <ol class="qr-op">
+            <li>El riesgo de que el precio del subyacente se mueva en contra.</li>
+            <li>El riesgo de que la contraparte no cumpla.</li>
+            <li>El riesgo de tener que depositar márgenes adicionales.</li>
+          </ol>
+          <p class="qr-explicacion">La cámara se convierte en la contraparte de todos y se protege con márgenes. El riesgo de mercado sigue intacto y los llamados de margen son justamente su herramienta.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="3">
+          <p class="qr-enunciado">Una empresa necesita cubrir un pago de 1,37 millones de euros que vence un 17 de marzo. ¿Por qué probablemente use un forward OTC y no un futuro?</p>
+          <ol class="qr-op">
+            <li>Porque los forwards no tienen riesgo de contraparte.</li>
+            <li>Porque en los forwards no hay que pagar nada si el euro sube.</li>
+            <li>Porque el forward se pacta a medida: monto y fecha exactos.</li>
+          </ol>
+          <p class="qr-explicacion">Los futuros vienen en tamaños y fechas estándar. El forward se adapta al monto y a la fecha exactos, a cambio de tener riesgo de contraparte.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">Después de 2008, un swap de tasa estandarizado entre dos bancos…</p>
+          <ol class="qr-op">
+            <li>…debe compensarse en una contraparte central, con márgenes.</li>
+            <li>…quedó prohibido: solo se pueden operar futuros en bolsa.</li>
+            <li>…sigue siendo bilateral, pero sin ninguna garantía.</li>
+          </ol>
+          <p class="qr-explicacion">La reforma del G20 obligó a compensar centralmente los derivados OTC estandarizados y exigió márgenes en los que siguen siendo bilaterales.</p>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2 id="forwards">Contratos forward</h2>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">Definición</p>
+        <p>Un <strong>contrato forward</strong> (contrato a plazo) es un acuerdo para comprar o vender un activo en una <strong>fecha futura determinada</strong> \(T\) a un precio fijado hoy, el <strong>precio de entrega</strong> \(K\). Se negocia en el mercado OTC.</p>
+      </div>
+
+      <ul>
+        <li>La <strong>posición larga</strong> (<em>long</em>) se compromete a <strong>comprar</strong> el activo a \(K\) en \(T\).</li>
+        <li>La <strong>posición corta</strong> (<em>short</em>) se compromete a <strong>vender</strong> el activo a \(K\) en \(T\).</li>
+        <li>Las dos partes quedan <strong>obligadas</strong>: nadie elige si cumple o no.</li>
+      </ul>
+
+      <p>Al firmar, nadie le paga nada a nadie: \(K\) se elige justamente para que el contrato valga <strong>cero</strong> para las dos partes. Ese \(K\) es el <strong>precio forward</strong> del día. Con el tiempo el precio forward para la misma fecha cambia (si el activo sube, el forward también sube), pero el \(K\) de un contrato ya firmado queda fijo. Por eso, después del primer día, un forward vigente puede tener valor positivo para una parte y negativo para la otra.</p>
+
+      <h3>Payoff al vencimiento</h3>
+      <p>Si al vencimiento el activo vale \(S_T\), la posición larga compra a \(K\) algo que vale \(S_T\): gana \(S_T - K\). La corta vende a \(K\) algo que vale \(S_T\): gana \(K - S_T\).</p>
+
+      <div class="formula con-nombre"><span class="nombre-formula">Payoff de un forward (por unidad)</span>\[ \text{Larga: } S_T - K \qquad\qquad \text{Corta: } K - S_T \]</div>
+
+      <p>El payoff es <strong>lineal</strong>: cada peso que sube el activo es un peso más para la larga y un peso menos para la corta. Puede ser positivo o negativo, y como no se pagó nada al entrar, el payoff coincide con el beneficio. Además, la suma de los dos payoffs da siempre cero.</p>
+
+      <div class="grilla-graficos">
+        <figure class="grafico-payoff" data-patas="compra forward 100" data-modo="payoff" data-desde="60" data-hasta="140"><figcaption>Compra forward (larga) con \(K = 100\): payoff \(S_T - 100\).</figcaption></figure>
+        <figure class="grafico-payoff" data-patas="venta forward 100" data-modo="payoff" data-desde="60" data-hasta="140"><figcaption>Venta forward (corta) con \(K = 100\): payoff \(100 - S_T\).</figcaption></figure>
+      </div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>Un molino pacta comprarle a un productor 500 toneladas de trigo a 230 USD por tonelada dentro de tres meses. El molino tiene la posición larga y el productor, la corta.</p>
+        <ul>
+          <li>Si al vencimiento el trigo vale 245, el molino gana \((245 - 230) \times 500 = 7.500\): compra a 230 algo que vale 245. El productor pierde 7.500.</li>
+          <li>Si el trigo vale 220, el molino pierde \((220 - 230) \times 500 = -5.000\) y el productor gana 5.000.</li>
+        </ul>
+        <p>Fijate que cada uno, además, tiene su negocio: el molino necesita trigo y el productor lo produce. Con el forward los dos fijaron el precio de 230, pase lo que pase.</p>
+      </div>
+
+      <h3>Cotizaciones de contado y forward</h3>
+      <p>El precio de <strong>contado</strong> (<em>spot</em>) es el precio para entrega inmediata (en divisas, normalmente a dos días hábiles). Los bancos publican además precios forward para distintos plazos. La tabla muestra cotizaciones <strong>ilustrativas</strong> de un banco para el euro, en dólares por euro:</p>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th>Plazo</th><th class="num">Compra (bid)</th><th class="num">Venta (offer)</th></tr></thead>
+          <tbody>
+            <tr><td>Contado</td><td class="num">1,0850</td><td class="num">1,0854</td></tr>
+            <tr><td>Forward a 1 mes</td><td class="num">1,0870</td><td class="num">1,0875</td></tr>
+            <tr><td>Forward a 3 meses</td><td class="num">1,0905</td><td class="num">1,0911</td></tr>
+            <tr><td>Forward a 6 meses</td><td class="num">1,0958</td><td class="num">1,0965</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>La columna <strong>compra</strong> es el precio al que el banco compra euros; la de <strong>venta</strong>, el precio al que los vende. La diferencia es el margen del banco (<em>spread</em>). Quien necesita comprar euros paga la cotización de venta; quien los vende cobra la de compra. Que el forward sea distinto del contado no es una "predicción" del banco: refleja la diferencia de tasas de interés entre el dólar y el euro, como vas a ver en la Unidad III.</p>
+
+      <h3>Cobertura cambiaria con un forward</h3>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: un importador y un exportador se cubren</p>
+        <p>Dos empresas de Estados Unidos operan con Europa y usan las cotizaciones de la tabla.</p>
+        <ul>
+          <li>Un <strong>importador</strong> tiene que pagar 10 millones de euros dentro de tres meses. Teme que el euro suba. <strong>Compra</strong> euros a plazo a 1,0911 (posición larga): sabe desde hoy que va a pagar \(10.000.000 \times 1{,}0911 = 10.911.000\) dólares.</li>
+          <li>Un <strong>exportador</strong> va a cobrar 25 millones de euros dentro de tres meses. Teme que el euro baje. <strong>Vende</strong> euros a plazo a 1,0905 (posición corta): va a recibir \(25.000.000 \times 1{,}0905 = 27.262.500\) dólares.</li>
+        </ul>
+        <p>¿Qué habría pasado sin cobertura? Depende del tipo de cambio al vencimiento:</p>
+        <div class="tabla-wrap">
+          <table class="tabla">
+            <thead><tr><th>Euro al vencimiento</th><th class="num">Importador sin cobertura (paga)</th><th class="num">Exportador sin cobertura (cobra)</th></tr></thead>
+            <tbody>
+              <tr><td>1,0600</td><td class="num">10.600.000</td><td class="num">26.500.000</td></tr>
+              <tr><td>1,1300</td><td class="num">11.300.000</td><td class="num">28.250.000</td></tr>
+              <tr class="total"><td>Con forward</td><td class="num">10.911.000</td><td class="num">27.262.500</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Si el euro termina en 1,0600, el importador habría pagado 311.000 dólares menos sin cubrirse; si termina en 1,1300, la cobertura le ahorró 389.000. Con el exportador pasa lo contrario: la cobertura le sirvió si el euro bajó (762.500 más) y le "costó" si subió (987.500 menos).</p>
+      </div>
+
+      <div class="caja importante">
+        <p class="caja-titulo">Cubrirse no es ganar: es fijar</p>
+        <p>El forward no garantiza un resultado <strong>mejor</strong> que no cubrirse: garantiza un resultado <strong>conocido</strong>. La ganancia o pérdida del forward compensa exactamente lo que se pierde o gana en el negocio. Por ejemplo, si el euro termina en 1,1300, el forward del importador paga \((1{,}1300 - 1{,}0911) \times 10.000.000 = 389.000\), justo lo que se encareció la importación.</p>
+      </div>
+
+      <div class="caja prueba">
+        <p class="caja-titulo">Probá vos</p>
+        <p>Una empresa estadounidense tiene que pagar 4 millones de euros dentro de seis meses. Usando la tabla de cotizaciones, ¿qué operación hace para cubrirse y cuántos dólares paga? ¿Cuánto habría pagado sin cobertura si el euro termina en 1,0800?</p>
+        <details class="desplegable">
+          <summary>Ver la resolución</summary>
+          <p>Necesita euros, así que <strong>compra</strong> euros a seis meses a la cotización de venta del banco, 1,0965: paga \(4.000.000 \times 1{,}0965 = 4.386.000\) dólares. Sin cobertura, con el euro a 1,0800, habría pagado \(4.000.000 \times 1{,}0800 = 4.320.000\): 66.000 dólares menos. No es un error de la cobertura: el objetivo era eliminar la incertidumbre, no adivinar el tipo de cambio.</p>
+        </details>
+      </div>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="3">
+          <p class="qr-enunciado">Tenés una posición larga en un forward por 1.000 unidades con \(K = 1.050\). Al vencimiento el activo vale 1.020. ¿Cuál es tu resultado?</p>
+          <ol class="qr-op">
+            <li>+30.000</li>
+            <li>0, porque no ejercés</li>
+            <li>−30.000</li>
+          </ol>
+          <p class="qr-explicacion">\((S_T - K) \times 1.000 = (1.020 - 1.050) \times 1.000 = -30.000\). En un forward no hay elección: comprás a 1.050 aunque el mercado esté a 1.020.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">¿Cuánto se paga al firmar un forward?</p>
+          <ol class="qr-op">
+            <li>Nada: el precio de entrega se fija para que el contrato valga cero.</li>
+            <li>Una prima, como en las opciones.</li>
+            <li>El precio de entrega completo, por adelantado.</li>
+          </ol>
+          <p class="qr-explicacion">El forward se pacta al precio que hace que valga cero para las dos partes. Las opciones sí requieren pagar una prima.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">Un exportador que va a cobrar dólares dentro de tres meses quiere cubrirse con un forward. ¿Qué posición toma?</p>
+          <ol class="qr-op">
+            <li>Larga: compra dólares a plazo.</li>
+            <li>Corta: vende dólares a plazo.</li>
+            <li>No necesita cubrirse, porque cobra en dólares.</li>
+          </ol>
+          <p class="qr-explicacion">Va a tener dólares y teme que valgan menos: los vende hoy a plazo (posición corta) y fija cuántos pesos va a recibir.</p>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2 id="futuros">Contratos de futuros</h2>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">Definición</p>
+        <p>Un <strong>contrato de futuros</strong> es, como el forward, un acuerdo para comprar o vender un activo en una fecha futura a un precio fijado hoy. La diferencia está en cómo se negocia: es un contrato <strong>estandarizado</strong>, se opera en un <strong>mercado organizado</strong>, la contraparte es la <strong>cámara compensadora</strong> y las ganancias y pérdidas se liquidan <strong>todos los días</strong>.</p>
+      </div>
+
+      <p>El precio del futuro se forma en el mercado por oferta y demanda: si hay más interesados en comprar soja para mayo que en venderla, el precio de mayo sube hasta equilibrar. En la Unidad III vas a ver que el arbitraje lo ata al precio de contado.</p>
+
+      <h3>La especificación del contrato</h3>
+      <p>Cuando un mercado lanza un contrato, tiene que definir con precisión qué se promete. Las piezas son:</p>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th>Especificación</th><th>Qué define</th><th>Ejemplos</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Activo</strong></td><td>Qué se entrega y con qué calidad. Si se aceptan varias calidades, el precio se ajusta según la que se entregue.</td><td>Soja con un grado de calidad estándar; en los financieros (una moneda, un índice) no hay ambigüedad.</td></tr>
+            <tr><td><strong>Tamaño</strong></td><td>Cuánto activo cubre un contrato.</td><td>Oro en COMEX: 100 onzas. Maíz y soja en Chicago: 5.000 bushels. Dólar futuro en A3: USD 1.000.</td></tr>
+            <tr><td><strong>Lugar y forma de entrega</strong></td><td>Dónde se entrega, o si se liquida en efectivo.</td><td>Depósitos habilitados para granos; los índices y el dólar futuro de A3 se liquidan en efectivo.</td></tr>
+            <tr><td><strong>Meses de entrega</strong></td><td>Para qué meses hay contratos y cuál es el último día de negociación.</td><td>Futuros de monedas en CME: marzo, junio, septiembre y diciembre. Dólar futuro en A3: todos los meses.</td></tr>
+            <tr><td><strong>Cotización</strong></td><td>En qué unidad se expresa el precio y cuál es la variación mínima (<em>tick</em>).</td><td>Petróleo: dólares por barril, con un tick de un centavo. Dólar futuro: pesos por dólar.</td></tr>
+            <tr><td><strong>Límites de precio</strong></td><td>Cuánto puede moverse el precio en un día. Si llega al límite (<em>limit up</em> o <em>limit down</em>), la negociación suele frenarse.</td><td>Buscan evitar movimientos bruscos por excesos especulativos; su utilidad es discutida.</td></tr>
+            <tr><td><strong>Límites de posición</strong></td><td>Cantidad máxima de contratos que puede tener un especulador.</td><td>Buscan que nadie influya indebidamente en el precio; no rigen para coberturistas genuinos.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Cuando el contrato admite alternativas (distintas calidades o lugares de entrega), elige la <strong>posición corta</strong>, que avisa su decisión con una notificación de intención de entrega. Como esas alternativas tienen valor para el vendedor, hacen que el precio del futuro sea un poco más bajo de lo que sería sin ellas.</p>
+
+      <h3>Convergencia del futuro al contado</h3>
+      <p>A medida que se acerca el período de entrega, el precio del futuro <strong>converge</strong> al precio de contado del activo. La razón es un arbitraje. Si durante el período de entrega el futuro estuviera por encima del contado, alguien vendería futuros, compraría el activo al contado y lo entregaría, con una ganancia segura igual a la diferencia. Esa venta masiva de futuros baja su precio. Si el futuro estuviera por debajo, quienes necesitan el activo comprarían futuros y esperarían la entrega en lugar de comprar al contado, y el futuro subiría.</p>
+
+      <figure class="figura">
+        <div class="svg-scroll">
+          <svg viewBox="0 0 760 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Convergencia del precio futuro al precio de contado en dos casos">
+            <!-- Panel a -->
+            <line x1="40" y1="20" x2="40" y2="200" class="s-trazo" stroke-width="1.4"/>
+            <line x1="40" y1="200" x2="360" y2="200" class="s-trazo" stroke-width="1.4"/>
+            <text x="46" y="20" font-size="12" class="s-suave">Precio</text>
+            <text x="360" y="216" text-anchor="end" font-size="12" class="s-suave">Tiempo</text>
+            <line x1="330" y1="34" x2="330" y2="200" class="s-trazo" stroke-width="1" stroke-dasharray="4 4"/>
+            <text x="330" y="30" text-anchor="middle" font-size="12" class="s-suave">Vencimiento</text>
+            <path d="M40,64 C110,74 150,70 200,86 S295,108 330,114" class="s-acento-trazo" stroke-width="2.6"/>
+            <path d="M40,150 C90,160 130,128 180,140 S270,112 330,114" class="s-trazo" stroke-width="2" stroke-dasharray="7 4"/>
+            <circle cx="330" cy="114" r="4" class="s-acento"/>
+            <text x="56" y="56" font-size="13" font-weight="600" class="s-acento">Futuro</text>
+            <text x="56" y="176" font-size="13" font-weight="600" class="s-texto">Contado</text>
+            <text x="200" y="240" text-anchor="middle" font-size="13" class="s-texto">(a) Futuro por encima del contado</text>
+            <!-- Panel b -->
+            <line x1="420" y1="20" x2="420" y2="200" class="s-trazo" stroke-width="1.4"/>
+            <line x1="420" y1="200" x2="740" y2="200" class="s-trazo" stroke-width="1.4"/>
+            <text x="426" y="20" font-size="12" class="s-suave">Precio</text>
+            <text x="740" y="216" text-anchor="end" font-size="12" class="s-suave">Tiempo</text>
+            <line x1="710" y1="34" x2="710" y2="200" class="s-trazo" stroke-width="1" stroke-dasharray="4 4"/>
+            <text x="710" y="30" text-anchor="middle" font-size="12" class="s-suave">Vencimiento</text>
+            <path d="M420,160 C490,152 530,156 580,138 S675,116 710,110" class="s-acento-trazo" stroke-width="2.6"/>
+            <path d="M420,70 C470,62 510,94 560,84 S650,104 710,110" class="s-trazo" stroke-width="2" stroke-dasharray="7 4"/>
+            <circle cx="710" cy="110" r="4" class="s-acento"/>
+            <text x="436" y="182" font-size="13" font-weight="600" class="s-acento">Futuro</text>
+            <text x="436" y="56" font-size="13" font-weight="600" class="s-texto">Contado</text>
+            <text x="580" y="240" text-anchor="middle" font-size="13" class="s-texto">(b) Futuro por debajo del contado</text>
+          </svg>
+        </div>
+        <figcaption>El futuro puede estar por encima o por debajo del contado, pero al llegar el vencimiento los dos precios se encuentran. Si no, habría un arbitraje con la entrega.</figcaption>
+      </figure>
+
+      <h3>Cierre de la posición, entrega y liquidación en efectivo</h3>
+      <p>La gran mayoría de los contratos de futuros <strong>nunca llega a la entrega</strong>: se cierran antes. <strong>Cerrar</strong> una posición es hacer la operación opuesta sobre el mismo contrato: quien compró, vende; quien vendió, compra. El resultado total es la variación del precio del futuro entre la apertura y el cierre. Hasta los coberturistas suelen preferir cerrar el futuro y comprar o vender el activo por su canal habitual, porque entregar en las condiciones del contrato puede ser incómodo o caro.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>El 6 de mayo comprás 4 contratos de maíz para julio (5.000 bushels cada uno) a 4,50 USD por bushel. El 20 de junio los cerrás vendiendo 4 contratos de julio a 4,62. Tu ganancia es \(4 \times 5.000 \times (4{,}62 - 4{,}50) = 2.400\) dólares. Después del cierre no tenés ninguna obligación de entrega.</p>
+      </div>
+
+      <p>Si la posición se mantiene hasta el final, hay dos formas de cumplir:</p>
+      <ul>
+        <li><strong>Entrega física</strong>: la parte corta avisa a la cámara su intención de entregar (y qué calidad y lugar eligió), y la cámara le asigna una parte larga que recibe el activo y paga el precio de ajuste del día del aviso, corregido por calidad y lugar.</li>
+        <li><strong>Liquidación en efectivo</strong> (<em>cash settlement</em>): no se entrega nada. El último día el contrato se ajusta contra el precio de referencia del subyacente y se pagan las diferencias. Es la única forma posible en los futuros sobre índices (no se puede entregar un índice) y es la que usa el dólar futuro de A3, que se liquida en pesos sin entrega de dólares.</li>
+      </ul>
+
+      <h3>Cotizaciones, volumen e interés abierto</h3>
+      <p>Para cada vencimiento, el mercado informa el precio de <strong>apertura</strong>, el <strong>máximo</strong> y el <strong>mínimo</strong> del día, y el <strong>precio de ajuste</strong> (<em>settlement price</em>), que es el precio de referencia del cierre con el que se calculan las ganancias y pérdidas diarias. Además publica dos cantidades que se confunden seguido:</p>
+      <ul>
+        <li><strong>Volumen</strong>: cantidad de contratos negociados en el día.</li>
+        <li><strong>Interés abierto</strong> (<em>open interest</em>): cantidad de contratos vigentes, es decir, el total de posiciones largas abiertas (que es igual al total de posiciones cortas).</li>
+      </ul>
+      <p>Cada operación suma al volumen, pero el interés abierto cambia según quiénes operan: sube en uno si las dos partes abren posición, se mantiene si una abre y la otra cierra, y baja en uno si las dos cierran.</p>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th>Día</th><th>Operación</th><th>Quién abre o cierra</th><th class="num">Volumen</th><th class="num">Interés abierto</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>A compra 5 contratos y B los vende</td><td>A y B abren</td><td class="num">5</td><td class="num">5</td></tr>
+            <tr><td>2</td><td>C compra 3 contratos y A los vende</td><td>C abre, A cierra 3</td><td class="num">3</td><td class="num">5</td></tr>
+            <tr><td>3</td><td>B compra 2 contratos y D los vende</td><td>B cierra 2, D abre</td><td class="num">2</td><td class="num">5</td></tr>
+            <tr><td>4</td><td>B compra 3 contratos y C los vende</td><td>B y C cierran</td><td class="num">3</td><td class="num">2</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Al final del día 4 quedan A con 2 contratos largos y D con 2 cortos: el interés abierto es 2, aunque en los cuatro días se negociaron 13 contratos.</p>
+
+      <h3>Tipos de órdenes</h3>
+      <p>Al darle una orden a tu agente podés indicar a qué precio estás dispuesto a operar:</p>
+      <ul>
+        <li><strong>De mercado</strong>: se ejecuta enseguida al mejor precio disponible.</li>
+        <li><strong>Límite</strong>: se ejecuta solo a un precio dado o mejor. Una orden de compra límite a 4,40 compra a 4,40 o menos. Asegura el precio, pero puede no ejecutarse nunca.</li>
+        <li><strong>Stop</strong> (o <em>stop-loss</em>): se convierte en orden de mercado cuando el precio toca un nivel desfavorable. Una orden de venta stop a 4,30 sirve para cortar las pérdidas de una posición larga si el precio cae hasta 4,30.</li>
+        <li><strong>Stop-limit</strong>: combina las dos; cuando se toca el stop se activa una orden límite en lugar de una de mercado.</li>
+      </ul>
+      <p>Además se puede fijar la vigencia: solo por el día, hasta una hora determinada o hasta que se cancele.</p>
+
+      <!-- ================================================================== -->
+      <h2 id="margenes">Márgenes y ajuste diario</h2>
+
+      <p>Si dos personas pactan una compraventa futura sin garantías, cualquiera de las dos puede arrepentirse o no tener el dinero cuando llegue el momento. El sistema de <strong>márgenes</strong> es la forma en que el mercado se asegura de que eso no pase: las pérdidas se cobran <strong>todos los días</strong>, antes de que se acumulen.</p>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">Definiciones</p>
+        <ul>
+          <li><strong>Margen inicial</strong>: lo que tenés que depositar en tu cuenta de márgenes al abrir la posición.</li>
+          <li><strong>Ajuste diario</strong> (<em>marking to market</em>): al cierre de cada día, la ganancia o pérdida del día se acredita o se debita de la cuenta, según el precio de ajuste.</li>
+          <li><strong>Margen de mantenimiento</strong>: el saldo mínimo que tiene que tener la cuenta. Es menor que el inicial.</li>
+          <li><strong>Llamado de margen</strong> (<em>margin call</em>): si el saldo cae por debajo del mantenimiento, tenés que depositar lo necesario para volver al <strong>margen inicial</strong>. Ese depósito se llama margen de variación. Si no lo hacés, el agente cierra tu posición.</li>
+        </ul>
+      </div>
+
+      <div class="formula con-nombre"><span class="nombre-formula">Ganancia diaria de una posición en futuros</span>\[ \text{Larga: } (F_t - F_{t-1}) \times \text{tamaño} \times \text{contratos} \qquad \text{Corta: } (F_{t-1} - F_t) \times \text{tamaño} \times \text{contratos} \]</div>
+      <p>donde \(F_t\) es el precio de ajuste del día \(t\) y \(F_0\) es el precio al que se abrió la posición. Lo que vos ganás lo paga alguien con la posición opuesta, a través de la cámara.</p>
+
+      <h3>Ejemplo: una cuenta de márgenes, día por día</h3>
+      <p>Un inversor compra 2 contratos de futuros de oro (100 onzas cada uno) a 1.250 dólares la onza. El margen inicial es de 6.000 dólares por contrato (12.000 en total) y el de mantenimiento, de 4.500 por contrato (9.000 en total). La tabla sigue la cuenta durante 16 días, con los precios de ajuste del ejemplo clásico de Hull.</p>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th>Día</th><th class="num">Precio de ajuste</th><th class="num">Ganancia diaria</th><th class="num">Ganancia acumulada</th><th class="num">Saldo de la cuenta</th><th class="num">Llamado de margen</th></tr></thead>
+          <tbody>
+            <tr><td>0 (compra)</td><td class="num">1.250,00</td><td class="num"></td><td class="num"></td><td class="num">12.000</td><td class="num"></td></tr>
+            <tr><td>1</td><td class="num">1.241,00</td><td class="num neg">−1.800</td><td class="num neg">−1.800</td><td class="num">10.200</td><td class="num"></td></tr>
+            <tr><td>2</td><td class="num">1.238,30</td><td class="num neg">−540</td><td class="num neg">−2.340</td><td class="num">9.660</td><td class="num"></td></tr>
+            <tr><td>3</td><td class="num">1.244,60</td><td class="num pos">1.260</td><td class="num neg">−1.080</td><td class="num">10.920</td><td class="num"></td></tr>
+            <tr><td>4</td><td class="num">1.241,30</td><td class="num neg">−660</td><td class="num neg">−1.740</td><td class="num">10.260</td><td class="num"></td></tr>
+            <tr><td>5</td><td class="num">1.240,10</td><td class="num neg">−240</td><td class="num neg">−1.980</td><td class="num">10.020</td><td class="num"></td></tr>
+            <tr><td>6</td><td class="num">1.236,20</td><td class="num neg">−780</td><td class="num neg">−2.760</td><td class="num">9.240</td><td class="num"></td></tr>
+            <tr class="resaltada"><td>7</td><td class="num">1.229,90</td><td class="num neg">−1.260</td><td class="num neg">−4.020</td><td class="num">7.980</td><td class="num">4.020</td></tr>
+            <tr><td>8</td><td class="num">1.230,80</td><td class="num pos">180</td><td class="num neg">−3.840</td><td class="num">12.180</td><td class="num"></td></tr>
+            <tr><td>9</td><td class="num">1.225,40</td><td class="num neg">−1.080</td><td class="num neg">−4.920</td><td class="num">11.100</td><td class="num"></td></tr>
+            <tr><td>10</td><td class="num">1.228,10</td><td class="num pos">540</td><td class="num neg">−4.380</td><td class="num">11.640</td><td class="num"></td></tr>
+            <tr class="resaltada"><td>11</td><td class="num">1.211,00</td><td class="num neg">−3.420</td><td class="num neg">−7.800</td><td class="num">8.220</td><td class="num">3.780</td></tr>
+            <tr><td>12</td><td class="num">1.211,00</td><td class="num">0</td><td class="num neg">−7.800</td><td class="num">12.000</td><td class="num"></td></tr>
+            <tr><td>13</td><td class="num">1.214,30</td><td class="num pos">660</td><td class="num neg">−7.140</td><td class="num">12.660</td><td class="num"></td></tr>
+            <tr><td>14</td><td class="num">1.216,10</td><td class="num pos">360</td><td class="num neg">−6.780</td><td class="num">13.020</td><td class="num"></td></tr>
+            <tr><td>15</td><td class="num">1.223,00</td><td class="num pos">1.380</td><td class="num neg">−5.400</td><td class="num">14.400</td><td class="num"></td></tr>
+            <tr><td>16 (cierre)</td><td class="num">1.226,90</td><td class="num pos">780</td><td class="num neg">−4.620</td><td class="num">15.180</td><td class="num"></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Leela así:</p>
+      <ul>
+        <li><strong>Día 1.</strong> El oro baja de 1.250 a 1.241: \((1.241 - 1.250) \times 100 \times 2 = -1.800\). La cuenta pasa de 12.000 a 10.200. Las 200 onzas compradas a 1.250 hoy "valen" 1.241, y esa pérdida se cobra en el día.</li>
+        <li><strong>Día 7.</strong> El saldo cae a 7.980, por debajo del mantenimiento (9.000). Llega el <strong>llamado de margen</strong>: hay que depositar \(12.000 - 7.980 = 4.020\) para volver al margen inicial. Por eso el día 8 arranca desde 12.000 y termina en 12.180.</li>
+        <li><strong>Día 11.</strong> Otra caída fuerte deja el saldo en 8.220: llamado por \(12.000 - 8.220 = 3.780\).</li>
+        <li><strong>Día 16.</strong> El inversor cierra vendiendo 2 contratos a 1.226,90. La pérdida acumulada es \((1.226{,}90 - 1.250) \times 200 = -4.620\). Puso en total \(12.000 + 4.020 + 3.780 = 19.800\) y retira 15.180: la diferencia es, justamente, 4.620.</li>
+      </ul>
+
+      <p>¿Cuánto puede bajar el precio antes del primer llamado? La cuenta tolera una pérdida igual a la diferencia entre el margen inicial y el de mantenimiento:</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Precio que dispara un llamado (posición larga)</span>\[ F_0 - \frac{\text{MI} - \text{MM}}{\text{tamaño} \times \text{contratos}} = 1.250 - \frac{12.000 - 9.000}{100 \times 2} = 1.235 \]</div>
+      <p>Por eso el día 6 (1.236,20) no hubo llamado y el día 7 (1.229,90) sí. Para una posición corta el razonamiento es el mismo, pero el llamado llega si el precio <strong>sube</strong> por encima de \(F_0 + (\text{MI} - \text{MM})/(\text{tamaño} \times \text{contratos})\). Después de un llamado, el cálculo vuelve a empezar desde el precio de ese día.</p>
+
+      <p>Podés reproducir esta tabla, cambiar los datos y avanzar día por día en la <a href="u1-simulacion.html#cuenta-de-margenes">simulación de la cuenta de márgenes</a>.</p>
+
+      <div class="caja error">
+        <p class="caja-titulo">Errores frecuentes</p>
+        <ul>
+          <li><strong>Reponer solo hasta el mantenimiento.</strong> El llamado de margen exige volver al margen <strong>inicial</strong>. El día 7 el depósito es 4.020, no \(9.000 - 7.980 = 1.020\).</li>
+          <li><strong>Olvidar el signo en la posición corta.</strong> Para quien vendió futuros, una suba del precio es una pérdida.</li>
+          <li><strong>Pensar que el margen es un costo.</strong> Es una garantía que sigue siendo tuya: muchos agentes pagan intereses sobre el saldo, y el margen inicial a menudo puede integrarse con títulos valuados con un descuento (aforo).</li>
+        </ul>
+      </div>
+
+      <h3>El ajuste diario "reescribe" el contrato</h3>
+      <p>El efecto del ajuste diario es que el futuro se liquida todos los días en lugar de al final. Después de cada ajuste el contrato vuelve a valer cero: es como si se cerrara y se volviera a abrir al nuevo precio de ajuste. En un forward, en cambio, la ganancia o pérdida se acumula y se paga recién al vencimiento.</p>
+
+      <h3>La cámara, los miembros compensadores y la cadena de márgenes</h3>
+      <p>Los márgenes no existen solo entre vos y tu agente. Se repiten en cada eslabón de la cadena del diagrama:</p>
+      <ul>
+        <li><strong>Cliente → agente.</strong> Vos mantenés la cuenta de márgenes con tu agente, con margen inicial, de mantenimiento y llamados. El mercado fija los mínimos; un agente puede exigir más, nunca menos.</li>
+        <li><strong>Agente → miembro compensador.</strong> Si tu agente no es miembro de la cámara, mantiene a su vez una cuenta de márgenes con un miembro compensador.</li>
+        <li><strong>Miembro compensador → cámara.</strong> El miembro deposita en la cámara el <strong>margen de compensación</strong> (<em>clearing margin</em>). En el esquema que describe Hull, la cámara no usa margen de mantenimiento: cada día la cuenta del miembro tiene que tener el margen inicial por la cantidad de contratos abiertos, así que el miembro deposita o retira la diferencia según las operaciones y los precios del día.</li>
+      </ul>
+      <p>El margen de compensación se puede calcular en forma <strong>bruta</strong> (se suman las posiciones largas y cortas de todos los clientes del miembro) o <strong>neta</strong> (se compensan entre sí). Si un miembro tiene un cliente largo en 20 contratos y otro corto en 15, el cálculo bruto toma 35 contratos y el neto, 5. Además, los miembros aportan a un <strong>fondo de garantía</strong>: si uno no cumple, la cámara usa primero sus márgenes y su aporte, y recién después recursos propios y de los demás miembros. Los niveles de margen dependen de la volatilidad del subyacente: cuanto más volátil, más altos.</p>
+
+      <div class="caja prueba">
+        <p class="caja-titulo">Probá vos</p>
+        <p>Vendiste 3 contratos de dólar futuro (USD 1.000 cada uno) a 1.050 pesos por dólar. Margen inicial: 70.000 pesos por contrato; mantenimiento: 52.500 por contrato (valores ilustrativos). ¿A qué precio te llega un llamado de margen? Si los precios de ajuste de los dos días siguientes son 1.058 y 1.071, ¿qué pasa con tu cuenta?</p>
+        <details class="desplegable">
+          <summary>Ver la resolución</summary>
+          <p>El margen inicial total es 210.000 y el de mantenimiento, 157.500. La cuenta tolera una pérdida de 52.500. Cada peso de suba del dólar te cuesta \(3 \times 1.000 = 3.000\) pesos, así que el llamado llega si el precio sube más de \(52.500 / 3.000 = 17{,}50\): por encima de <strong>1.067,50</strong>.</p>
+          <p>Día 1: el dólar sube 8 pesos. Como estás corto, perdés \(8 \times 3.000 = 24.000\); el saldo queda en 186.000. Día 2: sube 13 más, perdés 39.000 y el saldo queda en 147.000, por debajo de 157.500. Llamado de margen: tenés que depositar \(210.000 - 147.000 = 63.000\) pesos.</p>
+        </details>
+      </div>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="3">
+          <p class="qr-enunciado">El saldo de tu cuenta cae por debajo del margen de mantenimiento. ¿Cuánto tenés que depositar?</p>
+          <ol class="qr-op">
+            <li>Lo necesario para volver al margen de mantenimiento.</li>
+            <li>Un nuevo margen inicial completo.</li>
+            <li>Lo necesario para volver al margen inicial.</li>
+          </ol>
+          <p class="qr-explicacion">El llamado de margen repone el saldo hasta el margen inicial, no hasta el de mantenimiento.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">Estás largo en 4 contratos de 5.000 unidades a 4,50, con margen inicial total de 6.000 y de mantenimiento de 4.400. ¿Por debajo de qué precio te llaman a reponer?</p>
+          <ol class="qr-op">
+            <li>4,42</li>
+            <li>4,28</li>
+            <li>4,18</li>
+          </ol>
+          <p class="qr-explicacion">La pérdida tolerable es \(6.000 - 4.400 = 1.600\) y la exposición es \(4 \times 5.000 = 20.000\) unidades: el precio puede bajar \(1.600/20.000 = 0{,}08\). Con 4,28 se usa el mantenimiento entero; con 4,18 se divide por un solo contrato.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">Un operador que tenía una posición larga la cierra vendiéndole a alguien que abre una posición larga nueva. ¿Qué pasa con el interés abierto?</p>
+          <ol class="qr-op">
+            <li>Sube en uno.</li>
+            <li>No cambia.</li>
+            <li>Baja en uno.</li>
+          </ol>
+          <p class="qr-explicacion">Una posición larga se cierra y otra se abre: la cantidad de contratos vigentes no cambia, aunque el volumen sube en uno.</p>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2 id="forward-vs-futuro">Forwards y futuros: las diferencias</h2>
+
+      <p>Los dos contratos prometen lo mismo: comprar o vender un activo en el futuro a un precio fijado hoy. Lo que cambia es la forma.</p>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th>Forward</th><th>Futuro</th></tr></thead>
+          <tbody>
+            <tr><td>Contrato privado entre dos partes (OTC)</td><td>Se negocia en un mercado organizado</td></tr>
+            <tr><td>No estandarizado: monto y fecha a medida</td><td>Estandarizado: tamaño, calidad y fechas fijos</td></tr>
+            <tr><td>Normalmente una sola fecha de entrega</td><td>Un período o rango de fechas de entrega</td></tr>
+            <tr><td>Se liquida al final del contrato</td><td>Se liquida todos los días (ajuste diario)</td></tr>
+            <tr><td>Normalmente termina en entrega o en una liquidación final</td><td>Normalmente se cierra antes del vencimiento</td></tr>
+            <tr><td>Tiene riesgo de crédito</td><td>Prácticamente sin riesgo de crédito</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: el mismo resultado, en distintos momentos</p>
+        <p>Dos inversores toman una posición larga sobre 500.000 euros a 1,0900 dólares: uno con un forward y otro con 4 futuros de 125.000 euros. Durante tres días los precios de ajuste del futuro son 1,0950, 1,0880 y 1,1040, y al vencimiento el contado es 1,1040.</p>
+        <ul>
+          <li>El <strong>forward</strong> paga todo al final: \((1{,}1040 - 1{,}0900) \times 500.000 = 7.000\) dólares.</li>
+          <li>El <strong>futuro</strong> paga día por día: \(+2.500\), \(-3.500\) y \(+8.000\). La suma también da 7.000.</li>
+        </ul>
+        <p>Si se ignoran los intereses, el resultado total es el mismo. La diferencia es <strong>cuándo</strong> se cobra o se paga, y eso hace que, con tasas de interés que cambian, los precios de forwards y futuros puedan diferir un poco (Unidad III).</p>
+      </div>
+
+      <h3>Patrones de los precios futuros</h3>
+      <p>Si mirás los precios de un mismo futuro para distintos vencimientos, vas a ver uno de dos patrones (por ahora solo los describimos; la explicación es tema de la Unidad III):</p>
+      <ul>
+        <li><strong>Mercado normal</strong> o en <em>contango</em>: el precio futuro <strong>sube</strong> con el plazo. Es lo habitual en activos que cuesta financiar y almacenar, como el oro.</li>
+        <li><strong>Mercado invertido</strong> o en <em>backwardation</em>: el precio futuro <strong>baja</strong> con el plazo. Pasa, por ejemplo, con commodities escasas hoy, cuando tener el producto en mano tiene un valor especial.</li>
+      </ul>
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th>Vencimiento (ilustrativo)</th><th class="num">Mercado normal</th><th class="num">Mercado invertido</th></tr></thead>
+          <tbody>
+            <tr><td>Enero</td><td class="num">100,0</td><td class="num">100,0</td></tr>
+            <tr><td>Marzo</td><td class="num">101,2</td><td class="num">98,8</td></tr>
+            <tr><td>Mayo</td><td class="num">102,3</td><td class="num">97,9</td></tr>
+            <tr><td>Julio</td><td class="num">103,5</td><td class="num">97,1</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2 id="opciones">Opciones: un adelanto</h2>
+
+      <p>Las opciones se estudian a fondo en la <a href="u5-teoria.html">Unidad V</a>. Acá alcanza con las ideas básicas, porque las vas a necesitar para comparar cómo se cubren y especulan los distintos operadores.</p>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">Definición</p>
+        <p>Una <strong>opción</strong> le da a quien la compra el <strong>derecho, pero no la obligación</strong>, de comprar (<strong>call</strong>) o de vender (<strong>put</strong>) un activo a un precio fijado, el <strong>precio de ejercicio</strong> o <em>strike</em> \(K\), hasta una fecha determinada. Por ese derecho paga una <strong>prima</strong>. Una opción <strong>europea</strong> solo puede ejercerse al vencimiento; una <strong>americana</strong>, en cualquier momento hasta el vencimiento.</p>
+      </div>
+
+      <p>Hay cuatro posiciones: comprador o vendedor (<strong>lanzador</strong>) de un call, y comprador o lanzador de un put. El comprador elige si ejerce; el lanzador cobra la prima y queda obligado a cumplir si el comprador ejerce. Al vencimiento, el comprador ejerce solo si le conviene:</p>
+
+      <div class="formula con-nombre"><span class="nombre-formula">Payoff del comprador al vencimiento</span>\[ \text{Call: } \max(S_T - K;\ 0) \qquad\qquad \text{Put: } \max(K - S_T;\ 0) \]</div>
+
+      <div class="grilla-graficos">
+        <figure class="grafico-payoff" data-patas="compra call 100 5" data-desde="60" data-hasta="140"><figcaption>Compra de un call con \(K = 100\) y prima 5: pierde como máximo la prima y gana si \(S_T \gt 105\).</figcaption></figure>
+        <figure class="grafico-payoff" data-patas="compra put 100 5" data-desde="60" data-hasta="140"><figcaption>Compra de un put con \(K = 100\) y prima 5: pierde como máximo la prima y gana si \(S_T \lt 95\).</figcaption></figure>
+      </div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>Comprás un contrato de calls (100 acciones) con strike 55 y prima de 2 por acción: pagás 200. Si al vencimiento la acción vale 62, ejercés: comprás a 55 lo que vale 62 y el payoff es \((62 - 55) \times 100 = 700\); descontando la prima, ganás 500. Si la acción vale 50, no ejercés (comprar a 55 sería más caro que en el mercado) y perdés solo los 200 de la prima.</p>
+      </div>
+
+      <p>Fijate la diferencia con un forward o un futuro: en el futuro las dos partes están <strong>obligadas</strong> y entrar no cuesta nada (salvo el margen, que es una garantía); en la opción, el comprador tiene un <strong>derecho</strong> y por eso paga una prima. Esa asimetría hace que el payoff de la opción tenga un "codo" en \(K\): las pérdidas del comprador están acotadas a la prima.</p>
+
+      <!-- ================================================================== -->
+      <h2 id="operadores">Coberturistas, especuladores y arbitrajistas</h2>
+
+      <p>Los mercados de derivados funcionan porque atraen a operadores con objetivos distintos, y eso les da liquidez: cuando alguien quiere tomar un lado del contrato, es fácil encontrar a alguien dispuesto a tomar el otro. Hay tres grandes tipos.</p>
+
+      <h3>Coberturistas (<em>hedgers</em>)</h3>
+      <p>Usan derivados para <strong>reducir</strong> un riesgo que ya tienen por su actividad. Pueden hacerlo de dos maneras muy distintas.</p>
+      <ul>
+        <li><strong>Con forwards o futuros</strong> fijan el precio. Ya lo viste con el importador y el exportador: el resultado queda determinado, sea mejor o peor que no cubrirse.</li>
+        <li><strong>Con opciones</strong> compran un seguro: se protegen contra el movimiento desfavorable, pero conservan el beneficio si el precio se mueve a favor. A cambio, pagan una prima.</li>
+      </ul>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: un seguro con puts</p>
+        <p>Un inversor tiene 2.000 acciones que valen 50 cada una y teme una caída en los próximos dos meses. Compra 20 contratos de puts (100 acciones cada uno) con strike 45 y prima 1,80 por acción. El seguro le cuesta \(2.000 \times 1{,}80 = 3.600\).</p>
+        <ul>
+          <li>Pase lo que pase, puede vender sus acciones a 45 como mínimo: \(2.000 \times 45 = 90.000\). Descontando la prima, el piso es <strong>86.400</strong>.</li>
+          <li>Si la acción cae a 38, ejerce los puts: \(76.000 + 2.000 \times (45 - 38) = 90.000\), menos la prima, 86.400.</li>
+          <li>Si la acción sube a 60, los puts vencen sin valor y la cartera vale \(120.000 - 3.600 = 116.400\): aprovecha la suba.</li>
+        </ul>
+      </div>
+
+      <figure class="grafico-payoff" data-patas="compra accion 50; compra put 45 1,8" data-individuales data-desde="30" data-hasta="70"><figcaption>Acción comprada a 50 más un put con strike 45 y prima 1,80 (por acción). La pérdida máxima queda en \(50 - 45 + 1{,}80 = 6{,}80\); hacia arriba, el resultado acompaña a la acción.</figcaption></figure>
+
+      <div class="caja importante">
+        <p class="caja-titulo">Fijar el precio o comprar un seguro</p>
+        <p>El forward o el futuro <strong>neutraliza</strong> el riesgo fijando el precio: elimina tanto las pérdidas como las ganancias posibles, y no cuesta nada al entrar. La opción <strong>protege</strong> solo contra el movimiento desfavorable y deja abierto el favorable, pero hay que pagar la prima por adelantado. Es la misma diferencia que hay entre vender hoy tu auto a un precio fijo y contratar un seguro contra choques.</p>
+      </div>
+
+      <h3>Especuladores</h3>
+      <p>Usan derivados para <strong>tomar riesgo</strong>: apuestan a que un precio va a subir o a bajar. Los derivados les dan <strong>apalancamiento</strong>: con poco capital toman una posición grande.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: especular con futuros o al contado</p>
+        <p>Un especulador cree que el euro se va a apreciar en los próximos tres meses. El contado está a 1,0850 dólares y el futuro a tres meses, a 1,0900. Compara dos alternativas por 500.000 euros:</p>
+        <ul>
+          <li><strong>Contado</strong>: comprar los euros hoy, por \(500.000 \times 1{,}0850 = 542.500\) dólares.</li>
+          <li><strong>Futuros</strong>: comprar 4 contratos de 125.000 euros. Solo tiene que depositar el margen inicial; con un margen ilustrativo de 3.000 dólares por contrato, 12.000 dólares.</li>
+        </ul>
+        <div class="tabla-wrap">
+          <table class="tabla">
+            <thead><tr><th>Euro al vencimiento</th><th class="num">Contado</th><th class="num">Futuros</th></tr></thead>
+            <tbody>
+              <tr><td>1,1400</td><td class="num pos">+27.500</td><td class="num pos">+25.000</td></tr>
+              <tr><td>1,0400</td><td class="num neg">−22.500</td><td class="num neg">−25.000</td></tr>
+              <tr class="total"><td>Capital necesario</td><td class="num">542.500</td><td class="num">12.000</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>En dólares, los resultados son parecidos (la diferencia de 2.500 se explica por los intereses de cada moneda, como vas a ver en la Unidad III). Lo que cambia es el capital: con la suba a 1,1400, el contado rinde \(27.500 / 542.500 = 5{,}07\,\%\) y los futuros, \(25.000 / 12.000 = 208{,}3\,\%\). Pero con la baja a 1,0400, los futuros pierden 25.000: <strong>más que todo el margen depositado</strong>. El especulador va a recibir llamados de margen y tiene que tener ese dinero.</p>
+      </div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: especular con opciones o con acciones</p>
+        <p>Otro especulador tiene 10.000 dólares y cree que una acción que vale 50 va a subir. Un call con strike 55 cuesta 2,50.</p>
+        <ul>
+          <li>Con <strong>acciones</strong> compra 200 (10.000 / 50).</li>
+          <li>Con <strong>calls</strong> compra 4.000 opciones, es decir, 40 contratos (10.000 / 2,50).</li>
+        </ul>
+        <div class="tabla-wrap">
+          <table class="tabla">
+            <thead><tr><th>Acción al vencimiento</th><th class="num">Acciones</th><th class="num">Calls</th></tr></thead>
+            <tbody>
+              <tr><td>70</td><td class="num pos">+4.000 (+40 %)</td><td class="num pos">+50.000 (+500 %)</td></tr>
+              <tr><td>45</td><td class="num neg">−1.000 (−10 %)</td><td class="num neg">−10.000 (−100 %)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Con la acción a 70, cada call paga \(70 - 55 = 15\): \(4.000 \times 15 - 10.000 = 50.000\). Con la acción a 45 los calls no se ejercen y se pierde toda la inversión. Las opciones magnifican los resultados: los buenos son muy buenos y los malos, muy malos. Las dos estrategias dan lo mismo si la acción termina en 57,89; por encima de ese precio ganan los calls.</p>
+      </div>
+
+      <p>Futuros y opciones dan apalancamiento, pero de manera distinta. Con <strong>futuros</strong>, la pérdida potencial no tiene un tope en el capital inicial: si el precio se mueve en contra, hay que seguir poniendo dinero. Con <strong>opciones compradas</strong>, la pérdida máxima es la prima pagada. Compará las tres alternativas con tus propios números en la <a href="u1-simulacion.html#operadores">simulación de operadores</a>.</p>
+
+      <h3>Arbitrajistas</h3>
+      <p>Buscan una <strong>ganancia sin riesgo</strong> tomando posiciones opuestas en dos o más mercados que tienen precios inconsistentes.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: una acción que cotiza en dos plazas</p>
+        <p>Una acción cotiza en Nueva York a 61,00 dólares y en Fráncfort a 55,00 euros. El euro vale 1,1200 dólares, así que el precio de Fráncfort equivale a \(55{,}00 \times 1{,}1200 = 61{,}60\) dólares. La acción está más barata en Nueva York.</p>
+        <p>Un arbitrajista compra 1.000 acciones en Nueva York (paga 61.000 dólares), las vende al mismo tiempo en Fráncfort (cobra 55.000 euros) y convierte los euros a dólares (61.600). Gana 600 dólares sin riesgo, antes de costos.</p>
+        <p>Una oportunidad así dura muy poco: las compras en Nueva York suben el precio allí y las ventas en Fráncfort lo bajan, hasta que los dos precios, expresados en la misma moneda, se igualan. Dicho de otro modo, el tipo de cambio que iguala los dos precios es \(61{,}00 / 55{,}00 = 1{,}1091\) dólares por euro, y el arbitraje existe porque el de mercado (1,1200) es distinto.</p>
+      </div>
+
+      <div class="caja argentina">
+        <p class="caja-titulo">En Argentina: el dólar implícito</p>
+        <p>La misma lógica se usa todos los días en la Argentina para calcular el <strong>dólar implícito</strong>. Muchas empresas argentinas cotizan en BYMA en pesos y en Nueva York en dólares, a través de un ADR que representa una cantidad fija de acciones. El tipo de cambio que iguala los dos precios es el <strong>contado con liquidación</strong> (CCL):</p>
+        <div class="formula">\[ \text{CCL} = \frac{\text{precio local en pesos} \times \text{acciones por ADR}}{\text{precio del ADR en dólares}} \]</div>
+        <p>Con números ilustrativos: si la acción local vale 9.000 pesos, cada ADR representa 10 acciones y cotiza a 75 dólares, el CCL implícito es \(9.000 \times 10 / 75 = 1.200\) pesos por dólar. Comprar acciones en pesos, convertirlas en ADR y venderlas en Nueva York es una forma de "comprar dólares" a ese precio. Con bonos que cotizan en pesos y en dólares se calcula del mismo modo el dólar MEP. En la práctica no es un arbitraje perfecto: hay plazos de liquidación, costos y restricciones normativas que pueden impedir operar en el mismo instante.</p>
+      </div>
+
+      <h3>Los peligros: cuando el coberturista se vuelve especulador</h3>
+      <p>La flexibilidad de los derivados es también su peligro. Un operador autorizado a cubrir o a arbitrar puede, consciente o inconscientemente, empezar a especular, y con el apalancamiento las pérdidas crecen muy rápido. Dos casos famosos:</p>
+      <ul>
+        <li><strong>Barings (1995).</strong> Nick Leeson, operador del banco en Singapur, debía arbitrar futuros sobre el índice japonés Nikkei entre dos mercados. En cambio tomó posiciones especulativas enormes y escondió las pérdidas en una cuenta de errores. Las pérdidas, de unos 827 millones de libras, superaron el capital del banco, que tenía más de 200 años de historia y quebró.</li>
+        <li><strong>Société Générale (2008).</strong> Jérôme Kerviel, operador de una mesa de arbitraje, acumuló sin autorización posiciones de decenas de miles de millones de euros en futuros sobre índices bursátiles europeos, disimuladas con operaciones ficticias. Al deshacerlas, el banco perdió unos 4.900 millones de euros.</li>
+      </ul>
+
+      <div class="caja importante">
+        <p class="caja-titulo">La lección de control de riesgos</p>
+        <p>En los dos casos falló el control, no el instrumento. Toda institución que usa derivados necesita <strong>límites de riesgo claros</strong> para cada operador y cada mesa, <strong>controles independientes</strong> (quien registra y controla las operaciones no puede ser quien opera) y un <strong>seguimiento diario</strong> de las posiciones y de los resultados. Y un coberturista tiene que verificar que sus posiciones en derivados se correspondan con un riesgo real del negocio: si no, está especulando.</p>
+      </div>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">Un productor de soja quiere asegurarse un precio mínimo de venta, pero aprovechar una eventual suba. ¿Qué le conviene?</p>
+          <ol class="qr-op">
+            <li>Vender futuros de soja.</li>
+            <li>Comprar puts sobre la soja.</li>
+            <li>Comprar futuros de soja.</li>
+          </ol>
+          <p class="qr-explicacion">El put funciona como un seguro: fija un piso y deja abierta la suba, a cambio de la prima. Vender futuros fija el precio, incluso si la soja sube.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="3">
+          <p class="qr-enunciado">Con 6.000 dólares comprás calls con strike 40 a una prima de 1,50. Al vencimiento la acción vale 44. ¿Cuál es tu ganancia?</p>
+          <ol class="qr-op">
+            <li>16.000</li>
+            <li>−6.000</li>
+            <li>10.000</li>
+          </ol>
+          <p class="qr-explicacion">Comprás \(6.000 / 1{,}50 = 4.000\) calls. Cada uno paga \(44 - 40 = 4\): \(4.000 \times 4 - 6.000 = 10.000\). 16.000 es el payoff sin restar la prima.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">¿Qué caracteriza a un arbitraje?</p>
+          <ol class="qr-op">
+            <li>Una ganancia sin riesgo a partir de precios inconsistentes entre mercados.</li>
+            <li>Una apuesta apalancada a la suba de un precio.</li>
+            <li>La reducción del riesgo de una posición que ya se tiene.</li>
+          </ol>
+          <p class="qr-explicacion">El arbitrajista no apuesta a la dirección del precio: compra lo barato y vende lo caro al mismo tiempo.</p>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2 id="argentina">Los derivados en la Argentina</h2>
+
+      <div class="caja argentina">
+        <p class="caja-titulo">En Argentina</p>
+        <p><strong>A3 Mercados</strong> es el mercado surgido de la fusión de Matba Rofex y el MAE, y es el principal mercado de futuros del país: negocia futuros sobre el dólar, tasas de interés, índices y productos agropecuarios. Su cámara compensadora y contraparte central es <strong>Argentina Clearing y Registro</strong> (ACyRSA), que cumple el papel que viste en el diagrama de la cámara.</p>
+        <p>El contrato más operado es el <strong>dólar futuro</strong>:</p>
+        <div class="tabla-wrap">
+          <table class="tabla">
+            <tbody>
+              <tr><td><strong>Tamaño</strong></td><td>USD 1.000 por contrato</td></tr>
+              <tr><td><strong>Cotización</strong></td><td>Pesos por dólar</td></tr>
+              <tr><td><strong>Subyacente</strong></td><td>Tipo de cambio mayorista de referencia del BCRA (Comunicación "A" 3500)</td></tr>
+              <tr><td><strong>Vencimientos</strong></td><td>Mensuales, el último día hábil de cada mes</td></tr>
+              <tr><td><strong>Liquidación</strong></td><td>Por diferencias, en pesos, con ajuste diario; no hay entrega de dólares</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Con números ilustrativos: si comprás 10 contratos a 1.100 pesos por dólar y el precio de ajuste del día es 1.112, se te acreditan \(10 \times 1.000 \times 12 = 120.000\) pesos. Si al día siguiente el ajuste es 1.095, se te debitan \(10 \times 1.000 \times 17 = 170.000\) pesos.</p>
+        <p>En <strong>BYMA</strong> se negocian <strong>opciones sobre acciones</strong>: cada contrato es un lote de 100 acciones, las opciones son <strong>americanas</strong> y la prima se liquida en el día. Solo los <strong>lanzadores</strong> depositan garantías, porque son los únicos que asumen una obligación. Al vencimiento, las opciones dentro o en el dinero se ejercen automáticamente si no hay una instrucción en contrario.</p>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2 id="resumen">Resumen</h2>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">Para recordar</p>
+        <ul>
+          <li>La ingeniería financiera combina instrumentos simples para diseñar soluciones a medida. La idea central del curso: si dos carteras pagan lo mismo en todos los escenarios, valen lo mismo hoy (replicación y no arbitraje).</li>
+          <li>Un derivado es un contrato cuyo valor depende de un subyacente. Entre las partes es un juego de suma cero.</li>
+          <li>Bolsa: contratos estandarizados, cámara compensadora como contraparte central, márgenes y riesgo de crédito casi nulo. OTC: contratos a medida con riesgo de contraparte; desde 2008, los estandarizados se compensan centralmente y los bilaterales llevan márgenes.</li>
+          <li>Forward: obligación de comprar o vender a \(K\) en \(T\); payoff \(S_T - K\) (larga) y \(K - S_T\) (corta); entrar no cuesta nada.</li>
+          <li>Futuro: forward estandarizado en bolsa, con ajuste diario. El precio converge al contado al vencimiento; la mayoría de las posiciones se cierran antes.</li>
+          <li>Márgenes: inicial, ajuste diario y mantenimiento. Si el saldo cae por debajo del mantenimiento, se repone hasta el inicial. El llamado llega si el precio cae (larga) más de \((\text{MI} - \text{MM})/(\text{tamaño} \times \text{contratos})\).</li>
+          <li>Opciones: derecho sin obligación, a cambio de una prima. Payoffs \(\max(S_T - K;\ 0)\) y \(\max(K - S_T;\ 0)\).</li>
+          <li>Coberturistas reducen riesgo (forward: fijar el precio; opción: comprar un seguro); especuladores toman riesgo con apalancamiento; arbitrajistas buscan ganancias sin riesgo y, al hacerlo, alinean los precios.</li>
+        </ul>
+      </div>
+
+      <div class="caja hull">
+        <p class="caja-titulo">Para leer en Hull</p>
+        <p><strong>Edición en español del material</strong> (<em>Introducción a los mercados de futuros y opciones</em>): capítulo 1 (contratos de futuros, contratos a plazo, opciones; coberturistas, especuladores y arbitrajistas) y capítulo 2 (especificación de los contratos, convergencia del futuro al contado, operativa de las garantías con el ejemplo del oro de la tabla 2.1, la cámara de compensación, cotizaciones e interés abierto, entrega, tipos de órdenes, regulación y la comparación entre contratos a plazo y de futuros de la tabla 2.4).</p>
+        <p><strong>OFOD</strong> (<em>Options, Futures, and Other Derivatives</em>): capítulo 1 (mercados organizados y OTC, forwards, futuros, opciones, tipos de operadores y los peligros del uso de derivados) y capítulo 2 (mecánica de los mercados de futuros, cuentas de márgenes, mercados OTC y contrapartes centrales, cotizaciones, entrega, órdenes, regulación y forwards versus futuros).</p>
+      </div>
+    </article>
+  </main>
+
+  <nav class="pie-navegacion" id="pie-navegacion"></nav>
+
+  <script src="vendor/katex/katex.min.js"></script>
+  <script src="vendor/katex/contrib/auto-render.min.js"></script>
+  <script src="vendor/chartjs/chart.umd.min.js"></script>
+  <script src="js/calculos.js"></script>
+  <script src="js/comun.js"></script>
+</body>
+</html>

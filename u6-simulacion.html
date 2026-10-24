@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Valuación de opciones · Simulación</title>
+  <link rel="stylesheet" href="vendor/fuentes/fuentes.css">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="css/libro.css">
+  <style>
+    .sim-dos { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 18px; align-items: start; }
+    @media (max-width: 1100px) { .sim-dos { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body data-unidad="u6" data-seccion="simulacion">
+  <div id="encabezado"></div>
+
+  <main class="pagina con-indice">
+    <aside class="indice" id="indice"></aside>
+    <article class="contenido ancho">
+      <h1>Simulación</h1>
+      <p class="bajada">Seis simulaciones para ver cómo se valúa una opción: replicación, árbol paso a paso, precios de estado, la distribución lognormal, Black-Scholes con sus griegas y la cobertura delta que sostiene todo el modelo.</p>
+      <!-- ================================================================== -->
+      <h2 id="replicante">Portafolio replicante (un período)</h2>
+      <section class="widget" id="w-replicante">
+        <p class="widget-intro">Elegí los dos precios posibles de la acción al final del período. La simulación arma la cartera de Δ acciones y B en caución que paga exactamente lo mismo que la opción. Precargado: el ejemplo de la teoría.</p>
+        <div class="entradas">
+          <div><label for="r-s0">Precio hoy S₀</label><input id="r-s0" type="number" value="41" step="any"></div>
+          <div><label for="r-su">Precio si sube S<sub>u</sub></label><input id="r-su" type="number" value="60" step="any"></div>
+          <div><label for="r-sd">Precio si baja S<sub>d</sub></label><input id="r-sd" type="number" value="30" step="any"></div>
+          <div><label for="r-k">Strike K</label><input id="r-k" type="number" value="40" step="any"></div>
+          <div><label for="r-r">Tasa r (%, continua)</label><input id="r-r" type="number" value="8" step="any"></div>
+          <div><label for="r-t">Plazo T (años)</label><input id="r-t" type="text" value="1"></div>
+          <div>
+            <label>Opción</label>
+            <div class="opciones-radio">
+              <label><input type="radio" name="r-tipo" value="call" checked> Call</label>
+              <label><input type="radio" name="r-tipo" value="put"> Put</label>
+            </div>
+          </div>
+        </div>
+        <div class="sim-dos">
+          <div style="min-width:0" id="r-resultado"></div>
+          <div id="r-narrador"></div>
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="arbol">Árbol binomial paso a paso</h2>
+      <section class="widget" id="w-arbol">
+        <p class="widget-intro">El árbol usa \(u = e^{\sigma\sqrt{\Delta t}}\) y \(d = 1/u\). Se valúa <b>hacia atrás</b>: primero los pagos al vencimiento y después cada columna anterior. Usá los botones para recorrerlo de a una columna y <b>tocá cualquier nodo</b> para ver su cálculo.</p>
+        <div class="entradas">
+          <div><label for="a-s">Precio de la acción S₀</label><input id="a-s" type="number" value="50" step="any"></div>
+          <div><label for="a-k">Strike K</label><input id="a-k" type="number" value="52" step="any"></div>
+          <div><label for="a-r">Tasa r (%, continua)</label><input id="a-r" type="number" value="5" step="any"></div>
+          <div><label for="a-sigma">Volatilidad σ (%)</label><input id="a-sigma" type="number" value="30" step="any"></div>
+          <div><label for="a-t">Plazo T (años)</label><input id="a-t" type="text" value="2"></div>
+          <div><label for="a-n">Pasos</label><select id="a-n"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></div>
+          <div>
+            <label>Opción</label>
+            <div class="opciones-radio">
+              <label><input type="radio" name="a-tipo" value="call"> Call</label>
+              <label><input type="radio" name="a-tipo" value="put" checked> Put</label>
+            </div>
+          </div>
+          <div>
+            <label>Estilo</label>
+            <div class="opciones-radio">
+              <label><input type="radio" name="a-estilo" value="europea"> Europea</label>
+              <label><input type="radio" name="a-estilo" value="americana" checked> Americana</label>
+            </div>
+          </div>
+        </div>
+        <div class="resultados" id="a-datos"></div>
+        <div class="botones">
+          <button class="btn" type="button" id="a-inicio">⏮ Empezar en el vencimiento</button>
+          <button class="btn" type="button" id="a-atras">◀ Deshacer</button>
+          <button class="btn-primario" type="button" id="a-adelante">Calcular la columna anterior ▶</button>
+          <button class="btn" type="button" id="a-todo">Ver todo</button>
+          <span class="chip" id="a-etapa"></span>
+        </div>
+        <div class="arbol-wrap" id="a-arbol"></div>
+        <div class="explicacion" id="a-explica" aria-live="polite"></div>
+        <h3>Convergencia a Black-Scholes</h3>
+        <p class="widget-intro">Precio del árbol según la cantidad de pasos, comparado con Black-Scholes (que vale para la europea). El árbol oscila y se acerca a Black-Scholes a medida que se achica Δt.</p>
+        <div class="lienzo-medio"><canvas id="a-convergencia" aria-label="Convergencia del árbol a Black-Scholes"></canvas></div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="arrow-debreu">Precios de Arrow-Debreu</h2>
+      <section class="widget" id="w-ad">
+        <p class="widget-intro">Un título de Arrow-Debreu paga $1 si al vencimiento se llega a un nodo determinado y nada en los demás. Con esos precios se valúa <b>cualquier</b> pago: alcanza con multiplicar el pago de cada nodo por su precio y sumar.</p>
+        <div class="entradas">
+          <div><label for="ad-s">Precio de la acción S₀</label><input id="ad-s" type="number" value="50" step="any"></div>
+          <div><label for="ad-r">Tasa r (%, continua)</label><input id="ad-r" type="number" value="5" step="any"></div>
+          <div><label for="ad-sigma">Volatilidad σ (%)</label><input id="ad-sigma" type="number" value="30" step="any"></div>
+          <div><label for="ad-t">Plazo T (años)</label><input id="ad-t" type="text" value="1"></div>
+          <div><label for="ad-n">Pasos</label><select id="ad-n"><option>2</option><option>3</option><option selected>4</option><option>6</option><option>8</option><option>10</option></select></div>
+          <div>
+            <label for="ad-pago">Pago a valuar</label>
+            <select id="ad-pago">
+              <option value="call" selected>Call: máx(S − K; 0)</option>
+              <option value="put">Put: máx(K − S; 0)</option>
+              <option value="digital">Digital: 1 si S > K</option>
+              <option value="cuadrado">S² (guía U6, ej. 6)</option>
+              <option value="bono">Bono: paga 1 siempre</option>
+              <option value="accion">La acción: paga S</option>
+            </select>
+          </div>
+          <div><label for="ad-k">Strike K</label><input id="ad-k" type="number" value="50" step="any"></div>
+        </div>
+        <div class="sim-dos">
+          <div style="min-width:0">
+            <div class="resultados" id="ad-datos"></div>
+            <div class="lienzo-medio"><canvas id="ad-grafico" aria-label="Precios de Arrow-Debreu por nodo"></canvas></div>
+            <div id="ad-tabla"></div>
+          </div>
+          <div id="ad-narrador"></div>
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="trayectorias">Trayectorias y la distribución lognormal</h2>
+      <section class="widget" id="w-tray">
+        <p class="widget-intro">Black-Scholes supone que el precio sigue un movimiento browniano geométrico: \(dS = \mu S\,dt + \sigma S\,dz\). Acá se simulan miles de trayectorias semanales y se compara la distribución de \(S_T\) con la lognormal teórica.</p>
+        <div class="entradas">
+          <div><label for="t-s">Precio hoy S₀</label><input id="t-s" type="number" value="50" step="any"></div>
+          <div><label for="t-mu">Rendimiento esperado μ (%)</label><input id="t-mu" type="number" value="15" step="any"></div>
+          <div><label for="t-sigma">Volatilidad σ (%)</label><input id="t-sigma" type="number" value="30" step="any"></div>
+          <div><label for="t-t">Plazo T (años)</label><input id="t-t" type="text" value="1"></div>
+          <div><label for="t-k">Nivel K a superar</label><input id="t-k" type="number" value="55" step="any"></div>
+          <div><label>&nbsp;</label><button class="btn-primario" type="button" id="t-otra">Simular de nuevo</button></div>
+        </div>
+        <div class="sim-dos">
+          <div style="min-width:0">
+            <div class="resultados" id="t-datos"></div>
+            <div class="lienzo-medio"><canvas id="t-caminos" aria-label="Trayectorias simuladas del precio"></canvas></div>
+            <div class="lienzo-medio"><canvas id="t-histo" aria-label="Histograma de precios finales y densidad lognormal"></canvas></div>
+          </div>
+          <div id="t-narrador"></div>
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="black-scholes">Black-Scholes y las griegas</h2>
+      <section class="widget" id="w-bs">
+        <p class="widget-intro">Precio de calls y puts europeos con Black-Scholes-Merton. Cambiá un dato por vez y el narrador explica <b>por qué</b> se mueven los precios. El gráfico muestra el precio o cualquier griega en función de S, para tres plazos.</p>
+        <div class="entradas">
+          <div><label for="b-s">Precio de la acción S₀</label><input id="b-s" type="number" value="50" step="any"></div>
+          <div><label for="b-k">Strike K</label><input id="b-k" type="number" value="50" step="any"></div>
+          <div><label for="b-r">Tasa r (%, continua)</label><input id="b-r" type="number" value="5" step="any"></div>
+          <div><label for="b-sigma">Volatilidad σ (%)</label><input id="b-sigma" type="number" value="30" step="any"></div>
+          <div><label for="b-t">Plazo T (años)</label><input id="b-t" type="text" value="1"></div>
+          <div><label for="b-q">Dividendos δ (%, continuo)</label><input id="b-q" type="number" value="0" step="any"></div>
+          <div>
+            <label>Opción</label>
+            <div class="opciones-radio">
+              <label><input type="radio" name="b-tipo" value="call" checked> Call</label>
+              <label><input type="radio" name="b-tipo" value="put"> Put</label>
+            </div>
+          </div>
+          <div>
+            <label for="b-curva">Graficar</label>
+            <select id="b-curva">
+              <option value="precio" selected>Precio</option>
+              <option value="delta">Delta</option>
+              <option value="gamma">Gamma</option>
+              <option value="theta">Theta (por día)</option>
+              <option value="vega">Vega (por punto de σ)</option>
+            </select>
+          </div>
+        </div>
+        <div class="sim-dos">
+          <div style="min-width:0">
+            <div class="resultados" id="b-datos"></div>
+            <div id="b-detalle"></div>
+            <div class="lienzo-medio"><canvas id="b-grafico" aria-label="Precio o griega según el precio de la acción"></canvas></div>
+          </div>
+          <div id="b-narrador"></div>
+        </div>
+        <h3>Volatilidad implícita</h3>
+        <p class="widget-intro">Con los mismos datos, ingresá un precio de mercado: se busca, iterando, la volatilidad que hace que Black-Scholes dé ese precio.</p>
+        <div class="entradas" id="w-vi">
+          <div><label for="v-precio">Precio de mercado</label><input id="v-precio" type="number" value="8" step="any"></div>
+          <div>
+            <label>De un</label>
+            <div class="opciones-radio">
+              <label><input type="radio" name="v-tipo" value="call" checked> Call</label>
+              <label><input type="radio" name="v-tipo" value="put"> Put</label>
+            </div>
+          </div>
+          <div class="dato destacado"><div class="dato-etiqueta">Volatilidad implícita</div><div class="dato-valor" id="v-resultado">—</div></div>
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="cobertura-delta">Cobertura delta dinámica</h2>
+      <section class="widget" id="w-cob">
+        <p class="widget-intro">Un banco vendió 100.000 calls y se cubre comprando Δ acciones por cada call, rebalanceando cada cierto tiempo. Si la cobertura funciona, lo que le cuesta replicar la opción es (en promedio) su precio de Black-Scholes. Precargado: el ejemplo de Hull (S₀ = 49, K = 50, 20 semanas).</p>
+        <div class="entradas">
+          <div><label for="c-s">Precio hoy S₀</label><input id="c-s" type="number" value="49" step="any"></div>
+          <div><label for="c-k">Strike K</label><input id="c-k" type="number" value="50" step="any"></div>
+          <div><label for="c-r">Tasa r (%)</label><input id="c-r" type="number" value="5" step="any"></div>
+          <div><label for="c-sigma">Volatilidad σ (%)</label><input id="c-sigma" type="number" value="20" step="any"></div>
+          <div><label for="c-mu">Rendimiento esperado μ (%)</label><input id="c-mu" type="number" value="13" step="any"></div>
+          <div><label for="c-sem">Semanas al vencimiento</label><input id="c-sem" type="number" value="20" step="1" min="2" max="52"></div>
+          <div>
+            <label for="c-frec">Rebalancear cada</label>
+            <select id="c-frec"><option value="0.25">¼ semana</option><option value="0.5">½ semana</option><option value="1" selected>1 semana</option><option value="2">2 semanas</option><option value="4">4 semanas</option></select>
+          </div>
+          <div><label>&nbsp;</label><button class="btn-primario" type="button" id="c-otra">Nueva trayectoria</button></div>
+        </div>
+        <div class="sim-dos">
+          <div style="min-width:0">
+            <div class="resultados" id="c-datos"></div>
+            <div class="lienzo-medio"><canvas id="c-grafico" aria-label="Precio de la acción y delta de la cobertura"></canvas></div>
+          </div>
+          <div id="c-narrador"></div>
+        </div>
+        <details class="desplegable">
+          <summary>Ver la tabla de rebalanceos</summary>
+          <div id="c-tabla"></div>
+        </details>
+        <h3>¿Qué tan bien funciona? 500 trayectorias por frecuencia</h3>
+        <p class="widget-intro">Medida de desempeño de Hull: desvío estándar del costo de cobertura dividido el precio de Black-Scholes. Cuanto más seguido se rebalancea, más chico el error.</p>
+        <div class="botones"><button class="btn" type="button" id="c-repetir">Calcular para todas las frecuencias</button></div>
+        <div id="c-desempeno"></div>
+      </section>
+
+    </article>
+  </main>
+
+  <nav class="pie-navegacion" id="pie-navegacion"></nav>
+
+  <script src="vendor/katex/katex.min.js"></script>
+  <script src="vendor/katex/contrib/auto-render.min.js"></script>
+  <script src="vendor/chartjs/chart.umd.min.js"></script>
+  <script src="js/calculos.js"></script>
+  <script src="js/comun.js"></script>
+  <script src="js/u6-simulacion.js"></script>
+</body>
+</html>

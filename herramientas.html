@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Caja de herramientas · Derivados I</title>
+  <link rel="stylesheet" href="vendor/fuentes/fuentes.css">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="css/libro.css">
+  <style>
+    /* Estilos propios de esta página */
+    .modo { display: flex; gap: 8px; align-items: center; margin: 4px 0 12px; flex-wrap: wrap; }
+    .practica { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin: 10px 0; }
+    .practica .marca { font-size: 0.82rem; margin-top: 4px; min-height: 1.2em; white-space: normal; overflow-wrap: anywhere; line-height: 1.35; }
+    .practica .marca.bien { color: var(--ganancia); }
+    .practica .marca.mal { color: var(--perdida); }
+    .practica input.bien { border-color: var(--ganancia); background: var(--ganancia-suave); }
+    .practica input.mal { border-color: var(--perdida); background: var(--perdida-suave); }
+    .tabla-patas-h td { padding: 4px 6px; }
+    .tabla-patas-h select, .tabla-patas-h input { min-width: 80px; }
+  </style>
+</head>
+<body data-pagina="herramientas">
+  <div id="encabezado"></div>
+
+  <main class="pagina con-indice">
+    <aside class="indice" id="indice"></aside>
+
+    <article class="contenido ancho">
+      <h1>Caja de herramientas</h1>
+      <p class="bajada">Calculadoras para estudiar y verificar tus resoluciones, ordenadas por unidad. Cada una muestra la cuenta paso a paso y por qué se hace así. Las que tienen <b>modo práctica</b> te dejan escribir tu resolución primero y te dicen en qué paso te equivocaste.</p>
+      <div class="tarjetas-herr" style="margin-bottom:8px">
+        <a href="#cuenta-de-margenes"><span class="chip acento">Unidad I</span><b>Cuenta de márgenes</b><span>Ajuste diario, saldo y llamados de margen de una posición en futuros.</span></a>
+        <a href="#cobertura-con-futuros"><span class="chip acento">Unidad II</span><b>Cobertura con futuros</b><span>Ratio de mínima varianza, contratos, ajuste por liquidación diaria y beta.</span></a>
+        <a href="#conversor-de-tasas"><span class="chip acento">Unidad III</span><b>Conversor de tasas</b><span>Composición continua, m veces por año y TNA de la cátedra; tasa forward.</span></a>
+        <a href="#bonos-rendimiento-y-duracion"><span class="chip acento">Unidad III</span><b>Bonos, rendimiento y duración</b><span>Precio con tasas cero, TIR, duración, convexidad y efecto de un cambio de tasa.</span></a>
+        <a href="#fra-liquidacion-y-valor"><span class="chip acento">Unidad III</span><b>FRA: liquidación y valor</b><span>Cuánto paga o cobra cada parte y cuánto vale el contrato antes de vencer.</span></a>
+        <a href="#precio-forward-y-arbitraje"><span class="chip acento">Unidad III</span><b>Precio forward y arbitraje</b><span>Costo de tenencia con ingresos, rendimiento, monedas y commodities; valor de un forward y cash-and-carry.</span></a>
+        <a href="#paridad-put-call-despejar-la-incognita"><span class="chip acento">Unidad V</span><b>Paridad put-call</b><span>Despejá el call, el put, la acción o el strike, con dividendos.</span></a>
+        <a href="#limites-de-precios"><span class="chip acento">Unidad V</span><b>Límites de precios</b><span>Bandas de no arbitraje y estrategia si se violan.</span></a>
+        <a href="#black-scholes-paso-a-paso"><span class="chip acento">Unidades VI y VII</span><b>Black-Scholes paso a paso</b><span>Acciones, índices, monedas y futuros (Black), con modo práctica que diagnostica errores.</span></a>
+        <a href="#tabla-de-la-normal-n-x"><span class="chip acento">Unidad VI</span><b>Tabla de la normal</b><span>N(x) e inversa, con cómo buscarla en la tabla impresa.</span></a>
+        <a href="#griegas-y-cobertura-delta"><span class="chip acento">Unidad VI</span><b>Griegas y cobertura delta</b><span>Delta, gamma, theta, vega, rho y acciones para quedar neutral.</span></a>
+        <a href="#volatilidad-historica"><span class="chip acento">Unidad VI</span><b>Volatilidad histórica</b><span>σ anual a partir de una serie de precios, paso a paso.</span></a>
+        <a href="#tabla-de-payoff-por-rangos"><span class="chip acento">Unidad VIII</span><b>Tabla de payoff por rangos</b><span>Expresiones por tramo de cualquier estrategia, como piden las guías.</span></a>
+        <a href="#otras-herramientas-del-libro"><span class="chip">Todas</span><b>Más herramientas</b><span>Swaps, árbol binomial, volatilidad implícita y el simulador de estrategias.</span></a>
+      </div>
+      <!-- ================================================================== -->
+      <h2 id="cuenta-de-margenes">Cuenta de márgenes</h2>
+      <section class="widget" id="w-margen">
+        <p class="widget-intro">Escribí los precios de ajuste de cada día (el primero es el precio pactado). Calcula la ganancia diaria, el saldo y los llamados de margen. Precargado: el ejemplo del oro de Hull.</p>
+        <div class="entradas">
+          <div>
+            <label>Posición</label>
+            <div class="opciones-radio">
+              <label><input type="radio" name="m-lado" value="larga" checked> Larga</label>
+              <label><input type="radio" name="m-lado" value="corta"> Corta</label>
+            </div>
+          </div>
+          <div><label for="m-n">Contratos</label><input id="m-n" type="number" value="2" step="1" min="1"></div>
+          <div><label for="m-tam">Tamaño del contrato</label><input id="m-tam" type="number" value="100" step="any"><div class="ayuda">Unidades por contrato (onzas, USD…)</div></div>
+          <div><label for="m-mi">Margen inicial por contrato</label><input id="m-mi" type="number" value="6000" step="any"></div>
+          <div><label for="m-mm">Margen de mantenimiento por contrato</label><input id="m-mm" type="number" value="4500" step="any"></div>
+          <div class="ancho-total"><label for="m-precios">Precios de ajuste (separados por espacio o punto y coma)</label><input id="m-precios" type="text" value="1450 1441 1438,3 1444,6 1441,3 1440,1 1436,2 1429,9 1430,8 1425,4 1428,1 1411 1411 1414,3 1416,1 1423 1426,9"></div>
+        </div>
+        <div id="m-resultado"></div>
+      </section>
+      <!-- ================================================================== -->
+      <h2 id="cobertura-con-futuros">Cobertura con futuros</h2>
+      <section class="widget" id="w-cob">
+        <p class="widget-intro">Ratio de cobertura de mínima varianza y cantidad de contratos. Precargado: el ejemplo de la cátedra (cebada cubierta con trigo).</p>
+        <div class="tabs" data-grupo="cob">
+          <button data-tab="parametros" aria-selected="true">Con ρ y desvíos</button>
+          <button data-tab="datos">Con datos históricos</button>
+          <button data-tab="beta">Cartera de acciones (beta)</button>
+        </div>
+        <div data-panel="parametros" data-grupo="cob">
+          <div class="entradas">
+            <div><label for="cb-rho">Correlación ρ</label><input id="cb-rho" type="text" value="0,91"></div>
+            <div><label for="cb-ss">Desvío del contado σ_S</label><input id="cb-ss" type="text" value="0,027"></div>
+            <div><label for="cb-sf">Desvío del futuro σ_F</label><input id="cb-sf" type="text" value="0,022"></div>
+            <div><label for="cb-qa">Exposición Q_A (unidades)</label><input id="cb-qa" type="text" value="1200"></div>
+            <div><label for="cb-qf">Tamaño del contrato Q_F</label><input id="cb-qf" type="text" value="25"></div>
+            <div><label for="cb-va">Valor de la exposición V_A (opcional)</label><input id="cb-va" type="text" value=""><div class="ayuda">Para el ajuste por liquidación diaria</div></div>
+            <div><label for="cb-vf">Valor de un contrato V_F (opcional)</label><input id="cb-vf" type="text" value=""></div>
+          </div>
+          <div id="cb-resultado"></div>
+        </div>
+        <div data-panel="datos" data-grupo="cob">
+          <div class="entradas">
+            <div class="ancho-total"><label for="cd-ds">Cambios del precio contado ΔS (combustible de aviones, por galón)</label><input id="cd-ds" type="text" value="0,029 0,020 −0,044 0,008 0,026 −0,019 −0,010 −0,007 0,043 0,011 −0,036 −0,018 0,009 −0,032 0,023"></div>
+            <div class="ancho-total"><label for="cd-df">Cambios del precio futuro ΔF (heating oil, mismo orden)</label><input id="cd-df" type="text" value="0,021 0,035 −0,046 0,001 0,044 −0,029 −0,026 −0,029 0,048 −0,006 −0,036 −0,011 0,019 −0,027 0,029"></div>
+            <div><label for="cd-qa">Exposición Q_A</label><input id="cd-qa" type="text" value="2000000"></div>
+            <div><label for="cd-qf">Tamaño del contrato Q_F</label><input id="cd-qf" type="text" value="42000"></div>
+          </div>
+          <div class="lienzo-medio"><canvas id="cd-grafico"></canvas></div>
+          <div id="cd-resultado"></div>
+        </div>
+        <div data-panel="beta" data-grupo="cob">
+          <div class="entradas">
+            <div><label for="cbt-va">Valor de la cartera V_A</label><input id="cbt-va" type="text" value="5050000"></div>
+            <div><label for="cbt-b">Beta actual β</label><input id="cbt-b" type="text" value="1,5"></div>
+            <div><label for="cbt-bo">Beta objetivo β*</label><input id="cbt-bo" type="text" value="0"><div class="ayuda">0 = cobertura total</div></div>
+            <div><label for="cbt-f">Precio del futuro F</label><input id="cbt-f" type="text" value="1010"></div>
+            <div><label for="cbt-mult">Multiplicador del contrato</label><input id="cbt-mult" type="text" value="250"></div>
+          </div>
+          <div id="cbt-resultado"></div>
+        </div>
+      </section>
+      <!-- ================================================================== -->
+      <h2 id="conversor-de-tasas">Conversor de tasas</h2>
+      <section class="widget" id="w-tasas">
+        <p class="widget-intro">Convierte una tasa entre composición continua, anual, semestral, trimestral y mensual, y calcula el factor de descuento.</p>
+        <div class="entradas">
+          <div><label for="t-tasa">Tasa anual (%)</label><input id="t-tasa" type="number" value="10" step="any"></div>
+          <div>
+            <label for="t-comp">Con composición</label>
+            <select id="t-comp">
+              <option value="0">Continua</option><option value="1">Anual</option><option value="2" selected>Semestral</option><option value="4">Trimestral</option><option value="12">Mensual</option>
+            </select>
+          </div>
+          <div><label for="t-plazo">Plazo para el factor de descuento (años)</label><input id="t-plazo" type="text" value="1"></div>
+        </div>
+        <div id="t-resultado"></div>
+
+        <h3>TNA con capitalización cada m días (convención de la cátedra)</h3>
+        <div class="entradas" id="w-tna">
+          <div><label for="tna-tasa">TNA (%)</label><input id="tna-tasa" type="text" value="32"></div>
+          <div><label for="tna-m">Se capitaliza cada (días)</label><input id="tna-m" type="text" value="30"></div>
+          <div><label for="tna-plazo">Plazo de la tasa efectiva buscada (días)</label><input id="tna-plazo" type="text" value="90"></div>
+          <div><label for="tna-base">Año de</label><select id="tna-base"><option value="360" selected>360 días (30/360)</option><option value="365">365 días</option></select></div>
+        </div>
+        <div id="tna-resultado"></div>
+
+        <h3>Tasa forward entre dos plazos</h3>
+        <div class="entradas">
+          <div><label for="fw-r1">Tasa cero a T₁ (%, continua)</label><input id="fw-r1" type="number" value="10" step="any"></div>
+          <div><label for="fw-t1">T₁ (años)</label><input id="fw-t1" type="text" value="0,25"></div>
+          <div><label for="fw-r2">Tasa cero a T₂ (%, continua)</label><input id="fw-r2" type="number" value="10.5" step="any"></div>
+          <div><label for="fw-t2">T₂ (años)</label><input id="fw-t2" type="text" value="0,75"></div>
+        </div>
+        <div id="fw-resultado"></div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="bonos-rendimiento-y-duracion">Bonos, rendimiento y duración</h2>
+      <section class="widget" id="w-bono">
+        <p class="widget-intro">Valuá un bono con una curva de tasas cero (continuas) o con un único rendimiento. Precargado: el ejemplo de la cátedra (bono a 2 años, cupón semestral 6 %).</p>
+        <div class="entradas">
+          <div><label for="bo-n">Nominal</label><input id="bo-n" type="text" value="100"></div>
+          <div><label for="bo-c">Cupón anual (%)</label><input id="bo-c" type="text" value="6"></div>
+          <div><label for="bo-m">Cupones por año</label><select id="bo-m"><option value="1">1 (anual)</option><option value="2" selected>2 (semestral)</option><option value="4">4 (trimestral)</option><option value="12">12 (mensual)</option></select></div>
+          <div><label for="bo-t">Plazo (años)</label><input id="bo-t" type="text" value="2"></div>
+          <div class="ancho-total"><label for="bo-curva">Tasas cero continuas "plazo: tasa %" (vacío = usar el rendimiento)</label><input id="bo-curva" type="text" value="0,5: 5; 1: 5,8; 1,5: 6,4; 2: 6,8"><div class="ayuda">Entre plazos se interpola linealmente; antes del primero y después del último, la curva es plana.</div></div>
+          <div><label for="bo-y">Rendimiento continuo (%)</label><input id="bo-y" type="text" value=""><div class="ayuda">Solo si dejás la curva vacía</div></div>
+          <div><label for="bo-dy">Cambio de tasa a analizar (pb)</label><input id="bo-dy" type="text" value="10"></div>
+        </div>
+        <div id="bo-resultado"></div>
+      </section>
+      <!-- ================================================================== -->
+      <h2 id="fra-liquidacion-y-valor">FRA: liquidación y valor</h2>
+      <section class="widget" id="w-fra">
+        <p class="widget-intro">La posición <b>larga</b> paga la tasa fija y recibe la variable (la del que va a tomar prestado); la <b>corta</b>, al revés. Precargado: el ejemplo de la cátedra (100 millones, 4 % por 3 meses dentro de 3 años).</p>
+        <div class="entradas">
+          <div><label for="fr-l">Nocional L</label><input id="fr-l" type="text" value="100000000"></div>
+          <div><label for="fr-rk">Tasa pactada R_K (%)</label><input id="fr-rk" type="text" value="4"></div>
+          <div><label for="fr-t1">Inicio del período T₁ (meses)</label><input id="fr-t1" type="text" value="36"></div>
+          <div><label for="fr-t2">Fin del período T₂ (meses)</label><input id="fr-t2" type="text" value="39"></div>
+          <div><label for="fr-rm">Tasa de mercado en T₁, R_M (%)</label><input id="fr-rm" type="text" value="4,5"><div class="ayuda">Para la liquidación</div></div>
+          <div><label for="fr-rf">Tasa forward hoy R_F (%)</label><input id="fr-rf" type="text" value="4,3"><div class="ayuda">Para valuar antes del vencimiento</div></div>
+          <div><label for="fr-r2">Tasa cero continua a T₂ (%)</label><input id="fr-r2" type="text" value="4,2"></div>
+        </div>
+        <div id="fr-resultado"></div>
+      </section>
+      <!-- ================================================================== -->
+      <h2 id="precio-forward-y-arbitraje">Precio forward y arbitraje</h2>
+      <section class="widget" id="w-fwd">
+        <p class="widget-intro">Precio forward por costo de tenencia, valor de un forward ya pactado y estrategia de arbitraje si el precio de mercado no coincide. Precargado: el bono de la cátedra (contado 900, cupón de 40 en 4 meses, forward a 9 meses).</p>
+        <div class="entradas">
+          <div class="ancho-doble">
+            <label for="fw-tipo">Subyacente</label>
+            <select id="fw-tipo">
+              <option value="ingresos" selected>Activo con ingresos conocidos (dividendos, cupones)</option>
+              <option value="simple">Activo de inversión sin ingresos</option>
+              <option value="rendimiento">Activo con rendimiento continuo q (índice)</option>
+              <option value="moneda">Moneda extranjera (tasa r_f)</option>
+              <option value="commodity">Commodity (almacenamiento y conveniencia)</option>
+            </select>
+          </div>
+          <div><label for="fw-s">Precio contado S₀</label><input id="fw-s" type="text" value="900"></div>
+          <div><label for="fw-r">Tasa libre de riesgo r a T (%, continua)</label><input id="fw-r" type="text" value="4"></div>
+          <div><label for="fw-t">Plazo T (años)</label><input id="fw-t" type="text" value="9/12"><div class="ayuda">Acepta fracciones: 9/12</div></div>
+          <div class="ancho-doble" data-para="ingresos"><label for="fw-ing">Ingresos "monto @ plazo en años @ tasa %"</label><input id="fw-ing" type="text" value="40 @ 4/12 @ 3"><div class="ayuda">Separá varios con punto y coma. Si omitís la tasa, se usa r.</div></div>
+          <div data-para="rendimiento"><label for="fw-q">Rendimiento q (%, continuo)</label><input id="fw-q" type="text" value="1"></div>
+          <div data-para="moneda"><label for="fw-rf">Tasa extranjera r_f (%, continua)</label><input id="fw-rf" type="text" value="3"></div>
+          <div data-para="commodity"><label for="fw-u">Almacenamiento u (% anual)</label><input id="fw-u" type="text" value="2"></div>
+          <div data-para="commodity"><label for="fw-y">Rendimiento de conveniencia y (%)</label><input id="fw-y" type="text" value="0"></div>
+          <div data-para="commodity"><label for="fw-uvp">Almacenamiento en VP, U (opcional)</label><input id="fw-uvp" type="text" value=""></div>
+          <div><label for="fw-k">Precio pactado K de un forward existente (opcional)</label><input id="fw-k" type="text" value=""></div>
+          <div><label for="fw-fm">Precio forward de mercado (opcional)</label><input id="fw-fm" type="text" value="910"></div>
+        </div>
+        <div id="fwd-resultado"></div>
+      </section>
+      <!-- ================================================================== -->
+      <h2 id="paridad-put-call-despejar-la-incognita">Paridad put-call: despejar la incógnita</h2>
+      <section class="widget" id="w-paridad">
+        <p class="widget-intro">Elegí qué dato querés despejar e ingresá el resto. Con dividendos: c + D + K·e^(−rT) = p + S₀, donde D es el valor presente de los dividendos.</p>
+        <div class="entradas">
+          <div>
+            <label for="pc-incognita">Despejar</label>
+            <select id="pc-incognita"><option value="p" selected>El put (p)</option><option value="c">El call (c)</option><option value="S">El precio de la acción (S₀)</option><option value="K">El strike (K)</option></select>
+          </div>
+          <div><label for="pc-c">Call c</label><input id="pc-c" type="number" value="1" step="any"></div>
+          <div><label for="pc-p">Put p</label><input id="pc-p" type="number" value="1.8" step="any"></div>
+          <div><label for="pc-s">Acción S₀</label><input id="pc-s" type="number" value="19" step="any"></div>
+          <div><label for="pc-k">Strike K</label><input id="pc-k" type="number" value="20" step="any"></div>
+          <div><label for="pc-r">Tasa r (%, continua)</label><input id="pc-r" type="number" value="4" step="any"></div>
+          <div><label for="pc-t">Plazo T (años)</label><input id="pc-t" type="text" value="3/12"></div>
+          <div><label for="pc-d">Valor presente de los dividendos D</label><input id="pc-d" type="number" value="0" step="any"></div>
+        </div>
+        <div id="pc-resultado"></div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="limites-de-precios">Límites de precios</h2>
+      <section class="widget" id="w-limites">
+        <p class="widget-intro">Calcula los límites de no arbitraje de calls y puts europeos y americanos (acción sin dividendos) y te dice si un precio de mercado los viola.</p>
+        <div class="entradas">
+          <div><label for="li-s">Acción S₀</label><input id="li-s" type="number" value="28" step="any"></div>
+          <div><label for="li-k">Strike K</label><input id="li-k" type="number" value="25" step="any"></div>
+          <div><label for="li-r">Tasa r (%, continua)</label><input id="li-r" type="number" value="8" step="any"></div>
+          <div><label for="li-t">Plazo T (años)</label><input id="li-t" type="text" value="4/12"></div>
+          <div>
+            <label for="li-tipo">Opción a controlar</label>
+            <select id="li-tipo"><option value="c">Call europeo</option><option value="p">Put europeo</option><option value="C">Call americano</option><option value="P">Put americano</option></select>
+          </div>
+          <div><label for="li-precio">Precio de mercado</label><input id="li-precio" type="number" value="3.5" step="any"></div>
+        </div>
+        <div id="li-resultado"></div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="black-scholes-paso-a-paso">Black-Scholes paso a paso</h2>
+      <section class="widget" id="w-bs">
+        <p class="widget-intro">Calcula d₁, d₂, N(d₁), N(d₂), el call y el put, mostrando cada paso como se escribe en un examen y para qué sirve. Sirve para acciones, índices, monedas (Garman-Kohlhagen) y futuros (modelo de Black), Unidades VI y VII.</p>
+        <div class="entradas">
+          <div class="ancho-doble"><label for="bs-sub">Subyacente</label><select id="bs-sub"><option value="accion" selected>Acción (con rendimiento por dividendos δ)</option><option value="indice">Índice bursátil (rendimiento por dividendos q)</option><option value="moneda">Moneda extranjera (tasa r_f) · Garman-Kohlhagen</option><option value="futuro">Futuro · modelo de Black</option></select></div>
+          <div><label for="bs-s" id="bs-s-label">Precio de la acción S₀</label><input id="bs-s" type="number" value="52" step="any"></div>
+          <div><label for="bs-k">Strike K</label><input id="bs-k" type="number" value="50" step="any"></div>
+          <div><label for="bs-r">Tasa r (%, continua)</label><input id="bs-r" type="number" value="12" step="any"></div>
+          <div><label for="bs-sigma">Volatilidad σ (%)</label><input id="bs-sigma" type="number" value="30" step="any"></div>
+          <div><label for="bs-t">Plazo T (años)</label><input id="bs-t" type="text" value="3/12"><div class="ayuda">Acepta fracciones: 3/12</div></div>
+          <div id="bs-q-box"><label for="bs-q" id="bs-q-label">Dividendos δ (%, continuo)</label><input id="bs-q" type="number" value="0" step="any"></div>
+        </div>
+        <div class="modo">
+          <label style="font-weight:500; display:flex; gap:6px; align-items:center; margin:0"><input type="checkbox" id="bs-practica"> Modo práctica: ocultar los resultados y verificar mi resolución</label>
+        </div>
+        <div id="bs-zona-practica" hidden>
+          <p class="ayuda">Completá los valores que calculaste (podés dejar alguno vacío) y tocá "Verificar". Se acepta una diferencia de ±0,005 por redondeo.</p>
+          <div class="practica">
+            <div><label for="pr-d1">Tu d₁</label><input id="pr-d1" type="text"><div class="marca" id="m-d1"></div></div>
+            <div><label for="pr-d2">Tu d₂</label><input id="pr-d2" type="text"><div class="marca" id="m-d2"></div></div>
+            <div><label for="pr-nd1">Tu N(d₁)</label><input id="pr-nd1" type="text"><div class="marca" id="m-nd1"></div></div>
+            <div><label for="pr-nd2">Tu N(d₂)</label><input id="pr-nd2" type="text"><div class="marca" id="m-nd2"></div></div>
+            <div><label for="pr-c">Tu call</label><input id="pr-c" type="text"><div class="marca" id="m-c"></div></div>
+            <div><label for="pr-p">Tu put</label><input id="pr-p" type="text"><div class="marca" id="m-p"></div></div>
+          </div>
+          <div class="botones">
+            <button class="boton-accion" id="bs-verificar">Verificar</button>
+            <button class="boton-accion secundario" id="bs-mostrar">Mostrar la resolución</button>
+          </div>
+        </div>
+        <ol class="pasos" id="bs-pasos"></ol>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="tabla-de-la-normal-n-x">Tabla de la normal N(x)</h2>
+      <section class="widget" id="w-normal">
+        <p class="widget-intro">N(x) es la probabilidad de que una normal estándar sea menor que x: el área sombreada bajo la campana. También te muestra cómo buscarla en la tabla impresa.</p>
+        <div class="entradas">
+          <div>
+            <label>Quiero calcular</label>
+            <div class="opciones-radio">
+              <label><input type="radio" name="n-modo" value="directa" checked> N(x) a partir de x</label>
+              <label><input type="radio" name="n-modo" value="inversa"> x a partir de N(x)</label>
+            </div>
+          </div>
+          <div><label for="n-x" id="n-x-label">Valor de x</label><input id="n-x" type="text" value="0,3165"></div>
+        </div>
+        <div class="resultados" id="n-datos"></div>
+        <div class="explicacion" id="n-tabla"></div>
+        <div class="lienzo-grande" style="height:260px"><canvas id="n-grafico"></canvas></div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="griegas-y-cobertura-delta">Griegas y cobertura delta</h2>
+      <section class="widget" id="w-griegas">
+        <p class="widget-intro">Calcula delta, gamma, theta, vega y rho con Black-Scholes, y cuántas acciones hacen falta para quedar delta neutral.</p>
+        <div class="entradas">
+          <div><label for="g-s">Acción S₀</label><input id="g-s" type="number" value="50" step="any"></div>
+          <div><label for="g-k">Strike K</label><input id="g-k" type="number" value="50" step="any"></div>
+          <div><label for="g-r">Tasa r (%, continua)</label><input id="g-r" type="number" value="10" step="any"></div>
+          <div><label for="g-sigma">Volatilidad σ (%)</label><input id="g-sigma" type="number" value="30" step="any"></div>
+          <div><label for="g-t">Plazo T (años)</label><input id="g-t" type="text" value="3/12"></div>
+          <div>
+            <label for="g-tipo">Opción</label>
+            <select id="g-tipo"><option value="call">Call</option><option value="put">Put</option></select>
+          </div>
+          <div><label for="g-cant">Cantidad de opciones</label><input id="g-cant" type="number" value="-1000" step="1"><div class="ayuda">Positivo = compradas; negativo = vendidas.</div></div>
+        </div>
+        <div id="g-resultado"></div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="volatilidad-historica">Volatilidad histórica</h2>
+      <section class="widget" id="w-vh">
+        <p class="widget-intro">Pegá una serie de precios de cierre (de la más vieja a la más nueva). Calcula los rendimientos logarítmicos, su desvío y la volatilidad anual (Hull, cap. 15 de OFOD).</p>
+        <div class="entradas">
+          <div class="ancho-total"><label for="vh-precios">Precios</label><input id="vh-precios" type="text" value="20 20,1 19,9 20 20,5 20,25 20,9 20,9 20,9 20,75 20,75 21 21,1 20,9 20,9 21,25 21,4 21,4 21,25 21,75 22"></div>
+          <div><label for="vh-per">Frecuencia</label><select id="vh-per"><option value="252" selected>Diaria (252 días hábiles)</option><option value="52">Semanal (52)</option><option value="12">Mensual (12)</option></select></div>
+        </div>
+        <div id="vh-resultado"></div>
+      </section>
+      <!-- ================================================================== -->
+      <h2 id="tabla-de-payoff-por-rangos">Tabla de payoff por rangos</h2>
+      <section class="widget" id="w-payoff">
+        <p class="widget-intro">Armá una estrategia y obtené la tabla por rangos de precio con las expresiones de cada posición, como la piden las guías de la Unidad VIII.</p>
+        <div class="tabla-wrap">
+          <table class="tabla tabla-patas-h">
+            <thead><tr><th>Instrumento</th><th>Operación</th><th>Strike</th><th>Prima</th><th>Cantidad</th><th></th></tr></thead>
+            <tbody id="tp-patas"></tbody>
+          </table>
+        </div>
+        <div class="botones">
+          <button class="btn" id="tp-agregar">+ Agregar posición</button>
+          <select id="tp-ejemplo" class="btn" style="width:auto" aria-label="Cargar un ejemplo">
+            <option value="">Cargar un ejemplo…</option>
+            <option value="call|compra|95|8,53|1;call|venta|105|3,44|1">Bull call spread 95/105</option>
+            <option value="put|compra|30|4|1;put|venta|35|7|1">Bull put spread 30/35 (Guía U8, ej. 3)</option>
+            <option value="call|compra|15|4|1;call|venta|17,5|2|2;call|compra|20|0,5|1">Butterfly 15/17,5/20 (Guía U8, ej. 1)</option>
+            <option value="call|compra|60|6|1;put|compra|60|4|1">Straddle 60 (Guía U8, ej. 4)</option>
+            <option value="put|compra|45|3|1;call|compra|50|2|1">Strangle 45/50 (Guía U8, ej. 2)</option>
+            <option value="accion|compra|50|0|1;put|compra|45|1,2|1;call|venta|55|1|1">Collar 45/55</option>
+          </select>
+        </div>
+        <div id="tp-resultado"></div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="otras-herramientas-del-libro">Otras herramientas del libro</h2>
+      <div class="tarjetas-herr">
+        <a href="u6-simulacion.html#arbol"><b>🌳 Árbol binomial</b><span>Valuación nodo por nodo de europeas y americanas, con ejercicio anticipado.</span></a>
+        <a href="u6-simulacion.html#replicante"><b>⚖️ Portafolio replicante</b><span>Δ y B de un período, con verificación de la réplica.</span></a>
+        <a href="u6-simulacion.html#black-scholes"><b>📈 Volatilidad implícita</b><span>La σ que iguala el precio de Black-Scholes con el de mercado.</span></a>
+        <a href="u5-simulacion.html#paridad"><b>🔁 Arbitraje por paridad</b><span>Detecta el arbitraje y arma la tabla de flujos.</span></a>
+        <a href="u4-ejemplos.html#ejemplo-2"><b>🤝 Ventaja comparativa</b><span>Diseña el swap y reparte la ganancia, con diagrama.</span></a>
+        <a href="u4-ejemplos.html#ejemplo-3"><b>💱 Valuación de swaps</b><span>Swaps de tasa y de monedas por bonos y por FRAs o forwards.</span></a>
+        <a href="u8-simulacion.html"><b>🎯 Simulador de estrategias</b><span>P&amp;L al vencimiento de cualquier combinación de opciones, acciones y bonos.</span></a>
+      </div>
+    </article>
+  </main>
+
+  <nav class="pie-navegacion" id="pie-navegacion"></nav>
+
+  <script src="vendor/katex/katex.min.js"></script>
+  <script src="vendor/katex/contrib/auto-render.min.js"></script>
+  <script src="vendor/chartjs/chart.umd.min.js"></script>
+  <script src="js/calculos.js"></script>
+  <script src="js/comun.js"></script>
+  <script src="js/herramientas.js"></script>
+  <script src="js/herramientas2.js"></script>
+</body>
+</html>

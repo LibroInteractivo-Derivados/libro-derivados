@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Introducción a las opciones · Simulación</title>
+  <link rel="stylesheet" href="vendor/fuentes/fuentes.css">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="css/libro.css">
+  <style>
+    .sim-dos { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 18px; align-items: start; }
+    @media (max-width: 1100px) { .sim-dos { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body data-unidad="u5" data-seccion="simulacion">
+  <div id="encabezado"></div>
+
+  <main class="pagina con-indice">
+    <aside class="indice" id="indice"></aside>
+    <article class="contenido ancho">
+      <h1>Simulación</h1>
+      <p class="bajada">Cinco simulaciones para ver en acción los conceptos de la unidad: posiciones básicas, variables que mueven el precio, límites y arbitraje, paridad put-call y ejercicio anticipado. Cada cambio viene con su explicación.</p>
+      <!-- ================================================================== -->
+      <h2 id="posiciones-basicas">Las cuatro posiciones básicas</h2>
+      <section class="widget" id="w-posicion">
+        <p class="widget-intro">Elegí el tipo de opción y si la comprás o la vendés. Compará el payoff bruto con el beneficio, que descuenta la prima, y mové el precio al vencimiento: el narrador explica si conviene ejercer y por qué.</p>
+        <div class="entradas">
+          <div>
+            <label>Opción</label>
+            <div class="opciones-radio">
+              <label><input type="radio" name="p-tipo" value="call" checked> Call</label>
+              <label><input type="radio" name="p-tipo" value="put"> Put</label>
+            </div>
+          </div>
+          <div>
+            <label>Posición</label>
+            <div class="opciones-radio">
+              <label><input type="radio" name="p-lado" value="compra" checked> Compra (long)</label>
+              <label><input type="radio" name="p-lado" value="venta"> Venta (short)</label>
+            </div>
+          </div>
+          <div><label for="p-k">Strike (K)</label><input id="p-k" type="number" value="100" step="any"></div>
+          <div><label for="p-prima">Prima</label><input id="p-prima" type="number" value="5" step="any"></div>
+          <div>
+            <label>Mostrar</label>
+            <div class="opciones-radio">
+              <label><input type="radio" name="p-modo" value="ambos" checked> Ambos</label>
+              <label><input type="radio" name="p-modo" value="beneficio"> P&L</label>
+              <label><input type="radio" name="p-modo" value="payoff"> Payoff</label>
+            </div>
+          </div>
+        </div>
+        <div class="sim-dos">
+          <div style="min-width:0">
+            <div class="resultados" id="p-datos"></div>
+            <div id="p-st-box"></div>
+            <div class="lienzo-medio"><canvas id="p-grafico" aria-label="Payoff y beneficio de la posición"></canvas></div>
+            <div class="explicacion" id="p-texto"></div>
+          </div>
+          <div id="p-narrador"></div>
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="variables">¿Cómo cambia el precio de una opción?</h2>
+      <section class="widget" id="w-variables">
+        <p class="widget-intro">El gráfico muestra el precio de la opción europea cuando se mueve la variable elegida y las demás quedan fijas. Los precios se calculan con Black-Scholes, que se estudia en la Unidad VI.</p>
+        <div class="entradas">
+          <div><label for="x-s">Precio de la acción S₀</label><input id="x-s" type="number" value="50" step="any"></div>
+          <div><label for="x-k">Strike K</label><input id="x-k" type="number" value="50" step="any"></div>
+          <div><label for="x-t">Tiempo al vencimiento T (años)</label><input id="x-t" type="text" value="1"></div>
+          <div><label for="x-sigma">Volatilidad σ (%)</label><input id="x-sigma" type="number" value="30" step="any"></div>
+          <div><label for="x-r">Tasa libre de riesgo r (%)</label><input id="x-r" type="number" value="5" step="any"></div>
+          <div>
+            <label>Opción</label>
+            <div class="opciones-radio">
+              <label><input type="radio" name="x-tipo" value="call" checked> Call</label>
+              <label><input type="radio" name="x-tipo" value="put"> Put</label>
+            </div>
+          </div>
+          <div>
+            <label for="x-eje">Variable a mover</label>
+            <select id="x-eje">
+              <option value="S" selected>Precio de la acción (S₀)</option>
+              <option value="K">Strike (K)</option>
+              <option value="T">Tiempo al vencimiento (T)</option>
+              <option value="sigma">Volatilidad (σ)</option>
+              <option value="r">Tasa libre de riesgo (r)</option>
+            </select>
+          </div>
+          <div id="x-limites-box">
+            <label>&nbsp;</label>
+            <label style="font-weight:500; display:flex; gap:6px; align-items:center"><input type="checkbox" id="x-limites" checked> Mostrar límites de no arbitraje</label>
+          </div>
+        </div>
+        <div class="sim-dos">
+          <div style="min-width:0">
+            <div class="resultados" id="x-datos"></div>
+            <div class="lienzo-medio"><canvas id="x-grafico" aria-label="Precio de la opción según la variable elegida"></canvas></div>
+            <div class="explicacion" id="x-texto"></div>
+          </div>
+          <div id="x-narrador"></div>
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="limites">Límites de precios y arbitraje paso a paso</h2>
+      <section class="widget" id="w-lim">
+        <p class="widget-intro">Una opción europea no puede valer menos que su límite inferior. Si el mercado la cotiza por debajo, se arma un arbitraje. Ingresá el precio de mercado y mové el precio al vencimiento: la tabla muestra que se gana en cualquier escenario. Precargado: guía U5, ej. 3.</p>
+        <div class="entradas">
+          <div>
+            <label>Opción</label>
+            <div class="opciones-radio">
+              <label><input type="radio" name="l-tipo" value="call" checked> Call</label>
+              <label><input type="radio" name="l-tipo" value="put"> Put</label>
+            </div>
+          </div>
+          <div><label for="l-s">Precio de la acción S₀</label><input id="l-s" type="number" value="28" step="any"></div>
+          <div><label for="l-k">Strike K</label><input id="l-k" type="number" value="25" step="any"></div>
+          <div><label for="l-r">Tasa r (%, continua)</label><input id="l-r" type="number" value="8" step="any"></div>
+          <div><label for="l-t">Plazo T (años)</label><input id="l-t" type="text" value="4/12"></div>
+          <div><label for="l-d">VP de dividendos D</label><input id="l-d" type="number" value="0" step="any"></div>
+          <div><label for="l-c">Precio de mercado</label><input id="l-c" type="number" value="3.5" step="any"></div>
+          <div class="ancho-doble" id="l-st-box"></div>
+        </div>
+        <div class="sim-dos">
+          <div style="min-width:0">
+            <div class="resultados" id="l-datos"></div>
+            <div id="l-tabla"></div>
+          </div>
+          <div id="l-narrador"></div>
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="paridad">Paridad put-call y arbitraje</h2>
+      <section class="widget" id="w-paridad">
+        <p class="widget-intro">Ingresá precios de mercado de un call y un put con el mismo strike y vencimiento. La simulación verifica la paridad (europeas) o la banda (americanas) y, si no se cumple, arma la estrategia de arbitraje.</p>
+        <div class="entradas">
+          <div class="ancho-doble">
+            <label>Tipo de opciones</label>
+            <div class="opciones-radio">
+              <label><input type="radio" name="q-tipo" value="europea" checked> Europeas</label>
+              <label><input type="radio" name="q-tipo" value="americana"> Americanas</label>
+            </div>
+            <div class="ayuda">Al cambiar el tipo se cargan los datos del ejemplo de la teoría.</div>
+          </div>
+          <div><label for="q-s">Precio de la acción S₀</label><input id="q-s" type="number" value="50" step="any"></div>
+          <div><label for="q-k">Strike K</label><input id="q-k" type="number" value="50" step="any"></div>
+          <div><label for="q-r">Tasa r (%)</label><input id="q-r" type="number" value="5" step="any"></div>
+          <div><label for="q-t">Plazo T (años)</label><input id="q-t" type="text" value="1"><div class="ayuda">Acepta fracciones: 5/12</div></div>
+          <div><label for="q-c">Precio del call</label><input id="q-c" type="number" value="5" step="any"></div>
+          <div><label for="q-p">Precio del put</label><input id="q-p" type="number" value="2" step="any"></div>
+        </div>
+        <div id="q-resultado"></div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="anticipado">¿Cuándo conviene ejercer antes?</h2>
+      <section class="widget" id="w-ant">
+        <p class="widget-intro">Diferencia entre una opción americana y una europea con los mismos datos (calculadas con un árbol de 200 pasos, Unidad VI). Esa diferencia es lo que vale el derecho a ejercer antes del vencimiento.</p>
+        <div class="entradas">
+          <div><label for="an-k">Strike K</label><input id="an-k" type="number" value="50" step="any"></div>
+          <div><label for="an-r">Tasa r (%)</label><input id="an-r" type="number" value="8" step="any"></div>
+          <div><label for="an-sigma">Volatilidad σ (%)</label><input id="an-sigma" type="number" value="30" step="any"></div>
+          <div><label for="an-t">Plazo T (años)</label><input id="an-t" type="text" value="1"></div>
+          <div><label for="an-q">Dividendos q (%, continuo)</label><input id="an-q" type="number" value="0" step="any"></div>
+        </div>
+        <div class="sim-dos">
+          <div style="min-width:0">
+            <div class="lienzo-medio"><canvas id="an-grafico" aria-label="Prima por ejercicio anticipado del call y del put"></canvas></div>
+          </div>
+          <div id="an-narrador"></div>
+        </div>
+      </section>
+
+    </article>
+  </main>
+
+  <nav class="pie-navegacion" id="pie-navegacion"></nav>
+
+  <script src="vendor/katex/katex.min.js"></script>
+  <script src="vendor/katex/contrib/auto-render.min.js"></script>
+  <script src="vendor/chartjs/chart.umd.min.js"></script>
+  <script src="js/calculos.js"></script>
+  <script src="js/comun.js"></script>
+  <script src="js/u5-simulacion.js"></script>
+</body>
+</html>

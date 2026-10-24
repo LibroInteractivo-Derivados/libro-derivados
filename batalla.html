@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Batalla · Derivados I</title>
+  <link rel="stylesheet" href="vendor/fuentes/fuentes.css">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="css/libro.css">
+  <link rel="stylesheet" href="css/batalla.css">
+</head>
+<body data-pagina="batalla">
+  <div id="encabezado"></div>
+
+  <main class="pagina">
+    <article class="contenido ancho batalla" id="batalla">
+
+      <!-- ====================== INICIO ====================== -->
+      <section id="pantalla-inicio">
+        <h1>Batalla</h1>
+        <p class="bajada">Repasá con las preguntas de opción múltiple del libro en formato de juego (<i>Active Time Battle</i>). Elegí un jefe: cada unidad tiene el suyo, y hay jefes de parcial que mezclan varias unidades.</p>
+
+        <div id="lista-jefes"></div>
+
+        <div class="opciones-batalla">
+          <fieldset>
+            <legend>Modo</legend>
+            <label><input type="radio" name="modo" value="espera" checked> Espera <small>(el jefe se frena mientras leés)</small></label>
+            <label><input type="radio" name="modo" value="activo"> Activo <small>(el tiempo corre siempre)</small></label>
+          </fieldset>
+          <fieldset>
+            <legend>Velocidad del jefe</legend>
+            <label><input type="radio" name="velocidad" value="lenta"> Lenta <small>(ataca cada 45 s)</small></label>
+            <label><input type="radio" name="velocidad" value="normal" checked> Normal <small>(cada 30 s)</small></label>
+            <label><input type="radio" name="velocidad" value="rapida"> Rápida <small>(cada 20 s)</small></label>
+          </fieldset>
+        </div>
+
+        <button class="btn-primario btn-comenzar" id="btn-comenzar" type="button">Comenzar la batalla</button>
+
+        <h2>Cómo se juega</h2>
+        <ul class="reglas">
+          <li>Tu <b>barra de turno</b> se llena sola. Cuando está llena aparece una pregunta.</li>
+          <li>La <b>barra del jefe</b> también corre: cuando se llena, te ataca. En modo Espera se frena mientras tenés una pregunta en pantalla.</li>
+          <li>Responder bien le hace daño. Hacés <b>más daño</b> si la pregunta es difícil, si respondés rápido y si encadenás aciertos (<b>combo</b>).</li>
+          <li>Responder mal te cuesta un contraataque y corta el combo.</li>
+          <li>Ítems: <b>Descarte</b> (elimina dos opciones incorrectas), <b>Éter</b> (vacía la barra del jefe) y <b>Poción</b> (recuperás vida).</li>
+          <li>Al terminar recibís un rango (S, A, B o C) y un informe con la explicación de cada pregunta. Tu mejor rango por jefe queda guardado en este navegador.</li>
+        </ul>
+      </section>
+
+      <!-- ====================== BATALLA ====================== -->
+      <section id="pantalla-batalla" hidden>
+        <div class="escena" id="escena">
+          <span class="etiqueta-modo" id="etiqueta-modo"></span>
+          <div class="zona-jefe" id="zona-jefe">
+            <div class="sprite-jefe" id="sprite-jefe" aria-hidden="true"></div>
+            <div class="nombre-jefe" id="nombre-jefe"></div>
+          </div>
+          <div class="zona-jugador" id="zona-jugador">
+            <div class="sprite-jugador" aria-hidden="true">🧙</div>
+          </div>
+          <div class="velo-pausa" id="velo-pausa" hidden>PAUSA</div>
+        </div>
+
+        <div class="mensaje-batalla" id="mensaje" role="status" aria-live="polite"></div>
+
+        <div class="panel-batalla">
+          <div class="ventana-b">
+            <div class="fila-barra">
+              <div class="rotulo"><span id="rotulo-jefe">Jefe</span> <b id="vida-jefe-num"></b></div>
+              <div class="barra-b"><div class="vida-jefe" id="vida-jefe"></div></div>
+            </div>
+            <div class="fila-barra">
+              <div class="rotulo">Tiempo del jefe</div>
+              <div class="barra-b"><div class="atb-jefe" id="atb-jefe"></div></div>
+            </div>
+            <hr class="separador-b">
+            <div class="fila-barra">
+              <div class="rotulo">Vos <b id="vida-jugador-num"></b></div>
+              <div class="barra-b"><div class="vida" id="vida-jugador"></div></div>
+            </div>
+            <div class="fila-barra">
+              <div class="rotulo">Tu turno</div>
+              <div class="barra-b"><div class="atb" id="atb-jugador"></div></div>
+            </div>
+            <div class="combo" id="combo"></div>
+            <div class="items">
+              <button class="btn" id="item-descarte" type="button">✂️ Descarte ×<span id="item-descarte-n"></span></button>
+              <button class="btn" id="item-eter" type="button">🔮 Éter ×<span id="item-eter-n"></span></button>
+              <button class="btn" id="item-pocion" type="button">🧪 Poción ×<span id="item-pocion-n"></span></button>
+            </div>
+            <div class="controles-b">
+              <button class="btn" id="btn-pausa" type="button">⏸ Pausa</button>
+              <button class="btn" id="btn-rendirse" type="button">Abandonar</button>
+            </div>
+          </div>
+
+          <div class="ventana-b">
+            <div id="esperando" class="esperando">Esperando tu turno…</div>
+            <div id="ventana-pregunta" hidden>
+              <div class="pregunta-tema" id="pregunta-tema"></div>
+              <p class="pregunta-texto" id="pregunta-texto"></p>
+              <div class="opciones-b" id="pregunta-opciones"></div>
+              <p class="ayuda-teclas">Atajos: teclas 1 a 4 (o A a D) para responder · P para pausar.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================== FIN ====================== -->
+      <section id="pantalla-fin" class="fin-batalla" hidden>
+        <h2 id="fin-titulo"></h2>
+        <div class="rango-rotulo">Rango</div>
+        <div class="rango" id="fin-rango"></div>
+        <div class="marcador" id="fin-datos"></div>
+        <div class="fin-botones">
+          <button class="btn-primario" id="btn-revancha" type="button">Revancha</button>
+          <button class="btn" id="btn-otro-jefe" type="button">Elegir otro jefe</button>
+          <a class="btn" id="btn-ir-unidad" href="#" hidden>Repasar la unidad</a>
+        </div>
+        <div class="informe">
+          <h3>Informe de batalla</h3>
+          <p class="ayuda">Tocá cada pregunta para ver la explicación y la trampa de las opciones incorrectas.</p>
+          <div id="fin-informe"></div>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <script src="vendor/katex/katex.min.js"></script>
+  <script src="vendor/katex/contrib/auto-render.min.js"></script>
+  <script src="js/calculos.js"></script>
+  <script src="js/comun.js"></script>
+  <script src="js/preguntas-base.js"></script>
+  <script src="js/preguntas-u1.js"></script>
+  <script src="js/preguntas-u2.js"></script>
+  <script src="js/preguntas-u3.js"></script>
+  <script src="js/preguntas-u4.js"></script>
+  <script src="js/preguntas-u5.js"></script>
+  <script src="js/preguntas-u6.js"></script>
+  <script src="js/preguntas-u7.js"></script>
+  <script src="js/preguntas-u8.js"></script>
+  <script src="js/batalla.js"></script>
+</body>
+</html>

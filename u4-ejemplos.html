@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Swaps · Ejemplos prácticos</title>
+  <link rel="stylesheet" href="vendor/fuentes/fuentes.css">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="css/libro.css">
+</head>
+<body data-unidad="u4" data-seccion="ejemplos">
+  <div id="encabezado"></div>
+
+  <main class="pagina con-indice">
+    <aside class="indice" id="indice"></aside>
+
+    <article class="contenido ancho">
+      <h1>Ejemplos prácticos</h1>
+      <p class="bajada">Cada ejemplo es una calculadora: cambiá los datos y los resultados se recalculan solos. Los valores iniciales son los de los ejemplos de la teoría.</p>
+
+      <!-- ================================================================== -->
+      <h2 id="ejemplo-1">Ejemplo 1: Flujos de un swap de tasa</h2>
+      <section class="widget" id="w-flujos">
+        <p class="widget-intro">Ingresá las tasas variables que se fijan al inicio de cada período (separadas por espacios) y mirá cuánto paga o cobra cada parte en cada fecha.</p>
+        <div class="entradas">
+          <div><label for="f-nocional">Nocional (millones)</label><input id="f-nocional" type="number" value="50" step="any"></div>
+          <div><label for="f-fija">Tasa fija anual (%)</label><input id="f-fija" type="number" value="4" step="any"></div>
+          <div>
+            <label for="f-m">Pagos por año</label>
+            <select id="f-m"><option value="1">1 (anual)</option><option value="2" selected>2 (semestral)</option><option value="4">4 (trimestral)</option></select>
+          </div>
+          <div class="ancho-total">
+            <label for="f-variables">Tasas variables de cada período (%)</label>
+            <input id="f-variables" type="text" value="3,6 4,1 4,5 4,4 4,8 5,0">
+            <div class="ayuda">Una tasa por período, separadas por espacios. Se puede usar coma decimal.</div>
+          </div>
+          <div class="ancho-total">
+            <label>Ver los flujos desde el punto de vista de</label>
+            <div class="opciones-radio">
+              <label><input type="radio" name="f-lado" value="pagaFijo" checked> Quien paga fijo y recibe variable</label>
+              <label><input type="radio" name="f-lado" value="recibeFijo"> Quien recibe fijo y paga variable</label>
+            </div>
+          </div>
+        </div>
+        <div id="f-tabla"></div>
+        <div class="lienzo-grande" style="height:260px"><canvas id="f-grafico"></canvas></div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="ejemplo-2">Ejemplo 2: Ventaja comparativa</h2>
+      <section class="widget" id="w-ventaja">
+        <p class="widget-intro">Ingresá las tasas que le ofrecen a cada empresa y el margen del banco. La calculadora arma el swap y reparte la ganancia en partes iguales.</p>
+        <div class="entradas">
+          <fieldset class="grupo-entradas ancho-doble">
+            <legend>Empresa que quiere tasa VARIABLE</legend>
+            <div class="entradas" style="margin:0">
+              <div><label for="v-nx">Nombre</label><input id="v-nx" type="text" value="AAA"></div>
+              <div><label for="v-fx">Tasa fija ofrecida (%)</label><input id="v-fx" type="number" value="6" step="any"></div>
+              <div><label for="v-sx">Variable: SOFR + (%)</label><input id="v-sx" type="number" value="0.4" step="any"></div>
+            </div>
+          </fieldset>
+          <fieldset class="grupo-entradas ancho-doble">
+            <legend>Empresa que quiere tasa FIJA</legend>
+            <div class="entradas" style="margin:0">
+              <div><label for="v-ny">Nombre</label><input id="v-ny" type="text" value="BBB"></div>
+              <div><label for="v-fy">Tasa fija ofrecida (%)</label><input id="v-fy" type="number" value="7.4" step="any"></div>
+              <div><label for="v-sy">Variable: SOFR + (%)</label><input id="v-sy" type="number" value="1.1" step="any"></div>
+            </div>
+          </fieldset>
+          <div><label for="v-margen">Margen del banco (%)</label><input id="v-margen" type="number" value="0.1" step="any"><div class="ayuda">0 = swap directo, sin banco.</div></div>
+        </div>
+        <div class="resultados" id="v-datos"></div>
+        <div id="v-resultado"></div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="ejemplo-3">Ejemplo 3: Valuación de un swap de tasa</h2>
+      <section class="widget" id="w-valuacion">
+        <p class="widget-intro">Valuá un swap ya en curso con los dos métodos (bonos y FRAs) y comprobá que dan lo mismo. Las tasas cero van en composición continua, una por cada fecha de pago.</p>
+        <div class="entradas">
+          <div><label for="s-nocional">Nocional (millones)</label><input id="s-nocional" type="number" value="100" step="any"></div>
+          <div><label for="s-fija">Tasa fija anual (%)</label><input id="s-fija" type="number" value="8" step="any"></div>
+          <div>
+            <label for="s-m">Pagos por año</label>
+            <select id="s-m"><option value="1">1 (anual)</option><option value="2" selected>2 (semestral)</option><option value="4">4 (trimestral)</option></select>
+          </div>
+          <div><label for="s-proximo">Próximo pago dentro de (años)</label><input id="s-proximo" type="number" value="0.25" step="any"></div>
+          <div><label for="s-cantidad">Pagos que quedan</label><input id="s-cantidad" type="number" value="3" min="1" step="1"></div>
+          <div><label for="s-fijada">Tasa variable ya fijada (%)</label><input id="s-fijada" type="number" value="10.2" step="any"><div class="ayuda">La del próximo pago.</div></div>
+          <div class="ancho-total">
+            <label for="s-ceros">Tasas cero para cada pago (%, continuas)</label>
+            <input id="s-ceros" type="text" value="10 10,5 11">
+            <div class="ayuda" id="s-fechas"></div>
+          </div>
+          <div class="ancho-total">
+            <label>Posición</label>
+            <div class="opciones-radio">
+              <label><input type="radio" name="s-lado" value="recibeFijo" checked> Recibe fijo y paga variable</label>
+              <label><input type="radio" name="s-lado" value="pagaFijo"> Paga fijo y recibe variable</label>
+            </div>
+          </div>
+        </div>
+        <div id="s-narrador" style="margin-bottom:16px"></div>
+        <div id="s-resultado"></div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="ejemplo-4">Ejemplo 4: Valuación de un swap de monedas</h2>
+      <section class="widget" id="w-monedas">
+        <p class="widget-intro">Swap de dólares contra euros con pagos anuales. El tipo de cambio se expresa en dólares por euro y el valor del swap, en dólares.</p>
+        <div class="entradas">
+          <fieldset class="grupo-entradas ancho-doble">
+            <legend>Pata en dólares (doméstica)</legend>
+            <div class="entradas" style="margin:0">
+              <div><label for="m-pd">Capital (millones USD)</label><input id="m-pd" type="number" value="10" step="any"></div>
+              <div><label for="m-cd">Tasa del cupón (%)</label><input id="m-cd" type="number" value="6" step="any"></div>
+              <div><label for="m-rd">Tasa de mercado USD (%, continua)</label><input id="m-rd" type="number" value="5" step="any"></div>
+            </div>
+          </fieldset>
+          <fieldset class="grupo-entradas ancho-doble">
+            <legend>Pata en euros (extranjera)</legend>
+            <div class="entradas" style="margin:0">
+              <div><label for="m-pe">Capital (millones EUR)</label><input id="m-pe" type="number" value="9" step="any"></div>
+              <div><label for="m-ce">Tasa del cupón (%)</label><input id="m-ce" type="number" value="4" step="any"></div>
+              <div><label for="m-re">Tasa de mercado EUR (%, continua)</label><input id="m-re" type="number" value="3" step="any"></div>
+            </div>
+          </fieldset>
+          <div><label for="m-spot">Tipo de cambio hoy (USD por EUR)</label><input id="m-spot" type="number" value="1.05" step="any"></div>
+          <div><label for="m-proximo">Próximo pago dentro de (años)</label><input id="m-proximo" type="number" value="1" step="any"></div>
+          <div><label for="m-cantidad">Pagos anuales que quedan</label><input id="m-cantidad" type="number" value="3" min="1" step="1"></div>
+          <div class="ancho-total">
+            <label>Posición</label>
+            <div class="opciones-radio">
+              <label><input type="radio" name="m-lado" value="recibeDom" checked> Recibe dólares y paga euros</label>
+              <label><input type="radio" name="m-lado" value="recibeExt"> Recibe euros y paga dólares</label>
+            </div>
+          </div>
+        </div>
+        <div id="m-narrador" style="margin-bottom:16px"></div>
+        <div id="m-resultado"></div>
+      </section>
+    </article>
+  </main>
+
+  <nav class="pie-navegacion" id="pie-navegacion"></nav>
+
+  <script src="vendor/katex/katex.min.js"></script>
+  <script src="vendor/katex/contrib/auto-render.min.js"></script>
+  <script src="vendor/chartjs/chart.umd.min.js"></script>
+  <script src="js/calculos.js"></script>
+  <script src="js/comun.js"></script>
+  <script src="js/u4-ejemplos.js"></script>
+</body>
+</html>

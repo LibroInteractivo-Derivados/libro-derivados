@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Opciones sobre índices, monedas y futuros · Simulación</title>
+  <link rel="stylesheet" href="vendor/fuentes/fuentes.css">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="css/libro.css">
+  <style>
+    .sim-dos { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 18px; align-items: start; }
+    @media (max-width: 1100px) { .sim-dos { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body data-unidad="u7" data-seccion="simulacion">
+  <div id="encabezado"></div>
+
+  <main class="pagina con-indice">
+    <aside class="indice" id="indice"></aside>
+    <article class="contenido ancho">
+      <h1>Simulación</h1>
+      <p class="bajada">Cuatro simulaciones: la fórmula general con rendimiento q, el seguro de cartera, el árbol de un futuro y la cobertura de un exportador. Cada cambio viene con su explicación.</p>
+      <!-- ================================================================== -->
+      <h2 id="calculadora">Una sola fórmula para cuatro subyacentes</h2>
+      <section class="widget" id="w-calc">
+        <p class="widget-intro">Acciones, índices, monedas y futuros se valúan con Black-Scholes-Merton cambiando qué es q. Elegí el subyacente, mové el rendimiento y mirá cómo reaccionan el call, el put y la paridad. Precargado: guía U7, ej. 1.</p>
+        <div class="entradas">
+          <div class="ancho-doble">
+            <label for="ca-sub">Subyacente</label>
+            <select id="ca-sub">
+              <option value="indice" selected>Índice o acción con rendimiento por dividendos q</option>
+              <option value="accion">Acción sin dividendos (q = 0)</option>
+              <option value="moneda">Moneda extranjera (q = r_f)</option>
+              <option value="futuro">Futuro (q = r, modelo de Black)</option>
+            </select>
+          </div>
+          <div><label for="ca-s" id="ca-s-label">Precio del subyacente S₀</label><input id="ca-s" type="number" value="50" step="any"></div>
+          <div><label for="ca-k">Strike K</label><input id="ca-k" type="number" value="50" step="any"></div>
+          <div><label for="ca-r">Tasa r (%)</label><input id="ca-r" type="number" value="5" step="any"></div>
+          <div><label for="ca-sigma">Volatilidad σ (%)</label><input id="ca-sigma" type="number" value="30" step="any"></div>
+          <div><label for="ca-t">Plazo T (años)</label><input id="ca-t" type="text" value="8/12"></div>
+          <div class="ancho-doble" id="ca-q-box"></div>
+        </div>
+        <div class="sim-dos">
+          <div style="min-width:0">
+            <div class="resultados" id="ca-datos"></div>
+            <div class="lienzo-medio"><canvas id="ca-grafico" aria-label="Precio del call y del put según el subyacente"></canvas></div>
+          </div>
+          <div id="ca-narrador"></div>
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="seguro">Seguro de cartera con puts sobre índice</h2>
+      <section class="widget" id="w-seguro">
+        <p class="widget-intro">¿Cuántos puts y con qué strike para asegurar un valor mínimo de la cartera? Precargado: el ejemplo de Hull (500.000 dólares, β = 2, asegurar 450.000 por 3 meses).</p>
+        <div class="entradas">
+          <div><label for="se-v">Valor de la cartera</label><input id="se-v" type="number" value="500000" step="any"></div>
+          <div><label for="se-vmin">Valor a asegurar</label><input id="se-vmin" type="number" value="450000" step="any"></div>
+          <div><label for="se-b">Beta β</label><input id="se-b" type="number" value="2" step="any"></div>
+          <div><label for="se-i">Índice hoy</label><input id="se-i" type="number" value="1000" step="any"></div>
+          <div><label for="se-m">Multiplicador</label><input id="se-m" type="number" value="100" step="any"></div>
+          <div><label for="se-r">Tasa r (%)</label><input id="se-r" type="number" value="12" step="any"></div>
+          <div><label for="se-q">Dividendos q (%)</label><input id="se-q" type="number" value="4" step="any"></div>
+          <div><label for="se-sigma">Volatilidad del índice (%)</label><input id="se-sigma" type="number" value="20" step="any"></div>
+          <div><label for="se-t">Plazo (meses)</label><input id="se-t" type="number" value="3" step="any"></div>
+          <div class="ancho-doble" id="se-st-box"></div>
+        </div>
+        <div class="sim-dos">
+          <div style="min-width:0">
+            <div class="resultados" id="se-datos"></div>
+            <div class="lienzo-medio"><canvas id="se-grafico" aria-label="Valor de la cartera con y sin seguro"></canvas></div>
+          </div>
+          <div id="se-narrador"></div>
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="arbol-futuro">Árbol binomial de un futuro</h2>
+      <section class="widget" id="w-arbol">
+        <p class="widget-intro">En el árbol de un futuro la probabilidad neutral al riesgo es \(p = (1 - d)/(u - d)\): el futuro no requiere inversión, así que su valor esperado no crece. Con opciones americanas, el árbol muestra dónde conviene ejercer.</p>
+        <div class="entradas">
+          <div><label for="ab-f">Futuro F₀</label><input id="ab-f" type="number" value="20" step="any"></div>
+          <div><label for="ab-k">Strike K</label><input id="ab-k" type="number" value="19" step="any"></div>
+          <div><label for="ab-r">Tasa r (%)</label><input id="ab-r" type="number" value="4" step="any"></div>
+          <div><label for="ab-sigma">Volatilidad σ (%)</label><input id="ab-sigma" type="number" value="35" step="any"></div>
+          <div><label for="ab-t">Plazo T (años)</label><input id="ab-t" type="text" value="4/12"></div>
+          <div><label for="ab-n">Pasos</label><select id="ab-n"><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select></div>
+          <div><label for="ab-tipo">Opción</label><select id="ab-tipo"><option value="call" selected>Call</option><option value="put">Put</option></select></div>
+          <div><label for="ab-ej">Ejercicio</label><select id="ab-ej"><option value="eur">Europea</option><option value="ame" selected>Americana</option></select></div>
+        </div>
+        <div class="resultados" id="ab-datos"></div>
+        <div class="arbol-wrap"><div id="ab-svg"></div></div>
+        <div class="explicacion" id="ab-texto"></div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="exportador">Cobertura cambiaria de un exportador</h2>
+      <section class="widget" id="w-expo">
+        <p class="widget-intro">Una empresa de Estados Unidos va a cobrar 1.000.000 de euros en 6 meses. Compará no cubrirse, vender a plazo, comprar un put y un range forward (put comprado financiado con un call vendido). Precargado: guía U7, ej. 2.</p>
+        <div class="entradas">
+          <div><label for="ex-s">EURUSD contado</label><input id="ex-s" type="number" value="1.10" step="any"></div>
+          <div><label for="ex-r">Tasa en USD (%)</label><input id="ex-r" type="number" value="6" step="any"></div>
+          <div><label for="ex-rf">Tasa en EUR (%)</label><input id="ex-rf" type="number" value="3" step="any"></div>
+          <div><label for="ex-sigma">Volatilidad (%)</label><input id="ex-sigma" type="number" value="25" step="any"></div>
+          <div><label for="ex-t">Plazo (años)</label><input id="ex-t" type="number" value="0.5" step="any"></div>
+          <div><label for="ex-k1">Strike del put K₁</label><input id="ex-k1" type="number" value="1.05" step="any"></div>
+          <div class="ancho-doble" id="ex-st-box"></div>
+        </div>
+        <div class="sim-dos">
+          <div style="min-width:0">
+            <div class="resultados" id="ex-datos"></div>
+            <div class="lienzo-medio"><canvas id="ex-grafico" aria-label="Dólares recibidos según el tipo de cambio"></canvas></div>
+          </div>
+          <div id="ex-narrador"></div>
+        </div>
+      </section>
+
+    </article>
+  </main>
+
+  <nav class="pie-navegacion" id="pie-navegacion"></nav>
+
+  <script src="vendor/katex/katex.min.js"></script>
+  <script src="vendor/katex/contrib/auto-render.min.js"></script>
+  <script src="vendor/chartjs/chart.umd.min.js"></script>
+  <script src="js/calculos.js"></script>
+  <script src="js/comun.js"></script>
+  <script src="js/u7-simulacion.js"></script>
+</body>
+</html>

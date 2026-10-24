@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Valuación de forwards y futuros · Teoría</title>
+  <link rel="stylesheet" href="vendor/fuentes/fuentes.css">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="css/libro.css">
+</head>
+<body data-unidad="u3" data-seccion="teoria">
+  <div id="encabezado"></div>
+
+  <main class="pagina con-indice">
+    <aside class="indice" id="indice"></aside>
+
+    <article class="contenido">
+      <h1>Valuación de forwards y futuros</h1>
+      <p class="bajada">Tasas de interés, costo de tenencia y arbitraje: de dónde sale el precio forward de una acción, un índice, una moneda o un commodity, cuánto vale un forward ya pactado y cómo funcionan los futuros de tasas.</p>
+      <span class="etiqueta-hull">Hull OFOD caps. 4, 5 y 6 (cronograma)</span>
+      <span class="etiqueta-hull">Caps. 3 y 5 en la edición en español del material</span>
+
+      <div class="objetivos">
+        <p>Objetivos de la unidad</p>
+        <ul>
+          <li>Medir tasas de interés con distintas frecuencias de composición y pasar de una a otra.</li>
+          <li>Valuar bonos con tasas cero, construir la curva cero con el método <em>bootstrap</em> y obtener tasas forward; valuar un FRA.</li>
+          <li>Medir la sensibilidad de un bono a las tasas con la duración y la convexidad.</li>
+          <li>Deducir por arbitraje el precio forward de un activo sin ingresos, con ingresos conocidos y con rendimiento conocido, y armar las estrategias <em>cash-and-carry</em> y <em>reverse cash-and-carry</em>.</li>
+          <li>Calcular el valor de un forward pactado tiempo atrás.</li>
+          <li>Aplicar el modelo de costo de tenencia a índices, monedas y commodities, e interpretar la tasa implícita del dólar futuro.</li>
+          <li>Entender los futuros de tasas de interés y armar una cobertura basada en la duración.</li>
+        </ul>
+      </div>
+
+      <p>En la Unidad I vimos qué es un forward y cómo funciona un futuro. Ahora respondemos la pregunta central: <strong>¿a qué precio se pacta?</strong> La respuesta no depende de lo que la gente espere que pase con el precio, sino de un argumento de <strong>arbitraje</strong>: comprar a plazo tiene que costar lo mismo que comprar hoy y financiar la compra. Como en ese argumento la tasa de interés es protagonista, la unidad empieza por las tasas.</p>
+
+      <!-- ================================================================== -->
+      <h2>Tipos de tasas de interés</h2>
+
+      <p>Una tasa de interés es el precio del dinero en el tiempo, pero no hay una sola tasa: cada una refleja un plazo, una moneda y, sobre todo, un <strong>riesgo de crédito</strong> distinto (la probabilidad de que el deudor no pague). Las que importan para los derivados son estas:</p>
+
+      <ul>
+        <li><strong>Tasas del Tesoro.</strong> Son las que paga un gobierno al endeudarse en su propia moneda (en EE. UU., las <em>Treasury bills</em>, <em>notes</em> y <em>bonds</em>). Se consideran libres de riesgo de incumplimiento. Aun así, los operadores de derivados no las usan como tasa libre de riesgo, porque son artificialmente bajas: los bancos necesitan esos títulos para cumplir requisitos regulatorios y, en EE. UU., tienen un tratamiento impositivo favorable.</li>
+        <li><strong>Tasas interbancarias: de LIBOR a SOFR.</strong> Durante décadas la referencia fue la <strong>LIBOR</strong> (<em>London Interbank Offered Rate</em>): la tasa a la que un banco de buena calidad crediticia podía tomar prestado sin garantía de otros bancos, a plazos de 1 a 12 meses. Se armaba con <em>estimaciones</em> de un panel de bancos, no con operaciones reales, y eso permitió manipulaciones. Por eso se reemplazó por tasas basadas en transacciones overnight: la <strong>SOFR</strong> (<em>Secured Overnight Financing Rate</em>) en dólares, la SONIA en libras, la €STR en euros. La LIBOR en dólares dejó de publicarse en 2023.</li>
+        <li><strong>Tasas repo.</strong> En un <em>repo</em> (<em>repurchase agreement</em>, pase), quien tiene títulos los vende y se compromete a recomprarlos más adelante a un precio un poco mayor. Es un <strong>préstamo con garantía</strong>: la diferencia de precios es el interés y la tasa implícita es la <strong>tasa repo</strong>. Como el prestamista tiene los títulos en garantía, el riesgo de crédito es muy bajo. El repo más común es a un día (<em>overnight repo</em>); los de plazo mayor se llaman <em>term repos</em>. La SOFR es, justamente, un promedio de tasas repo overnight garantizadas con bonos del Tesoro.</li>
+        <li><strong>Tasas overnight.</strong> Son las de préstamos entre bancos a un día para cubrir sus encajes, como la <em>federal funds rate</em> en EE. UU. Componiendo día a día una tasa overnight se obtiene la tasa de un período más largo; los <em>overnight indexed swaps</em> (OIS) intercambian una tasa fija por esa tasa compuesta, y sus tasas son la mejor aproximación práctica a una tasa libre de riesgo.</li>
+      </ul>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">La tasa libre de riesgo en este libro</p>
+        <p>En la valuación de derivados, \(r\) es la <strong>tasa libre de riesgo</strong>: la tasa a la que se puede prestar y tomar prestado sin riesgo de crédito para el plazo del derivado. En la práctica se aproxima con tasas derivadas de la SOFR o de los OIS (antes de 2008 se usaba la LIBOR). Salvo que se diga otra cosa, \(r\) está expresada con <strong>composición continua</strong>.</p>
+      </div>
+
+      <div class="caja argentina">
+        <p class="caja-titulo">En Argentina</p>
+        <p>Las referencias de corto plazo en pesos son, entre otras, la <strong>caución bursátil</strong> (un repo a pocos días con garantía de títulos, en el que el mercado actúa como contraparte central), la tasa <strong>BADLAR</strong> (promedio de los plazos fijos de más de un millón de pesos a 30–35 días en bancos privados) y los rendimientos de las <strong>letras del Tesoro</strong>. Cuando se valúa un derivado en pesos, como el dólar futuro, la tasa que se compara es la de una colocación en pesos de bajo riesgo y del mismo plazo, en general la caución o una letra del Tesoro.</p>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Cómo se miden las tasas: composición</h2>
+
+      <p>Que un banco pague "10 % anual" no dice todo. Hace falta saber <strong>cada cuánto se capitaliza</strong> el interés, es decir, la <strong>frecuencia de composición</strong> \(m\) (cantidad de capitalizaciones por año). Si se depositan 100 al 10 % anual:</p>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th>Frecuencia de composición</th><th class="num">\(m\)</th><th class="num">Valor de 100 al final del año</th></tr></thead>
+          <tbody>
+            <tr><td>Anual</td><td class="num">1</td><td class="num">110,00</td></tr>
+            <tr><td>Semestral</td><td class="num">2</td><td class="num">110,25</td></tr>
+            <tr><td>Trimestral</td><td class="num">4</td><td class="num">110,38</td></tr>
+            <tr><td>Mensual</td><td class="num">12</td><td class="num">110,47</td></tr>
+            <tr><td>Semanal</td><td class="num">52</td><td class="num">110,51</td></tr>
+            <tr><td>Diaria</td><td class="num">365</td><td class="num">110,52</td></tr>
+            <tr><td>Continua</td><td class="num">\(\infty\)</td><td class="num">110,52</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Con composición semestral se gana 5 % cada seis meses y el interés se reinvierte: \(100 \times 1{,}05^2 = 110{,}25\). En general, un monto \(A\) invertido \(n\) años a una tasa \(R\) compuesta \(m\) veces por año vale \(A\,(1 + R/m)^{mn}\). Cuando \(m \to \infty\) se llega a la <strong>composición continua</strong>:</p>
+
+      <div class="formula con-nombre"><span class="nombre-formula">Capitalización discreta y continua</span>\[ A\left(1 + \frac{R_m}{m}\right)^{m n} \qquad\qquad A\,e^{R_c\, n} \]</div>
+
+      <p>Capitalizar a la tasa continua \(R_c\) durante \(n\) años es multiplicar por \(e^{R_c n}\); descontar es multiplicar por \(e^{-R_c n}\). La frecuencia de composición es como la unidad de medida de una distancia: 10 % semestral y 10,25 % anual son <strong>la misma tasa</strong> expresada en unidades distintas, como 1 milla y 1,609 km. Igualando los valores finales de las dos formas de capitalizar se obtienen las conversiones:</p>
+
+      <div class="formula con-nombre"><span class="nombre-formula">Conversión entre composición continua y m veces por año</span>\[ R_c = m \ln\!\left(1 + \frac{R_m}{m}\right) \qquad\qquad R_m = m\left(e^{R_c/m} - 1\right) \]</div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>Una tasa del 10 % anual con composición semestral equivale, en composición continua, a \(R_c = 2 \ln(1{,}05) = 9{,}758\%\).</p>
+        <p>Un préstamo cobra 8 % anual con composición continua y los intereses se pagan trimestralmente. La tasa equivalente con composición trimestral es \(R_4 = 4\,(e^{0{,}08/4} - 1) = 8{,}081\%\): se paga \(100 \times 0{,}08081/4 = 2{,}02\) cada trimestre por cada 100 de capital.</p>
+      </div>
+
+      <div class="caja importante">
+        <p class="caja-titulo">¿Por qué usar composición continua?</p>
+        <p>Porque los plazos se suman en el exponente: invertir \(T_1\) años a \(R_1\) y después \(T_2 - T_1\) años a \(R_F\) da \(e^{R_1 T_1}\,e^{R_F (T_2 - T_1)} = e^{R_1 T_1 + R_F (T_2 - T_1)}\). Las fórmulas de forwards, tasas forward y opciones quedan mucho más simples. La composición continua es prácticamente igual a la diaria: la diferencia aparece recién en el segundo decimal de 100.</p>
+      </div>
+
+      <div class="caja importante">
+        <p class="caja-titulo">Convención de la materia</p>
+        <p>Salvo que el enunciado diga otra cosa, en la materia se trabaja con <strong>tasas anuales con composición continua</strong> y con la convención de días <strong>30/360</strong> (meses de 30 días y años de 360). Cuando una tasa viene como TNA, la notación \(\text{TNA}_{m}\) indica cada cuántos días se capitaliza: \(\text{TNA}_{30}\) se capitaliza cada 30 días, \(\text{TNA}_{180}\) cada 180.</p>
+        <p><strong>Ejemplo de la cátedra.</strong> Una \(\text{TNA}_{30}\) del 32 % equivale a una tasa efectiva de 90 días de \(i_{90} = \left(1 + 0{,}32 \times \tfrac{30}{360}\right)^{90/30} - 1 = 8{,}22\%\). Y 100 al 10 % anual dan 110 con \(\text{TNA}_{360}\), 110,38 con \(\text{TNA}_{90}\) y 110,52 con \(\text{TNA}_{1}\) o con composición continua.</p>
+      </div>
+
+      <div class="caja prueba">
+        <p class="caja-titulo">Probá vos</p>
+        <p>Un plazo fijo a 30 días paga una TNA (tasa nominal anual) del 36 %. Si se renueva cada 30 días con los intereses, ¿cuál es la tasa efectiva anual (TEA) y cuál la tasa continua equivalente? Tomá años de 365 días.</p>
+        <details class="desplegable">
+          <summary>Ver la resolución</summary>
+          <p>La TNA del plazo fijo es una tasa compuesta \(m = 365/30 = 12{,}17\) veces por año: cada 30 días se gana \(0{,}36 \times 30/365 = 2{,}959\%\).</p>
+          <p>\(\text{TEA} = (1{,}02959)^{365/30} - 1 = 42{,}59\%\).</p>
+          <p>\(R_c = \tfrac{365}{30}\,\ln(1{,}02959) = 35{,}48\%\). La misma tasa medida de tres maneras: 36 % nominal, 42,59 % efectiva anual o 35,48 % continua.</p>
+        </details>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Tasas cero, bonos y rendimiento</h2>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">Tasa cero</p>
+        <p>La <strong>tasa cero</strong> (o tasa spot) a \(T\) años es la tasa de una inversión que empieza hoy y paga <strong>todo junto en \(T\)</strong>, sin flujos intermedios. Es la tasa de un bono cupón cero. Su factor de descuento es \(e^{-R(T)\,T}\).</p>
+      </div>
+
+      <p>Un bono con cupones es una canasta de bonos cupón cero: cada flujo se descuenta con <strong>la tasa cero de su propio plazo</strong>. Supongamos estas tasas cero (continuas):</p>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th class="num">Plazo (años)</th><th class="num">Tasa cero (%, continua)</th></tr></thead>
+          <tbody>
+            <tr><td class="num">0,5</td><td class="num">5,0</td></tr>
+            <tr><td class="num">1,0</td><td class="num">5,8</td></tr>
+            <tr><td class="num">1,5</td><td class="num">6,4</td></tr>
+            <tr><td class="num">2,0</td><td class="num">6,8</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: precio de un bono con tasas cero</p>
+        <p>Un bono a 2 años, valor nominal 100, paga un cupón del 6 % anual en dos cuotas semestrales de 3. Su precio teórico es:</p>
+        <div class="formula">\[ B = 3e^{-0{,}05 \times 0{,}5} + 3e^{-0{,}058 \times 1} + 3e^{-0{,}064 \times 1{,}5} + 103e^{-0{,}068 \times 2} = 2{,}926 + 2{,}831 + 2{,}725 + 89{,}903 = 98{,}39 \]</div>
+      </div>
+
+      <h3>Rendimiento (<em>yield</em>)</h3>
+      <p>El <strong>rendimiento</strong> o tasa interna de retorno (<em>yield to maturity</em>) es la <strong>única</strong> tasa \(y\) que, aplicada a todos los flujos, reproduce el precio de mercado. Para el bono anterior, \(y\) resuelve</p>
+      <div class="formula">\[ 3e^{-y \times 0{,}5} + 3e^{-y \times 1} + 3e^{-y \times 1{,}5} + 103e^{-y \times 2} = 98{,}39 \quad\Rightarrow\quad y = 6{,}76\% \]</div>
+      <p>No hay fórmula cerrada: se resuelve por prueba y error (o con una planilla). El rendimiento es un promedio de las tasas cero, ponderado sobre todo por el flujo más grande, que es el último.</p>
+
+      <h3>Rendimiento a la par (<em>par yield</em>)</h3>
+      <p>El <strong>rendimiento a la par</strong> de un plazo es la tasa de cupón que hace que el bono valga exactamente su nominal. Si \(d\) es el factor de descuento del vencimiento, \(A\) la suma de los factores de descuento de todas las fechas de pago y \(m\) la cantidad de cupones por año, el cupón \(c\) cumple \(\tfrac{c}{m}A + 100d = 100\):</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Rendimiento a la par</span>\[ c = \frac{(100 - 100\,d)\,m}{A} \]</div>
+      <p>Con las tasas de la tabla, \(d = e^{-0{,}068 \times 2} = 0{,}8728\) y \(A = 3{,}7003\), así que \(c = (100 - 87{,}28) \times 2 / 3{,}7003 = 6{,}87\) por cada 100: un bono a 2 años con cupón semestral del 6,87 % anual cotizaría a la par.</p>
+
+      <!-- ================================================================== -->
+      <h2>La curva cero: método bootstrap</h2>
+
+      <p>En el mercado no se observan las tasas cero de todos los plazos: se observan <strong>precios de bonos</strong>. El método <strong><em>bootstrap</em></strong> (de "tirar de los cordones de la bota") obtiene la curva cero de a un plazo por vez, del más corto al más largo, usando en cada paso las tasas ya calculadas.</p>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th class="num">Nominal</th><th class="num">Plazo (años)</th><th class="num">Cupón anual (pago semestral)</th><th class="num">Precio</th></tr></thead>
+          <tbody>
+            <tr><td class="num">100</td><td class="num">0,25</td><td class="num">0</td><td class="num">97,5</td></tr>
+            <tr><td class="num">100</td><td class="num">0,50</td><td class="num">0</td><td class="num">94,9</td></tr>
+            <tr><td class="num">100</td><td class="num">1,00</td><td class="num">0</td><td class="num">90,0</td></tr>
+            <tr><td class="num">100</td><td class="num">1,50</td><td class="num">8</td><td class="num">96,0</td></tr>
+            <tr><td class="num">100</td><td class="num">2,00</td><td class="num">12</td><td class="num">101,6</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ol>
+        <li><strong>Plazos cortos (cupón cero).</strong> El bono a 3 meses gana 2,5 sobre 97,5 en un trimestre. La tasa continua sale de \(97{,}5\,e^{R \times 0{,}25} = 100\): \(R = 4 \ln(100/97{,}5) = 10{,}127\%\). Igual, \(R(0{,}5) = 2\ln(100/94{,}9) = 10{,}469\%\) y \(R(1) = \ln(100/90) = 10{,}536\%\).</li>
+        <li><strong>Bono a 1,5 años.</strong> Paga 4 a los 6 meses, 4 al año y 104 a los 18 meses. Los dos primeros flujos se descuentan con las tasas ya conocidas; la única incógnita es \(R\):
+          <div class="formula">\[ 4e^{-0{,}10469 \times 0{,}5} + 4e^{-0{,}10536 \times 1} + 104e^{-R \times 1{,}5} = 96 \;\Rightarrow\; 104e^{-1{,}5R} = 96 - 7{,}396 \;\Rightarrow\; R = 10{,}681\% \]</div></li>
+        <li><strong>Bono a 2 años.</strong> Con las tres tasas anteriores: \(6e^{-0{,}10469 \times 0{,}5} + 6e^{-0{,}10536} + 6e^{-0{,}10681 \times 1{,}5} = 16{,}206\); entonces \(106e^{-2R} = 101{,}6 - 16{,}206\) y \(R = 10{,}808\%\).</li>
+      </ol>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th class="num">Plazo (años)</th><th class="num">0,25</th><th class="num">0,50</th><th class="num">1,00</th><th class="num">1,50</th><th class="num">2,00</th></tr></thead>
+          <tbody>
+            <tr><td>Tasa cero (%, continua)</td><td class="num">10,127</td><td class="num">10,469</td><td class="num">10,536</td><td class="num">10,681</td><td class="num">10,808</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Para plazos intermedios se suele <strong>interpolar linealmente</strong>: la tasa a 1,25 años sería el promedio de 10,536 % y 10,681 %, es decir, 10,609 %. En la <a href="u3-simulacion.html#curva-cero">simulación</a> podés cambiar los precios de los bonos y ver cómo se mueve la curva.</p>
+
+      <!-- ================================================================== -->
+      <h2>Tasas forward y FRA</h2>
+
+      <p>La <strong>tasa forward</strong> es la tasa de un período futuro que está <strong>implícita en la curva cero de hoy</strong>. Si la tasa cero a 1 año es 3 % y la de 2 años es 4 %, invertir 2 años al 4 % tiene que rendir lo mismo que invertir 1 año al 3 % y el segundo año a una tasa \(R_F\): \(e^{0{,}04 \times 2} = e^{0{,}03 \times 1}\,e^{R_F \times 1}\), de donde \(R_F = 5\%\). Si no fuera así, se podría tomar prestado a un plazo y colocar al otro con ganancia segura.</p>
+
+      <div class="formula con-nombre"><span class="nombre-formula">Tasa forward entre T₁ y T₂ (continua)</span>\[ R_F = \frac{R_2 T_2 - R_1 T_1}{T_2 - T_1} = R_2 + (R_2 - R_1)\,\frac{T_1}{T_2 - T_1} \]</div>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th class="num">Año (n)</th><th class="num">Tasa cero a n años (%)</th><th class="num">Tasa forward del año n (%)</th></tr></thead>
+          <tbody>
+            <tr><td class="num">1</td><td class="num">3,0</td><td class="num">—</td></tr>
+            <tr><td class="num">2</td><td class="num">4,0</td><td class="num">5,0</td></tr>
+            <tr><td class="num">3</td><td class="num">4,6</td><td class="num">5,8</td></tr>
+            <tr><td class="num">4</td><td class="num">5,0</td><td class="num">6,2</td></tr>
+            <tr><td class="num">5</td><td class="num">5,3</td><td class="num">6,5</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Por ejemplo, la forward del tercer año es \((4{,}6 \times 3 - 4{,}0 \times 2)/1 = 5{,}8\%\). La segunda forma de la fórmula muestra la intuición: si la curva es <strong>creciente</strong> (\(R_2 \gt R_1\)), la forward queda <strong>por encima</strong> de las tasas cero, porque tiene que "levantar" el promedio; si es decreciente, queda por debajo.</p>
+
+      <h3>Acuerdo de tasa futura (FRA)</h3>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">FRA</p>
+        <p>Un <strong>FRA</strong> (<em>forward rate agreement</em>) es un contrato OTC en el que dos partes acuerdan hoy que, sobre un capital \(L\), regirá una tasa fija \(R_K\) para el período entre \(T_1\) y \(T_2\), en lugar de la tasa de referencia \(R_M\) que se observe en \(T_1\). No se intercambia el capital: solo la diferencia de intereses.</p>
+      </div>
+
+      <p>Para quien <strong>recibe la tasa fija</strong> \(R_K\) (y paga la variable), el flujo en \(T_2\) es \(L\,(R_K - R_M)(T_2 - T_1)\), con \(R_K\) y \(R_M\) expresadas con la composición del período. En la práctica se suele liquidar en \(T_1\), descontando ese monto: \(L\,(R_K - R_M)\,\tau/(1 + R_M\,\tau)\), con \(\tau = T_2 - T_1\). Una empresa que va a endeudarse en el futuro se protege de una suba de tasas <strong>pagando fijo</strong> en un FRA.</p>
+
+      <p><strong>Posiciones (como las nombra la cátedra).</strong> La posición <strong>larga</strong> en un FRA <strong>paga la tasa fija y recibe la variable</strong>: es la del que va a tomar un préstamo (<em>borrower</em>) y quiere fijar su costo; cobra si la tasa de mercado termina por encima de la pactada. La <strong>corta</strong> recibe fija y paga variable: es la del que va a prestar (<em>lender</em>). La notación \(F_{m \times n}\) indica un FRA cuyo período de interés empieza en el mes \(m\) y termina en el \(n\): un FRA de 3 meses que empieza dentro de 6 meses es un \(F_{6\times 9}\). El FRA "vence" en \(m\), al inicio del período de interés, y ahí se liquida.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo de la cátedra: liquidación de un FRA</p>
+        <p>Nocional 100 millones; el FRA garantiza 4 % (\(\text{TNA}_{90}\)) por 3 meses dentro de 3 años. Si la tasa de referencia resulta 4,5 %, el flujo del <strong>prestamista</strong> (corto) correspondiente al final del período es \(100.000.000 \times (0{,}04 - 0{,}045) \times \tfrac{90}{360} = -125.000\).</p>
+        <p>Como el FRA se liquida al <strong>inicio</strong> del período (a los 3 años), ese monto se descuenta un trimestre con la tasa de mercado: \(-125.000 / \left(1 + 0{,}045 \times \tfrac{90}{360}\right) = -123.609\). El tomador (largo) recibe exactamente lo mismo con signo contrario: +123.609.</p>
+      </div>
+
+      <p><strong>Valuación.</strong> Un FRA en el que \(R_K\) es igual a la tasa forward \(R_F\) vale cero, porque esa tasa se puede asegurar hoy tomando prestado y prestando a distintos plazos. Por lo tanto, se puede valuar un FRA <strong>suponiendo que la tasa de referencia será igual a la forward</strong> y descontando el flujo con la tasa cero de \(T_2\):</p>
+
+      <div class="formula con-nombre"><span class="nombre-formula">Valor de un FRA (recibe fijo, corto)</span>\[ V_{FRA} = L\,(R_K - R_F)\,(T_2 - T_1)\,e^{-R_2 T_2} \]</div>
+      <p>Para la posición larga (paga fijo) el valor es el mismo con signo opuesto, \(L\,(R_F - R_K)(T_2 - T_1)\,e^{-R_2T_2}\). Si la tasa cero \(R_2\) viene expresada como tasa simple en lugar de continua, se descuenta dividiendo por \((1 + R_2T_2)\).</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>Con las tasas de la tabla anterior, una empresa tiene un FRA en el que <strong>recibe 6 %</strong> anual (composición anual) sobre 100 millones entre el año 1 y el 2. La forward continua entre 1 y 2 años es 5 %, que en composición anual es \(e^{0{,}05} - 1 = 5{,}127\%\). Entonces:</p>
+        <div class="formula">\[ V = 100.000.000 \times (0{,}06 - 0{,}05127) \times 1 \times e^{-0{,}04 \times 2} = 805.779 \]</div>
+        <p>El FRA vale a favor de la empresa porque cobra 6 % cuando el mercado "promete" 5,127 % para ese período.</p>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Duración y convexidad</h2>
+
+      <p>Cuando sube la tasa, el precio de un bono baja. ¿Cuánto? Depende de <strong>cuándo</strong> llegan sus flujos: un flujo lejano se descuenta más períodos y es más sensible. La <strong>duración</strong> mide justamente eso.</p>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">Duración (de Macaulay)</p>
+        <p>Si un bono paga \(c_i\) en \(t_i\) y su rendimiento continuo es \(y\), su precio es \(B = \sum c_i e^{-y t_i}\) y su duración es</p>
+        <div class="formula">\[ D = \sum_{i} t_i \left( \frac{c_i\, e^{-y t_i}}{B} \right) \]</div>
+        <p>Es el <strong>promedio ponderado de los plazos</strong> de los flujos, donde el peso de cada plazo es la proporción del precio que aporta ese flujo. Un bono cupón cero tiene duración igual a su plazo; uno con cupones, menor.</p>
+      </div>
+
+      <p>Derivando el precio respecto de \(y\) se obtiene \(dB/dy = -\sum t_i c_i e^{-y t_i} = -B\,D\). Por eso, para un cambio chico del rendimiento:</p>
+
+      <div class="formula con-nombre"><span class="nombre-formula">Aproximación por duración</span>\[ \Delta B \approx -B\,D\,\Delta y \qquad\Longleftrightarrow\qquad \frac{\Delta B}{B} \approx -D\,\Delta y \]</div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>Un bono a 3 años con cupón del 10 % anual pagadero semestralmente rinde 12 % (continua).</p>
+        <div class="tabla-wrap">
+          <table class="tabla compacta">
+            <thead><tr><th class="num">Plazo \(t\)</th><th class="num">Flujo</th><th class="num">Valor presente</th><th class="num">Peso</th><th class="num">Plazo × peso</th></tr></thead>
+            <tbody>
+              <tr><td class="num">0,5</td><td class="num">5</td><td class="num">4,709</td><td class="num">0,050</td><td class="num">0,025</td></tr>
+              <tr><td class="num">1,0</td><td class="num">5</td><td class="num">4,435</td><td class="num">0,047</td><td class="num">0,047</td></tr>
+              <tr><td class="num">1,5</td><td class="num">5</td><td class="num">4,176</td><td class="num">0,044</td><td class="num">0,066</td></tr>
+              <tr><td class="num">2,0</td><td class="num">5</td><td class="num">3,933</td><td class="num">0,042</td><td class="num">0,083</td></tr>
+              <tr><td class="num">2,5</td><td class="num">5</td><td class="num">3,704</td><td class="num">0,039</td><td class="num">0,098</td></tr>
+              <tr><td class="num">3,0</td><td class="num">105</td><td class="num">73,256</td><td class="num">0,778</td><td class="num">2,333</td></tr>
+              <tr class="total"><td>Total</td><td class="num">130</td><td class="num">94,213</td><td class="num">1,000</td><td class="num">2,653</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>(La última columna suma 2,652 por el redondeo de cada fila; el valor exacto es 2,653.) Si el rendimiento sube 10 puntos básicos (\(\Delta y = 0{,}001\)): \(\Delta B \approx -94{,}213 \times 2{,}653 \times 0{,}001 = -0{,}250\), y el precio pasa a 93,963. Recalculando con \(y = 12{,}1\%\) se obtiene exactamente 93,963.</p>
+      </div>
+
+      <h3>Duración modificada</h3>
+      <p>Si el rendimiento se expresa con composición \(m\) veces por año (como suele cotizarse), la relación necesita un ajuste. Se define la <strong>duración modificada</strong></p>
+      <div class="formula">\[ D^* = \frac{D}{1 + y/m} \qquad\qquad \Delta B \approx -B\,D^*\,\Delta y \]</div>
+      <p>En el ejemplo, el 12 % continuo equivale a \(2(e^{0{,}06} - 1) = 12{,}367\%\) con composición semestral, así que \(D^* = 2{,}653/1{,}06184 = 2{,}4985\). El producto \(B\,D^*\) se llama <strong>duración en pesos</strong> (o en dólares): es la pérdida por unidad de suba de la tasa.</p>
+
+      <h3>Convexidad</h3>
+      <p>La relación entre precio y rendimiento no es una recta sino una curva convexa. La duración es la pendiente; la <strong>convexidad</strong> mide la curvatura:</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Convexidad y aproximación de segundo orden</span>\[ C = \frac{\sum_i c_i\, t_i^2\, e^{-y t_i}}{B} \qquad\qquad \frac{\Delta B}{B} \approx -D\,\Delta y + \tfrac{1}{2}\,C\,(\Delta y)^2 \]</div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: un cambio grande de tasa</p>
+        <p>Para el mismo bono, \(C = 7{,}570\). Con \(\Delta y = +2\%\):</p>
+        <ul>
+          <li>Solo duración: \(-94{,}213 \times 2{,}653 \times 0{,}02 = -4{,}999\).</li>
+          <li>Con convexidad: \(-4{,}999 + \tfrac{1}{2} \times 94{,}213 \times 7{,}570 \times 0{,}02^2 = -4{,}856\).</li>
+          <li>Exacto (precio con \(y = 14\%\) menos 94,213): \(-4{,}859\).</li>
+        </ul>
+        <p>Con \(\Delta y = -2\%\), la duración predice \(+4{,}999\), con convexidad \(+5{,}142\) y el cambio exacto es \(+5{,}144\). La convexidad <strong>juega a favor</strong> del tenedor: cuando las tasas bajan, el precio sube más de lo que dice la duración, y cuando suben, cae menos.</p>
+      </div>
+
+      <div class="caja importante">
+        <p class="caja-titulo">Lo que supone la duración</p>
+        <p>La aproximación \(\Delta B \approx -B D \Delta y\) vale para <strong>cambios chicos</strong> y supone que todo el rendimiento se mueve lo mismo (<strong>desplazamientos paralelos</strong> de la curva). Si la curva se empina o se aplana, bonos con la misma duración pueden reaccionar distinto. Podés comparar la aproximación con el valor exacto en la <a href="u3-simulacion.html#bono">simulación del bono</a>.</p>
+      </div>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">Una tasa del 12 % anual con composición mensual equivale, con composición continua, a…</p>
+          <ol class="qr-op"><li>11,94 %</li><li>12,68 %</li><li>12,00 %</li></ol>
+          <p class="qr-explicacion">\(R_c = 12 \ln(1 + 0{,}12/12) = 12 \ln(1{,}01) = 11{,}94\%\). El 12,68 % es la tasa efectiva anual, \(1{,}01^{12} - 1\). La continua siempre es menor que la nominal con composición discreta, porque capitaliza más seguido.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">Las tasas cero a 1 y 2 años son 3 % y 4 % (continuas). La tasa forward entre el año 1 y el año 2 es…</p>
+          <ol class="qr-op"><li>3,5 %</li><li>5,0 %</li><li>4,0 %</li></ol>
+          <p class="qr-explicacion">\(R_F = (0{,}04 \times 2 - 0{,}03 \times 1)/1 = 5\%\). No es el promedio: para que 2 años al 4 % rindan lo mismo que 1 año al 3 % más otro año, el segundo año tiene que rendir 5 %.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">Un bono vale 100 y su duración es 5 años. Si el rendimiento (continuo) sube 20 puntos básicos, el precio aproximado pasa a…</p>
+          <ol class="qr-op"><li>99,00</li><li>98,00</li><li>99,80</li></ol>
+          <p class="qr-explicacion">\(\Delta B \approx -100 \times 5 \times 0{,}002 = -1\). El precio pasa a 99. Un punto básico es 0,01 %, así que 20 pb son 0,002.</p>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Teorías de la estructura temporal</h2>
+
+      <p>¿Por qué la curva cero tiene la forma que tiene? Hay tres explicaciones clásicas:</p>
+      <ul>
+        <li><strong>Teoría de las expectativas.</strong> Las tasas largas reflejan las tasas cortas que se esperan en el futuro: la tasa forward es igual a la tasa spot esperada para ese período. Una curva creciente indicaría que se esperan subas.</li>
+        <li><strong>Teoría de la segmentación de mercados.</strong> No hay relación entre plazos: cada tramo de la curva se determina por la oferta y la demanda de ese plazo (fondos de pensión y aseguradoras en el largo plazo, tesorerías de empresas en el corto).</li>
+        <li><strong>Teoría de la preferencia por liquidez.</strong> Los inversores prefieren plazos cortos, que les dan liquidez, y los deudores prefieren plazos largos. Para que los inversores acepten plazos largos hay que pagarles una prima: la tasa forward queda <strong>por encima</strong> de la tasa esperada. Esto explica por qué la curva suele tener pendiente positiva aun cuando no se esperan subas. Es la teoría más consistente con lo que se observa.</li>
+      </ul>
+
+      <!-- ================================================================== -->
+      <h2>Activos de inversión, de consumo y venta en corto</h2>
+
+      <p>Para valuar forwards conviene distinguir dos tipos de activos:</p>
+      <ul>
+        <li>Un <strong>activo de inversión</strong> es uno que muchos inversores tienen <strong>para invertir</strong>: acciones, bonos, oro, plata. No hace falta que todos lo tengan con ese fin, alcanza con que haya suficientes inversores dispuestos a venderlo o comprarlo si ven una ganancia.</li>
+        <li>Un <strong>activo de consumo</strong> se tiene principalmente <strong>para consumirlo</strong> o usarlo en la producción: petróleo, cobre, trigo, soja.</li>
+      </ul>
+      <p>Para los activos de inversión, el arbitraje determina el precio forward <strong>exactamente</strong>. Para los de consumo, solo da una <strong>cota superior</strong>, como veremos en la sección de commodities.</p>
+
+      <h3>Venta en corto</h3>
+      <p>Varias estrategias de arbitraje necesitan <strong>vender en corto</strong> (<em>short selling</em>): vender un activo que no se tiene. El agente de bolsa toma el activo prestado de otro cliente y lo vende. Más adelante, el inversor lo recompra y lo devuelve. Mientras dura la posición, el inversor tiene que <strong>pagarle al dueño original todos los ingresos</strong> del activo (dividendos, cupones), porque este no debe notar que se lo prestaron, y debe mantener una cuenta de garantía.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>En abril se venden en corto 500 acciones a 120. En mayo la acción paga un dividendo de 1 por acción. En julio se recompran a 100 para cerrar. El resultado, sin contar intereses, es \(500 \times 120 - 500 \times 1 - 500 \times 100 = 9.500\). Quien vende en corto gana si el precio baja y <strong>paga los dividendos</strong>.</p>
+      </div>
+
+      <p><strong>Supuestos y notación.</strong> En lo que sigue suponemos que no hay costos de transacción, que todas las ganancias tributan igual, que se puede prestar y tomar prestado a la tasa libre de riesgo \(r\) y que los participantes aprovechan cualquier arbitraje en cuanto aparece (y así lo eliminan). Usamos: \(T\) = plazo del forward en años, \(S_0\) = precio contado hoy, \(F_0\) = precio forward hoy, \(r\) = tasa libre de riesgo continua para el plazo \(T\).</p>
+
+      <!-- ================================================================== -->
+      <h2>Precio forward de un activo sin ingresos</h2>
+
+      <p>Comprar un activo a plazo es comprarlo hoy pero <strong>pagarlo en \(T\)</strong>. Quien vende a plazo se queda con el activo hasta \(T\) y deja de cobrar intereses sobre su valor; quien compra a plazo conserva su dinero y lo puede colocar. Por eso el precio forward tiene que ser el precio contado <strong>más el costo de financiarlo</strong> hasta el vencimiento:</p>
+
+      <div class="formula con-nombre"><span class="nombre-formula">Precio forward de un activo de inversión sin ingresos</span>\[ F_0 = S_0\, e^{rT} \]</div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>Una acción que no paga dividendos vale 40 y la tasa libre de riesgo a 3 meses es 5 % anual continua. El precio forward a 3 meses es \(F_0 = 40\,e^{0{,}05 \times 0{,}25} = 40{,}50\).</p>
+      </div>
+
+      <p>¿Por qué no puede ser otro? Veamos qué pasa si el forward cotiza por encima o por debajo de 40,50.</p>
+
+      <h3>Si el forward está caro: <em>cash-and-carry</em></h3>
+      <p>Supongamos que el forward a 3 meses cotiza a 43. El forward está <strong>caro</strong> respecto del contado más la financiación. Se <strong>vende lo caro</strong> (el forward) y se <strong>compra lo barato</strong> (el activo al contado, financiado con deuda). La estrategia se llama <em>cash-and-carry</em> ("comprar al contado y mantener"):</p>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th>Operación</th><th class="num">Flujo hoy</th><th class="num">Flujo en T (3 meses)</th></tr></thead>
+          <tbody>
+            <tr><td>Pedir prestado 40 a 3 meses al 5 %</td><td class="num pos">+40,00</td><td class="num neg">−40,50</td></tr>
+            <tr><td>Comprar el activo al contado</td><td class="num neg">−40,00</td><td class="num">se entrega por el forward</td></tr>
+            <tr><td>Vender forward a 43</td><td class="num">0</td><td class="num pos">+43,00</td></tr>
+            <tr class="total"><td>Total</td><td class="num">0</td><td class="num pos">+2,50</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Hoy no se pone un peso: el activo se compra con dinero prestado y el forward no cuesta nada. En \(T\) se entrega el activo, se cobran 43 y se devuelven \(40e^{0{,}0125} = 40{,}50\). Queda una ganancia segura de 2,50, pase lo que pase con el precio del activo, porque el precio de venta ya está fijado.</p>
+
+      <figure class="figura">
+        <div class="svg-scroll">
+          <svg viewBox="0 0 760 312" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Flujos de fondos de un cash-and-carry: hoy se pide prestado S0 y se compra el activo; en T se entrega el activo, se cobra F y se devuelve S0 por e a la rT">
+            <text x="150" y="24" text-anchor="middle" font-size="15" font-weight="700" class="s-acento">Hoy (t = 0)</text>
+            <text x="610" y="24" text-anchor="middle" font-size="15" font-weight="700" class="s-acento">Vencimiento (T)</text>
+            <!-- eje temporal -->
+            <line x1="50" y1="155" x2="720" y2="155" class="s-trazo" stroke-width="2"/>
+            <polygon points="720,149 732,155 720,161" class="s-flecha"/>
+            <text x="728" y="182" text-anchor="end" font-size="12" class="s-suave">tiempo</text>
+            <!-- tenencia del activo -->
+            <rect x="200" y="141" width="360" height="28" rx="6" class="s-relleno"/>
+            <text x="380" y="160" text-anchor="middle" font-size="13" class="s-texto">tenés el activo y estás vendido forward a F</text>
+            <!-- hoy: entra el préstamo -->
+            <rect x="127" y="74" width="6" height="76" class="s-ganancia"/>
+            <polygon points="118,78 142,78 130,56" class="s-ganancia"/>
+            <text x="116" y="72" text-anchor="end" font-size="15" font-weight="700" class="s-texto">+S<tspan dy="4" font-size="11">0</tspan></text>
+            <text x="116" y="90" text-anchor="end" font-size="12" class="s-suave">pedís prestado</text>
+            <!-- hoy: sale la compra -->
+            <rect x="167" y="160" width="6" height="76" class="s-perdida"/>
+            <polygon points="158,232 182,232 170,254" class="s-perdida"/>
+            <text x="186" y="228" font-size="15" font-weight="700" class="s-texto">−S<tspan dy="4" font-size="11">0</tspan></text>
+            <text x="186" y="246" font-size="12" class="s-suave">comprás el activo al contado</text>
+            <!-- T: entra F -->
+            <rect x="587" y="74" width="6" height="76" class="s-ganancia"/>
+            <polygon points="578,78 602,78 590,56" class="s-ganancia"/>
+            <text x="576" y="72" text-anchor="end" font-size="15" font-weight="700" class="s-texto">+F</text>
+            <text x="576" y="90" text-anchor="end" font-size="12" class="s-suave">entregás el activo y cobrás F</text>
+            <!-- T: sale la devolución del préstamo -->
+            <rect x="627" y="160" width="6" height="76" class="s-perdida"/>
+            <polygon points="618,232 642,232 630,254" class="s-perdida"/>
+            <text x="614" y="228" text-anchor="end" font-size="15" font-weight="700" class="s-texto">−S<tspan dy="4" font-size="11">0</tspan><tspan dy="-4"> e</tspan><tspan dy="-7" font-size="11">rT</tspan></text>
+            <text x="614" y="246" text-anchor="end" font-size="12" class="s-suave">devolvés el préstamo con intereses</text>
+            <!-- netos -->
+            <text x="150" y="292" text-anchor="middle" font-size="14" class="s-texto">Neto hoy: 0</text>
+            <text x="610" y="292" text-anchor="middle" font-size="14" font-weight="700" class="s-texto">Neto en T: F − S<tspan dy="4" font-size="11">0</tspan><tspan dy="-4"> e</tspan><tspan dy="-7" font-size="11">rT</tspan></text>
+          </svg>
+        </div>
+        <figcaption>Cash-and-carry. Las flechas hacia arriba son cobros y las flechas hacia abajo, pagos. Hoy el flujo neto es cero; en \(T\) queda \(F - S_0e^{rT}\), que es positivo si el forward está caro.</figcaption>
+      </figure>
+
+      <h3>Si el forward está barato: <em>reverse cash-and-carry</em></h3>
+      <p>Ahora el forward cotiza a 39, por debajo de 40,50. Se hace todo al revés: se <strong>compra lo barato</strong> (el forward) y se <strong>vende lo caro</strong> (el activo al contado, en corto), y el dinero se coloca a la tasa libre de riesgo:</p>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th>Operación</th><th class="num">Flujo hoy</th><th class="num">Flujo en T (3 meses)</th></tr></thead>
+          <tbody>
+            <tr><td>Vender en corto el activo</td><td class="num pos">+40,00</td><td class="num">se devuelve con el activo comprado por el forward</td></tr>
+            <tr><td>Colocar 40 a 3 meses al 5 %</td><td class="num neg">−40,00</td><td class="num pos">+40,50</td></tr>
+            <tr><td>Comprar forward a 39</td><td class="num">0</td><td class="num neg">−39,00</td></tr>
+            <tr class="total"><td>Total</td><td class="num">0</td><td class="num pos">+1,50</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>En \(T\) se cobra la colocación (40,50), se pagan 39 por el activo a través del forward y con ese activo se cierra la venta en corto. Ganancia segura: 1,50. La venta en corto no es imprescindible: a un inversor que ya tiene el activo en cartera le conviene venderlo, colocar el dinero y recomprarlo con el forward, y termina 1,50 más rico que si lo hubiera conservado. Por eso el argumento vale para cualquier activo de inversión.</p>
+
+      <div class="caja importante">
+        <p class="caja-titulo">El argumento general</p>
+        <ul>
+          <li>Si \(F_0 \gt S_0 e^{rT}\): <strong>cash-and-carry</strong> (pedir prestado, comprar el activo, vender forward). Ganancia en \(T\): \(F_0 - S_0e^{rT}\).</li>
+          <li>Si \(F_0 \lt S_0 e^{rT}\): <strong>reverse cash-and-carry</strong> (vender en corto el activo, colocar el dinero, comprar forward). Ganancia en \(T\): \(S_0e^{rT} - F_0\).</li>
+        </ul>
+        <p>Como ninguna de las dos situaciones puede persistir, \(F_0 = S_0e^{rT}\). Fijate que el precio forward <strong>no depende de lo que se espera</strong> que valga el activo: dos inversores con expectativas opuestas coinciden en el precio forward porque los dos pueden replicarlo con el contado y la tasa.</p>
+      </div>
+
+      <p>En la <a href="u3-simulacion.html#arbitraje">simulación de arbitraje</a> podés cambiar el precio forward de mercado y ver la tabla de flujos que corresponde a cada caso.</p>
+
+      <!-- ================================================================== -->
+      <h2>Activos con ingresos o rendimiento conocido</h2>
+
+      <h3>Ingreso conocido</h3>
+      <p>Si el activo paga ingresos de monto conocido durante la vida del forward (cupones de un bono, dividendos de una acción), quien lo tiene al contado los cobra y quien lo compra a plazo no. Por eso el forward es <strong>más barato</strong>: al precio contado se le resta el valor presente \(I\) de esos ingresos.</p>
+
+      <div class="formula con-nombre"><span class="nombre-formula">Precio forward con ingreso conocido</span>\[ F_0 = (S_0 - I)\, e^{rT} \]</div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: forward sobre un bono</p>
+        <p>Un bono con cupones vale 900. Se pacta un forward a 9 meses. Dentro de 4 meses el bono paga un cupón de 40. Las tasas libres de riesgo a 4 y 9 meses son 3 % y 4 % (continuas).</p>
+        <p>\(I = 40\,e^{-0{,}03 \times 4/12} = 39{,}60\) y \(F_0 = (900 - 39{,}60)\,e^{0{,}04 \times 0{,}75} = 886{,}60\).</p>
+        <p>Si el forward cotizara a 910 (caro), el cash-and-carry se arma pidiendo prestado en dos tramos, para que el cupón cancele uno de ellos:</p>
+        <div class="tabla-wrap">
+          <table class="tabla compacta">
+            <thead><tr><th>Operación</th><th class="num">Hoy</th><th class="num">A los 4 meses</th><th class="num">En T (9 meses)</th></tr></thead>
+            <tbody>
+              <tr><td>Pedir prestado 39,60 a 4 meses al 3 %</td><td class="num pos">+39,60</td><td class="num neg">−40,00</td><td class="num"></td></tr>
+              <tr><td>Pedir prestado 860,40 a 9 meses al 4 %</td><td class="num pos">+860,40</td><td class="num"></td><td class="num neg">−886,60</td></tr>
+              <tr><td>Comprar el bono al contado</td><td class="num neg">−900,00</td><td class="num pos">+40,00 (cupón)</td><td class="num">se entrega</td></tr>
+              <tr><td>Vender forward a 910</td><td class="num">0</td><td class="num"></td><td class="num pos">+910,00</td></tr>
+              <tr class="total"><td>Total</td><td class="num">0</td><td class="num">0</td><td class="num pos">+23,40</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Si el forward cotizara a 870 (barato), el reverse cash-and-carry (vender el bono en corto, colocar 39,60 a 4 meses para pagarle el cupón al dueño y 860,40 a 9 meses, comprar forward) deja \(886{,}60 - 870 = 16{,}60\).</p>
+      </div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: forward sobre una acción con dividendos</p>
+        <p>Una acción vale 50 y se pacta un forward a 10 meses. Se esperan dividendos de 0,75 a los 3, 6 y 9 meses. La tasa es 8 % para todos los plazos.</p>
+        <p>\(I = 0{,}75e^{-0{,}08 \times 3/12} + 0{,}75e^{-0{,}08 \times 6/12} + 0{,}75e^{-0{,}08 \times 9/12} = 2{,}162\)</p>
+        <p>\(F_0 = (50 - 2{,}162)\,e^{0{,}08 \times 10/12} = 51{,}14\).</p>
+      </div>
+
+      <h3>Rendimiento conocido</h3>
+      <p>A veces el ingreso no se conoce en pesos sino como <strong>porcentaje del precio</strong>, pagado de forma continua: un rendimiento \(q\) anual. Es el caso de un índice accionario (rendimiento por dividendos) o de una moneda extranjera (su tasa de interés). Como el ingreso se reinvierte en el propio activo, una unidad hoy se convierte en \(e^{qT}\) unidades en \(T\); para tener una unidad en \(T\) alcanza con comprar \(e^{-qT}\) hoy. Entonces:</p>
+
+      <div class="formula con-nombre"><span class="nombre-formula">Precio forward con rendimiento conocido</span>\[ F_0 = S_0\, e^{(r - q)\,T} \]</div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>Un activo vale 25 y rinde 4 % anual con composición semestral, es decir, \(q = 2\ln(1{,}02) = 3{,}96\%\) continuo. Con \(r = 10\%\), el forward a 6 meses es \(F_0 = 25\,e^{(0{,}10 - 0{,}0396) \times 0{,}5} = 25{,}77\).</p>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Valor de un contrato forward</h2>
+
+      <p>Cuando se pacta un forward, el precio de entrega \(K\) se fija igual al precio forward del momento, así que el contrato <strong>vale cero</strong> para las dos partes. Con el paso del tiempo el precio forward de mercado para esa misma fecha cambia, y el contrato empieza a valer algo, a favor de una parte y en contra de la otra.</p>
+
+      <div class="formula con-nombre"><span class="nombre-formula">Valor de un forward pactado a K (faltan T años)</span>\[ f_{\text{largo}} = (F_0 - K)\,e^{-rT} \qquad\qquad f_{\text{corto}} = (K - F_0)\,e^{-rT} \]</div>
+
+      <p><strong>Deducción.</strong> Supongamos que estás comprado en un forward a \(K\) y hoy el forward para la misma fecha es \(F_0\). Si entrás ahora en un forward <strong>vendido</strong> a \(F_0\) (que no cuesta nada), al vencimiento cobrás \(S_T - K\) por el primero y \(F_0 - S_T\) por el segundo: en total, \(F_0 - K\), <strong>sin riesgo</strong>. Como el contrato nuevo vale cero, el viejo tiene que valer hoy lo mismo que ese monto seguro: su valor presente \((F_0 - K)e^{-rT}\).</p>
+
+      <p>Reemplazando \(F_0\) por su fórmula se obtienen expresiones equivalentes:</p>
+      <div class="formula">\[ f = S_0 - Ke^{-rT} \;\;\text{(sin ingresos)} \qquad f = S_0 - I - Ke^{-rT} \;\;\text{(ingreso } I\text{)} \qquad f = S_0e^{-qT} - Ke^{-rT} \;\;\text{(rendimiento } q\text{)} \]</div>
+      <p>La primera tiene una lectura directa: el comprador a plazo tiene el activo (vale \(S_0\)) y debe \(K\) en \(T\) (vale \(Ke^{-rT}\) hoy).</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>Hace un tiempo se pactó un forward largo sobre una acción sin dividendos con \(K = 24\). Faltan 6 meses, la acción vale 25 y \(r = 10\%\). El forward actual es \(F_0 = 25e^{0{,}10 \times 0{,}5} = 26{,}28\) y el valor del contrato es</p>
+        <div class="formula">\[ f = (26{,}28 - 24)\,e^{-0{,}10 \times 0{,}5} = 2{,}17 \qquad\text{(también } 25 - 24e^{-0{,}05} = 2{,}17\text{)} \]</div>
+        <p>Para la parte vendida, el contrato vale \(-2{,}17\).</p>
+      </div>
+
+      <div class="caja error">
+        <p class="caja-titulo">Errores frecuentes</p>
+        <ul>
+          <li>Confundir el <strong>precio forward</strong> \(F_0\) (un precio que se pacta, de mercado) con el <strong>valor</strong> \(f\) del contrato (cuánto vale tenerlo). Un forward recién pactado tiene \(F_0 = K\) y \(f = 0\).</li>
+          <li>Olvidar descontar: \(F_0 - K\) es lo que se cobra en \(T\), no hoy.</li>
+          <li>Restar los dividendos sin descontarlos: \(I\) es un <strong>valor presente</strong>.</li>
+          <li>Usar \(r\) donde corresponde \(r - q\) (índices) o \(r - r_f\) (monedas).</li>
+          <li>Mezclar tasas con distinta composición: si el dato es una tasa compuesta \(m\) veces, primero pasala a continua.</li>
+        </ul>
+      </div>
+
+      <p>En la <a href="u3-simulacion.html#valor-forward">simulación</a> podés mover el precio del activo y el tiempo restante y ver cómo cambia el valor para el comprador y el vendedor.</p>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">Una acción sin dividendos vale 50 y la tasa es 6 % (continua). Si el forward a 1 año cotiza a 55, el arbitraje consiste en…</p>
+          <ol class="qr-op"><li>Vender en corto la acción, colocar 50 y comprar el forward.</li><li>Pedir prestado 50, comprar la acción y vender el forward.</li><li>Nada: el forward refleja que el mercado espera una suba.</li></ol>
+          <p class="qr-explicacion">El forward teórico es \(50e^{0{,}06} = 53{,}09\). A 55 está caro: se vende el forward y se compra la acción con dinero prestado (cash-and-carry). Ganancia en \(T\): \(55 - 53{,}09 = 1{,}91\).</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">Estás comprado en un forward a \(K = 100\). Hoy el forward para la misma fecha cotiza a 104, faltan 6 meses y \(r = 6\%\). ¿Cuánto vale tu posición?</p>
+          <ol class="qr-op"><li>3,88</li><li>4,00</li><li>−3,88</li></ol>
+          <p class="qr-explicacion">\(f = (104 - 100)e^{-0{,}06 \times 0{,}5} = 3{,}88\). Los 4 se cobran recién al vencimiento, por eso se descuentan. Es positivo para el comprador porque pactó comprar más barato que el forward actual.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="3">
+          <p class="qr-enunciado">Con todo lo demás igual, ¿por qué el forward de una acción que paga dividendos es más bajo que el de una que no paga?</p>
+          <ol class="qr-op"><li>Porque se espera que la acción caiga.</li><li>Porque los dividendos aumentan la tasa libre de riesgo.</li><li>Porque quien compra a plazo no cobra los dividendos que sí cobra quien tiene la acción.</li></ol>
+          <p class="qr-explicacion">El forward replica tener el activo en \(T\), pero sin los ingresos intermedios. Por eso se resta su valor presente: \(F_0 = (S_0 - I)e^{rT}\).</p>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>¿Precio forward = precio futuro?</h2>
+
+      <p>Hasta acá hablamos de forwards. Un futuro se diferencia porque se <strong>liquida todos los días</strong> (ajuste diario por la cuenta de márgenes). ¿Cambia eso el precio?</p>
+
+      <ul>
+        <li><strong>Si la tasa libre de riesgo es constante</strong> (o, más en general, una función conocida del tiempo), el precio forward y el precio futuro para la misma fecha <strong>son iguales</strong>. Este resultado (Cox, Ingersoll y Ross, 1981) se demuestra armando una estrategia de futuros que va ajustando la cantidad de contratos para replicar exactamente un forward.</li>
+        <li><strong>Si las tasas cambian de forma aleatoria</strong>, importa la correlación entre el precio del activo y las tasas. Si están <strong>correlacionados positivamente</strong>, cuando el activo sube (y el comprador del futuro cobra diferencias) las tasas tienden a estar altas, así que esas ganancias se colocan a tasas altas; cuando el activo baja, las pérdidas se financian a tasas bajas. Ese beneficio hace más atractivo el futuro que el forward: el <strong>precio futuro es mayor</strong>. Con correlación negativa, el precio futuro es menor.</li>
+      </ul>
+
+      <p>En la práctica, para contratos de pocos meses la diferencia es muy chica y se ignora: en este libro tratamos los precios forward y futuro como iguales. Hay otras diferencias reales que pueden pesar más (impuestos, costos de transacción, el tratamiento de los márgenes, el riesgo de crédito de la contraparte en un forward). La excepción importante son los <strong>futuros de tasas de interés de largo plazo</strong>, donde la diferencia es relevante y se corrige con un <strong>ajuste por convexidad</strong>.</p>
+
+      <!-- ================================================================== -->
+      <h2>Futuros sobre índices accionarios</h2>
+
+      <p>Un índice accionario es el valor de una cartera de acciones. Si la cartera se mantiene, cobra los dividendos de sus acciones, que se pueden aproximar como un <strong>rendimiento continuo</strong> \(q\). Aplicando la fórmula de rendimiento conocido:</p>
+
+      <div class="formula con-nombre"><span class="nombre-formula">Futuro sobre un índice</span>\[ F_0 = S_0\, e^{(r - q)\,T} \]</div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>Un índice vale 1.300 puntos, su rendimiento por dividendos es 1 % anual, la tasa es 5 % y el futuro vence en 3 meses: \(F_0 = 1.300\,e^{(0{,}05 - 0{,}01) \times 0{,}25} = 1.313{,}07\).</p>
+      </div>
+
+      <p>Los dividendos no se pagan de manera pareja durante el año (se concentran en ciertos meses), así que \(q\) tiene que ser el rendimiento <strong>esperado durante la vida del futuro</strong>, no el promedio anual.</p>
+
+      <h3>Arbitraje de índices</h3>
+      <ul>
+        <li>Si \(F_0 \gt S_0e^{(r - q)T}\), se <strong>compran las acciones</strong> del índice (o un instrumento que lo replique, como un ETF) y se <strong>venden futuros</strong>. Si en el ejemplo el futuro cotizara 1.320, la ganancia en \(T\) sería \(1.320 - 1.313{,}07 = 6{,}93\) puntos por unidad de índice (multiplicada por el tamaño del contrato).</li>
+        <li>Si \(F_0 \lt S_0e^{(r - q)T}\), se <strong>venden las acciones</strong> (en general lo hace un inversor institucional que ya las tiene) y se <strong>compran futuros</strong>.</li>
+      </ul>
+      <p>Comprar o vender cientos de acciones a la vez exige sistemas automáticos (<em>program trading</em>). Por eso se usan carteras que replican el índice con menos acciones o ETFs. En condiciones de mercado muy agitadas el arbitraje puede trabarse y el futuro separarse del valor teórico.</p>
+
+      <!-- ================================================================== -->
+      <h2>Forwards y futuros sobre monedas</h2>
+
+      <p>Sea \(S_0\) el precio <strong>en moneda local</strong> de una unidad de moneda extranjera (por ejemplo, dólares por libra, o pesos por dólar), \(r\) la tasa libre de riesgo local y \(r_f\) la tasa libre de riesgo de la moneda extranjera. Una moneda extranjera es un activo que "rinde" su tasa de interés \(r_f\), así que:</p>
+
+      <div class="formula con-nombre"><span class="nombre-formula">Paridad cubierta de tasas de interés</span>\[ F_0 = S_0\, e^{(r - r_f)\,T} \]</div>
+
+      <p><strong>El argumento.</strong> Un inversor tiene 1.000 unidades de moneda extranjera y quiere tener moneda local dentro de \(T\) años. Tiene dos caminos sin riesgo:</p>
+      <ol>
+        <li>Colocar las 1.000 unidades a la tasa \(r_f\) y vender a plazo lo que va a tener: obtiene \(1.000\,e^{r_f T} F_0\) en moneda local.</li>
+        <li>Cambiarlas hoy al contado y colocar la moneda local a la tasa \(r\): obtiene \(1.000\,S_0\,e^{rT}\).</li>
+      </ol>
+      <p>Si los dos caminos no dieran lo mismo, todos usarían el mejor financiándose con el peor. Igualando, \(F_0 = S_0e^{(r - r_f)T}\). La moneda con <strong>tasa más alta cotiza con descuento a plazo</strong>: el forward compensa exactamente el diferencial de tasas.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>Las tasas a 2 años son 3 % en Australia y 1 % en EE. UU. y el dólar australiano (AUD) vale 0,98 dólares estadounidenses (USD). El forward a 2 años es \(F_0 = 0{,}98\,e^{(0{,}01 - 0{,}03) \times 2} = 0{,}9416\) USD por AUD.</p>
+        <p>Si el forward cotizara a 0,93 (barato), el arbitraje sería:</p>
+        <ol>
+          <li>Pedir prestados 1.000 AUD al 3 % por 2 años, cambiarlos por 980 USD y colocarlos al 1 %.</li>
+          <li>Comprar a plazo \(1.000e^{0{,}03 \times 2} = 1.061{,}84\) AUD a 0,93, es decir, por \(1.061{,}84 \times 0{,}93 = 987{,}51\) USD.</li>
+        </ol>
+        <p>En 2 años, los 980 USD valen \(980e^{0{,}01 \times 2} = 999{,}80\) USD. Con 987,51 se compran por el forward los 1.061,84 AUD que cancelan la deuda. Ganancia segura: \(999{,}80 - 987{,}51 = 12{,}29\) USD. Si el forward estuviera caro, por ejemplo a 0,96, se haría al revés: pedir prestados 1.000 USD al 1 %, comprar \(1.000/0{,}98 = 1.020{,}41\) AUD, colocarlos al 3 % (llegan a \(1.020{,}41\,e^{0{,}06} = 1.083{,}51\) AUD) y venderlos a plazo a 0,96: se reciben \(1.040{,}17\) USD. La deuda es \(1.000\,e^{0{,}02} = 1.020{,}20\) USD. Ganancia segura: \(19{,}97\) USD.</p>
+        <p><strong>Regla práctica.</strong> Si el forward está barato, se compra a plazo la moneda y, para calzar lo que se va a recibir, hoy se toma prestado en esa misma moneda y se invierte en la otra. Si está caro, al revés. Otra forma de verlo: si el forward está barato, la igualdad \(F_0 = S_0e^{(r - r_f)T}\) "pide" una \(r\) menor o una \(r_f\) mayor, así que conviene colocar en la moneda cuya tasa "debería" ser menor y endeudarse en la que "debería" ser mayor.</p>
+      </div>
+
+      <div class="caja argentina">
+        <p class="caja-titulo">En Argentina: la tasa implícita del dólar futuro</p>
+        <p>En A3 Mercados se negocia el <strong>dólar futuro</strong>: contratos de USD 1.000 que cotizan en pesos por dólar, sobre el tipo de cambio mayorista de referencia del BCRA (Comunicación "A" 3500), con vencimientos mensuales el último día hábil del mes y liquidación por diferencias en pesos, con ajuste diario. Despejando la tasa en pesos de la paridad de tasas:</p>
+        <div class="formula">\[ r_{ARS} = \frac{\ln(F_0/S_0)}{T} + r_{USD} \]</div>
+        <p><strong>Números ilustrativos.</strong> Si el contado está a 1.400, el futuro a 90 días cotiza a 1.505 y la tasa en dólares es 4 %: \(T = 90/365 = 0{,}2466\), \(\ln(1.505/1.400) = 0{,}0723\) y \(r_{ARS} = 0{,}0723/0{,}2466 + 0{,}04 = 33{,}33\%\) anual continua. En el mercado local suele informarse una versión más simple, la <strong>TNA implícita</strong> \((F_0/S_0 - 1) \times 365/\text{días} = 7{,}5\% \times 365/90 = 30{,}42\%\), que supone que los dólares no rinden nada mientras se los tiene.</p>
+        <p><strong>Ojo con la base de días.</strong> El mercado cuenta días corridos sobre 365, como en este ejemplo. En los ejercicios de la cátedra se usa la convención 30/360: con los mismos precios, \(T = 90/360 = 0{,}25\) y la tasa en pesos da \(0{,}0723/0{,}25 + 0{,}04 = 32{,}93\%\) (es el ejercicio U3-13). Las dos cuentas son correctas; lo que cambia es la convención, y por eso siempre hay que aclararla.</p>
+        <p><strong>Cómo leerla.</strong> El futuro a 1.505 <strong>no es un pronóstico</strong> del tipo de cambio dentro de 90 días: es el precio que iguala dos colocaciones sin riesgo, colocar pesos o comprar dólares, colocarlos y venderlos a futuro. Si la tasa implícita supera la de una colocación en pesos de bajo riesgo (por ejemplo, la caución), conviene comprar dólares al contado y vender futuro, una "colocación sintética en pesos"; si es menor, conviene lo contrario. Ese arbitraje es lo que alinea la tasa implícita con las tasas en pesos. Cuando hay restricciones para comprar o vender divisas, el arbitraje no se puede hacer libremente y las dos tasas pueden separarse.</p>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Futuros sobre commodities</h2>
+
+      <h3>Commodities de inversión: costos de almacenamiento</h3>
+      <p>El oro y la plata se tienen como inversión, pero no rinden nada y cuestan: hay que guardarlos y asegurarlos. Un <strong>costo de almacenamiento</strong> es un ingreso negativo. Si \(U\) es el valor presente de esos costos durante la vida del forward, o si son proporcionales al precio a una tasa \(u\):</p>
+
+      <div class="formula con-nombre"><span class="nombre-formula">Forward con costos de almacenamiento</span>\[ F_0 = (S_0 + U)\, e^{rT} \qquad\qquad F_0 = S_0\, e^{(r + u)\,T} \]</div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>El oro vale 2.400 dólares la onza. Guardarlo y asegurarlo cuesta 6 dólares por onza por año, que se pagan al final del año. La tasa es 4 %. Entonces \(U = 6e^{-0{,}04} = 5{,}76\) y el futuro a 1 año es \(F_0 = (2.400 + 5{,}76)\,e^{0{,}04} = 2.503{,}95\).</p>
+        <p>Si el futuro cotizara más alto, convendría pedir prestado, comprar oro, pagar el almacenamiento y vender futuro. Si cotizara más bajo, a un inversor que tiene oro le convendría venderlo (ahorrándose el almacenamiento) y comprar futuro.</p>
+      </div>
+
+      <div class="caja importante">
+        <p class="caja-titulo">Banda de no arbitraje</p>
+        <p>Con costos de transacción, tasas activas y pasivas distintas o aforos en la venta en corto, no hay un único precio de no arbitraje sino una <strong>banda</strong>: el límite superior surge del cash-and-carry hecho a la tasa activa (a la que uno se endeuda) y el inferior del reverse cash-and-carry hecho a la tasa pasiva (a la que uno coloca). Mientras el forward esté dentro de la banda, ningún arbitraje paga los costos.</p>
+      </div>
+
+      <h3>Commodities de consumo y rendimiento de conveniencia</h3>
+      <p>Para el petróleo, el cobre o la soja, el primer argumento sigue valiendo: si \(F_0 \gt (S_0 + U)e^{rT}\), el cash-and-carry da ganancia. Pero el segundo <strong>no</strong>: quien tiene petróleo lo tiene para refinarlo, no para invertir, y no va a vender su inventario para comprar futuros, aunque el futuro esté barato. Por eso para un activo de consumo solo vale la desigualdad</p>
+      <div class="formula">\[ F_0 \le (S_0 + U)\, e^{rT} \qquad\text{o}\qquad F_0 \le S_0\, e^{(r + u)\,T} \]</div>
+
+      <p>¿Por qué alguien conserva inventario si el futuro es más barato? Porque tener el bien <strong>físico</strong> da beneficios que el futuro no da: seguir produciendo si hay faltantes, aprovechar escaseces locales. Ese beneficio se mide con el <strong>rendimiento de conveniencia</strong> (<em>convenience yield</em>) \(y\), definido por</p>
+
+      <div class="formula con-nombre"><span class="nombre-formula">Rendimiento de conveniencia</span>\[ F_0\, e^{yT} = (S_0 + U)\, e^{rT} \qquad\text{o}\qquad F_0 = S_0\, e^{(r + u - y)\,T} \]</div>
+
+      <p>El rendimiento de conveniencia refleja lo que espera el mercado sobre la disponibilidad futura del bien: cuanto <strong>más escasos</strong> los inventarios, más vale tener el bien en mano y <strong>más alto</strong> es \(y\). Para activos de inversión, \(y = 0\) (si fuera positivo, habría arbitraje).</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>El petróleo vale 70 dólares el barril, \(r = 5\%\), el almacenamiento cuesta \(u = 2\%\) anual y el futuro a 1 año cotiza 68. El rendimiento de conveniencia implícito es \(y = r + u - \ln(F_0/S_0)/T = 0{,}05 + 0{,}02 - \ln(68/70) = 9{,}90\%\). Que el futuro esté por debajo del contado indica que el mercado valora mucho tener petróleo hoy.</p>
+      </div>
+
+      <h3>Costo de tenencia</h3>
+      <p>Todas las fórmulas anteriores son casos de una sola idea. El <strong>costo de tenencia</strong> (<em>cost of carry</em>) \(c\) es lo que cuesta mantener el activo hasta \(T\): intereses por financiarlo, más almacenamiento, menos los ingresos que da.</p>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th>Activo</th><th>Costo de tenencia \(c\)</th><th>Precio forward</th></tr></thead>
+          <tbody>
+            <tr><td>Acción sin dividendos</td><td>\(r\)</td><td>\(S_0e^{rT}\)</td></tr>
+            <tr><td>Índice accionario</td><td>\(r - q\)</td><td>\(S_0e^{(r-q)T}\)</td></tr>
+            <tr><td>Moneda extranjera</td><td>\(r - r_f\)</td><td>\(S_0e^{(r-r_f)T}\)</td></tr>
+            <tr><td>Commodity de inversión</td><td>\(r + u\)</td><td>\(S_0e^{(r+u)T}\)</td></tr>
+            <tr><td>Commodity de consumo</td><td>\(r + u\) (y además \(y\))</td><td>\(S_0e^{(r+u-y)T}\)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="formula con-nombre"><span class="nombre-formula">Forma general (costo de tenencia)</span>\[ F_0 = S_0\, e^{cT} \;\;\text{(activo de inversión)} \qquad\qquad F_0 = S_0\, e^{(c - y)\,T} \;\;\text{(activo de consumo)} \]</div>
+
+      <p>Si \(c \gt y\), los futuros más lejanos son más caros: la curva de futuros es <strong>creciente</strong> y se dice que el mercado está en <strong>contango</strong>. Si \(y \gt c\) (rendimiento por dividendos alto, tasa extranjera alta, escasez de un commodity), la curva es <strong>decreciente</strong>: el mercado está en <strong>backwardation</strong>. Podés ver las dos formas en la <a href="u3-simulacion.html#curva-futuros">simulación de la curva de futuros</a>.</p>
+
+      <p><strong>Opciones de entrega.</strong> Muchos futuros permiten al vendedor elegir el día de entrega dentro de un período. Si \(c \gt y\), al vendedor le conviene entregar lo antes posible (deja de pagar el costo de tenencia); si \(c \lt y\), lo más tarde posible. El precio futuro se calcula suponiendo que la entrega se hará en la fecha que más le convenga al vendedor.</p>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">Si la tasa de interés en pesos es mayor que la tasa en dólares, el dólar futuro…</p>
+          <ol class="qr-op"><li>Cotiza por encima del contado.</li><li>Cotiza por debajo del contado.</li><li>Cotiza igual al contado, porque no hay pronóstico de devaluación.</li></ol>
+          <p class="qr-explicacion">\(F_0 = S_0e^{(r_{ARS} - r_{USD})T}\) con \(r_{ARS} \gt r_{USD}\) da \(F_0 \gt S_0\). El futuro más caro compensa que los pesos rinden más que los dólares; no es una expectativa.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">Un commodity de consumo con inventarios muy bajos y rendimiento de conveniencia alto tiene, en general, una curva de futuros…</p>
+          <ol class="qr-op"><li>Siempre creciente, por el costo de almacenamiento.</li><li>Decreciente (backwardation).</li><li>Plana, porque el rendimiento de conveniencia compensa la tasa.</li></ol>
+          <p class="qr-explicacion">Con \(y \gt r + u\), el exponente \((r + u - y)\) es negativo: los futuros más lejanos son más baratos. Tener el bien hoy vale más que tenerlo mañana.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="3">
+          <p class="qr-enunciado">El costo de tenencia de un índice accionario con rendimiento por dividendos \(q\) es…</p>
+          <ol class="qr-op"><li>\(r + q\)</li><li>\(q - r\)</li><li>\(r - q\)</li></ol>
+          <p class="qr-explicacion">Mantener el índice cuesta la tasa de interés de financiarlo y rinde los dividendos: \(c = r - q\).</p>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Precio futuro y precio contado esperado</h2>
+
+      <p>¿Es el precio futuro de hoy un buen pronóstico del precio contado al vencimiento, \(E(S_T)\)? Depende del <strong>riesgo sistemático</strong> del activo. Pensá en esta estrategia: colocar hoy \(F_0e^{-rT}\) a la tasa libre de riesgo y comprar un futuro. En \(T\) se tiene \(F_0\), con lo que se paga el activo por el futuro: la estrategia termina con el activo, que vale \(S_T\). Su valor hoy es el valor presente de \(S_T\), descontado a la tasa \(k\) que exigen los inversores por su riesgo:</p>
+
+      <div class="formula">\[ F_0\, e^{-rT} = E(S_T)\, e^{-kT} \qquad\Longrightarrow\qquad F_0 = E(S_T)\, e^{(r - k)\,T} \]</div>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th>Riesgo sistemático del activo</th><th>Relación entre \(k\) y \(r\)</th><th>Precio futuro</th></tr></thead>
+          <tbody>
+            <tr><td>Nulo</td><td>\(k = r\)</td><td>\(F_0 = E(S_T)\)</td></tr>
+            <tr><td>Positivo (el caso habitual de las acciones)</td><td>\(k \gt r\)</td><td>\(F_0 \lt E(S_T)\): <strong>normal backwardation</strong></td></tr>
+            <tr><td>Negativo</td><td>\(k \lt r\)</td><td>\(F_0 \gt E(S_T)\): <strong>contango</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <figure class="figura">
+        <div class="svg-scroll">
+          <svg viewBox="0 0 760 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Normal backwardation: el precio futuro sube hacia el precio contado esperado. Contango: el precio futuro baja hacia el precio contado esperado.">
+            <!-- Panel A -->
+            <text x="200" y="22" text-anchor="middle" font-size="14" font-weight="700" class="s-acento">Normal backwardation: F₀ &lt; E(S_T)</text>
+            <line x1="50" y1="40" x2="50" y2="210" class="s-trazo" stroke-width="1.5"/>
+            <line x1="50" y1="210" x2="350" y2="210" class="s-trazo" stroke-width="1.5"/>
+            <line x1="50" y1="80" x2="320" y2="80" class="s-trazo" stroke-width="1.5" stroke-dasharray="6 5"/>
+            <text x="56" y="72" font-size="13" class="s-texto">E(S_T)</text>
+            <path d="M50,160 C130,152 230,120 320,80" class="s-acento-trazo" stroke-width="3"/>
+            <text x="58" y="182" font-size="13" class="s-texto">F₀</text>
+            <text x="190" y="152" font-size="13" class="s-suave">precio futuro</text>
+            <line x1="320" y1="205" x2="320" y2="215" class="s-trazo" stroke-width="1.5"/>
+            <text x="320" y="232" text-anchor="middle" font-size="13" class="s-texto">T</text>
+            <text x="200" y="232" text-anchor="middle" font-size="12" class="s-suave">tiempo</text>
+            <!-- Panel B -->
+            <text x="580" y="22" text-anchor="middle" font-size="14" font-weight="700" class="s-acento">Contango: F₀ &gt; E(S_T)</text>
+            <line x1="430" y1="40" x2="430" y2="210" class="s-trazo" stroke-width="1.5"/>
+            <line x1="430" y1="210" x2="730" y2="210" class="s-trazo" stroke-width="1.5"/>
+            <line x1="430" y1="150" x2="700" y2="150" class="s-trazo" stroke-width="1.5" stroke-dasharray="6 5"/>
+            <text x="436" y="172" font-size="13" class="s-texto">E(S_T)</text>
+            <path d="M430,62 C510,72 610,104 700,150" class="s-acento-trazo" stroke-width="3"/>
+            <text x="438" y="56" font-size="13" class="s-texto">F₀</text>
+            <text x="560" y="78" font-size="13" class="s-suave">precio futuro</text>
+            <line x1="700" y1="205" x2="700" y2="215" class="s-trazo" stroke-width="1.5"/>
+            <text x="700" y="232" text-anchor="middle" font-size="13" class="s-texto">T</text>
+            <text x="580" y="232" text-anchor="middle" font-size="12" class="s-suave">tiempo</text>
+          </svg>
+        </div>
+        <figcaption>Si el activo tiene riesgo sistemático positivo, el precio futuro arranca por debajo del contado esperado y tiende a subir hacia él (normal backwardation); con riesgo sistemático negativo, arranca por encima y tiende a bajar (contango). Al vencimiento el futuro converge al contado.</figcaption>
+      </figure>
+
+      <p>La intuición de Keynes y Hicks: si los coberturistas tienden a estar vendidos en futuros, los especuladores tienen que estar comprados, y solo lo aceptan si esperan ganar en promedio, es decir, si \(F_0 \lt E(S_T)\). Si los coberturistas tienden a estar comprados, ocurre lo contrario.</p>
+
+      <div class="caja importante">
+        <p class="caja-titulo">Dos usos de las mismas palabras</p>
+        <p>En los mercados, <strong>contango</strong> y <strong>backwardation</strong> se usan sobre todo para describir la <strong>forma de la curva</strong>: contango si los futuros están por encima del contado y suben con el plazo, backwardation si están por debajo. En la teoría de esta sección, en cambio, comparan el futuro con el precio contado <strong>esperado</strong>. No son lo mismo: una curva en contango puede convivir con normal backwardation si el futuro, aun por encima del contado de hoy, está por debajo de lo que se espera para el vencimiento.</p>
+      </div>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">Un activo tiene riesgo sistemático positivo (\(k \gt r\)). Entonces su precio futuro…</p>
+          <ol class="qr-op"><li>Es mayor que el precio contado esperado al vencimiento.</li><li>Es menor que el precio contado esperado al vencimiento.</li><li>Es igual al precio contado esperado, porque no hay arbitraje.</li></ol>
+          <p class="qr-explicacion">\(F_0 = E(S_T)e^{(r - k)T}\) con \(r - k \lt 0\) da \(F_0 \lt E(S_T)\): normal backwardation. Los especuladores comprados en futuros cobran, en promedio, una prima por el riesgo que asumen.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">Si la tasa libre de riesgo es constante y conocida, el precio de un futuro y el de un forward con el mismo vencimiento…</p>
+          <ol class="qr-op"><li>Son iguales.</li><li>Difieren: el futuro siempre es mayor por el ajuste diario.</li><li>Difieren: el forward siempre es mayor por el riesgo de contraparte.</li></ol>
+          <p class="qr-explicacion">Con tasas determinísticas, una estrategia que va ajustando la cantidad de futuros replica un forward, así que los precios coinciden. Solo con tasas aleatorias correlacionadas con el activo aparece una diferencia.</p>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Futuros de tasas de interés</h2>
+
+      <h3>Convenciones de conteo de días</h3>
+      <p>El interés ganado entre dos fechas se calcula como</p>
+      <div class="formula">\[ \text{Interés} = \text{Interés del período de referencia} \times \frac{\text{días transcurridos}}{\text{días del período de referencia}} \]</div>
+      <p>y cada mercado cuenta los días a su manera:</p>
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th>Convención</th><th>Cómo cuenta</th><th>Uso típico (EE. UU.)</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Real/real</strong> (act/act)</td><td>Días reales sobre días reales del período de cupón</td><td>Bonos del Tesoro</td></tr>
+            <tr><td><strong>30/360</strong></td><td>Meses de 30 días y años de 360</td><td>Bonos corporativos y municipales</td></tr>
+            <tr><td><strong>Real/360</strong> (act/360)</td><td>Días reales sobre años de 360</td><td>Mercado monetario: letras del Tesoro, SOFR</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>Un bono con cupón del 8 % anual paga 4 el 1 de marzo y el 1 de septiembre. ¿Cuánto interés se devenga entre el 1 de marzo y el 3 de julio?</p>
+        <ul>
+          <li><strong>Real/real:</strong> pasan 124 días reales de un período de 184: \(4 \times 124/184 = 2{,}6957\).</li>
+          <li><strong>30/360:</strong> pasan \(4 \times 30 + 2 = 122\) días de un período de 180: \(4 \times 122/180 = 2{,}7111\).</li>
+        </ul>
+      </div>
+
+      <h3>Precio limpio y precio sucio</h3>
+      <p>Los bonos se cotizan por el <strong>precio limpio</strong> (<em>clean price</em>), que no incluye los intereses corridos desde el último cupón. Lo que efectivamente se paga es el <strong>precio sucio</strong> (<em>dirty price</em>, o precio de contado):</p>
+      <div class="formula">\[ \text{Precio sucio} = \text{Precio limpio} + \text{Interés corrido} \]</div>
+      <p>Así la cotización no salta cada vez que se paga un cupón. En EE. UU., los bonos del Tesoro cotizan en dólares y <strong>32avos</strong> por cada 100 de nominal: 95-16 significa \(95 + 16/32 = 95{,}50\).</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>Un bono del Tesoro con cupón del 11 % (5,5 por semestre) cotiza 95-16. El último cupón se pagó hace 54 días y el período de cupón tiene 181. Interés corrido: \(5{,}5 \times 54/181 = 1{,}64\). Precio sucio: \(95{,}50 + 1{,}64 = 97{,}14\) por cada 100 de nominal.</p>
+      </div>
+
+      <h3>Futuros sobre bonos del Tesoro</h3>
+      <p>En el futuro sobre bonos del Tesoro de EE. UU. (CBOT), el vendedor puede entregar <strong>cualquiera</strong> de una lista de bonos de largo plazo, por 100.000 dólares de nominal. Como esos bonos tienen cupones y plazos muy distintos, el contrato usa un <strong>factor de conversión</strong> (FC) para cada uno:</p>
+      <ul>
+        <li>El FC es el precio (por cada dólar de nominal) que tendría el bono si rindiera 6 % anual con composición semestral. Un bono con cupón mayor al 6 % tiene FC mayor que 1.</li>
+        <li>Quien entrega recibe \(\text{Precio futuro} \times \text{FC} + \text{interés corrido}\).</li>
+        <li>Como entregar un bono cuesta su precio limpio, al vendedor le conviene el <strong>bono más barato de entregar</strong> (<em>cheapest-to-deliver</em>), el que minimiza</li>
+      </ul>
+      <div class="formula">\[ \text{Precio limpio cotizado} - \text{Precio futuro} \times \text{FC} \]</div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo (conceptual)</p>
+        <p>El futuro cotiza 110,50 y el vendedor puede entregar uno de estos tres bonos:</p>
+        <div class="tabla-wrap">
+          <table class="tabla compacta">
+            <thead><tr><th>Bono</th><th class="num">Precio limpio</th><th class="num">FC</th><th class="num">Costo neto de entregar</th></tr></thead>
+            <tbody>
+              <tr><td>A</td><td class="num">118,25</td><td class="num">1,0640</td><td class="num">\(118{,}25 - 110{,}50 \times 1{,}0640 = 0{,}678\)</td></tr>
+              <tr class="resaltada"><td>B</td><td class="num">136,00</td><td class="num">1,2280</td><td class="num">\(136{,}00 - 110{,}50 \times 1{,}2280 = 0{,}306\)</td></tr>
+              <tr><td>C</td><td class="num">102,10</td><td class="num">0,9180</td><td class="num">\(102{,}10 - 110{,}50 \times 0{,}9180 = 0{,}661\)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>El más barato de entregar es el B. Cuando los rendimientos están por encima del 6 %, el sistema tiende a favorecer bonos de cupón bajo y plazo largo; por debajo del 6 %, los de cupón alto y plazo corto. El precio del futuro se determina, en la práctica, como un forward sobre ese bono.</p>
+      </div>
+
+      <h3>Futuros sobre tasas de corto plazo</h3>
+      <p>Durante años el contrato más negociado fue el <strong>futuro sobre eurodólares</strong> del CME, basado en la LIBOR a 3 meses. Con el fin de la LIBOR fue reemplazado por el <strong>futuro sobre SOFR a 3 meses</strong>, que funciona igual: se liquida con la SOFR compuesta durante el trimestre de referencia. La cotización es</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Cotización de un futuro de tasa corta</span>\[ Q = 100 - R \qquad (R = \text{tasa anual en \%}) \]</div>
+      <p>Una cotización de 95,50 implica una tasa del 4,50 %. Si la tasa sube, la cotización baja: <strong>quien compra el futuro gana si las tasas bajan</strong>. El contrato es sobre un nominal de 1 millón de dólares por 3 meses, así que un punto básico vale</p>
+      <div class="formula">\[ 1.000.000 \times 0{,}0001 \times \tfrac{3}{12} = 25 \text{ dólares por contrato} \]</div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>Un inversor está comprado en un futuro de SOFR a 95,50. La cotización baja a 95,38 (la tasa implícita sube de 4,50 % a 4,62 %, 12 puntos básicos). Pierde \(12 \times 25 = 300\) dólares por contrato.</p>
+      </div>
+
+      <p>Por el ajuste diario, la tasa implícita en un futuro de tasa corta es algo mayor que la tasa forward del mismo período. Para vencimientos de pocos meses la diferencia es despreciable; para vencimientos de varios años se corrige con el <strong>ajuste por convexidad</strong>.</p>
+
+      <h3>Cobertura basada en la duración</h3>
+      <p>Supongamos una cartera de bonos que vale \(P\) y tiene duración \(D_P\), y un futuro de tasa cuyo precio es \(V_F\) (precio del contrato) y cuyo subyacente tiene duración \(D_F\). Si el rendimiento se mueve \(\Delta y\) en forma paralela, \(\Delta P \approx -P D_P \Delta y\) y \(\Delta V_F \approx -V_F D_F \Delta y\). La cantidad de contratos que neutraliza la exposición es</p>
+
+      <div class="formula con-nombre"><span class="nombre-formula">Ratio de cobertura basado en la duración</span>\[ N^* = \frac{P\, D_P}{V_F\, D_F} \]</div>
+
+      <p>Con esa cantidad la duración de la posición total queda en cero. Si la cartera pierde cuando suben las tasas (una cartera de bonos), se <strong>venden</strong> futuros; si pierde cuando bajan las tasas, se <strong>compran</strong>.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>El 2 de agosto, un gestor tiene 10 millones de dólares en bonos del gobierno y teme una gran volatilidad de tasas en los próximos tres meses. Usa el futuro de diciembre sobre bonos del Tesoro, que cotiza 93-02 (93,0625): cada contrato, por 100.000 de nominal, vale 93.062,50. La duración de la cartera dentro de tres meses será 6,80 años; el bono más barato de entregar tendrá una duración de 9,20 años.</p>
+        <div class="formula">\[ N^* = \frac{10.000.000 \times 6{,}80}{93.062{,}50 \times 9{,}20} = 79{,}42 \;\Rightarrow\; \text{vender 79 contratos} \]</div>
+        <p>Si las tasas bajan y la cartera sube a 10.450.000 mientras el futuro sube a 98-16 (98.500 por contrato), los futuros pierden \(79 \times (98.500 - 93.062{,}50) = 429.562{,}50\) y la posición total cambia apenas \(450.000 - 429.562{,}50 = 20.437{,}50\). La cobertura funcionó: eliminó casi toda la variación, la favorable incluida.</p>
+      </div>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">Un futuro de SOFR a 3 meses pasa de 96,10 a 96,22. Para quien está comprado en 10 contratos, el resultado es…</p>
+          <ol class="qr-op"><li>+3.000 dólares</li><li>−3.000 dólares</li><li>+300 dólares</li></ol>
+          <p class="qr-explicacion">La cotización sube 12 puntos básicos (la tasa bajó). Cada punto básico vale 25 dólares por contrato: \(12 \times 25 \times 10 = 3.000\) a favor del comprador.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">En el futuro sobre bonos del Tesoro, el bono más barato de entregar es el que minimiza…</p>
+          <ol class="qr-op"><li>Su precio limpio cotizado.</li><li>Precio limpio − precio futuro × factor de conversión.</li><li>Su factor de conversión.</li></ol>
+          <p class="qr-explicacion">El vendedor paga el precio limpio por el bono y recibe precio futuro × FC (más el interés corrido, que se cancela con el que pagó). Su costo neto es la diferencia.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="3">
+          <p class="qr-enunciado">Un gestor tiene una cartera de bonos y teme una suba de tasas. Con futuros sobre bonos debería…</p>
+          <ol class="qr-op"><li>Comprar \(P D_P/(V_F D_F)\) contratos.</li><li>Vender \(P/V_F\) contratos, sin importar las duraciones.</li><li>Vender \(P D_P/(V_F D_F)\) contratos.</li></ol>
+          <p class="qr-explicacion">Si suben las tasas, los bonos y los futuros sobre bonos bajan: la posición vendida en futuros gana lo que pierde la cartera. La cantidad iguala las sensibilidades, por eso entran las duraciones.</p>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Resumen</h2>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">Para recordar</p>
+        <ul>
+          <li>Conversión de tasas: \(R_c = m\ln(1 + R_m/m)\) y \(R_m = m(e^{R_c/m} - 1)\).</li>
+          <li>Un bono se valúa descontando cada flujo con la tasa cero de su plazo. La curva cero se obtiene por bootstrap.</li>
+          <li>Tasa forward: \(R_F = (R_2T_2 - R_1T_1)/(T_2 - T_1)\). FRA: \(V = L(R_K - R_F)(T_2 - T_1)e^{-R_2T_2}\).</li>
+          <li>Duración: \(\Delta B \approx -BD\Delta y\) (o \(-BD^*\Delta y\) con \(D^* = D/(1 + y/m)\)); la convexidad mejora la aproximación para cambios grandes.</li>
+          <li>Precio forward: \(F_0 = S_0e^{rT}\); con ingreso, \((S_0 - I)e^{rT}\); con rendimiento, \(S_0e^{(r-q)T}\); con almacenamiento, \((S_0 + U)e^{rT}\) o \(S_0e^{(r+u)T}\); en general, \(S_0e^{(c-y)T}\).</li>
+          <li>Forward caro: cash-and-carry (pedir prestado, comprar contado, vender forward). Forward barato: reverse cash-and-carry (vender en corto, colocar, comprar forward).</li>
+          <li>Valor de un forward pactado a \(K\): \(f = (F_0 - K)e^{-rT}\) para el comprador; el opuesto para el vendedor.</li>
+          <li>Índices: \(c = r - q\). Monedas: \(F_0 = S_0e^{(r - r_f)T}\) (paridad cubierta de tasas). El dólar futuro refleja el diferencial de tasas, no un pronóstico.</li>
+          <li>Commodities de consumo: \(F_0 \le (S_0 + U)e^{rT}\); el rendimiento de conveniencia mide el valor de tener el bien físico.</li>
+          <li>\(F_0 = E(S_T)e^{(r-k)T}\): con riesgo sistemático positivo, normal backwardation.</li>
+          <li>Futuros de tasa corta: \(Q = 100 - R\); un punto básico vale 25 dólares. Cobertura por duración: \(N^* = PD_P/(V_FD_F)\).</li>
+        </ul>
+      </div>
+
+      <div class="caja hull">
+        <p class="caja-titulo">Para leer en Hull</p>
+        <p><strong>Edición en español del material:</strong> capítulo 3, "Determinación de precios a plazo y de los futuros" (activos de inversión y de consumo, venta al descubierto, medición de tasas, precio a plazo con y sin ingresos, valoración de contratos a plazo, igualdad entre precios a plazo y de futuros, índices, divisas, mercancías, coste de mantenimiento, alternativas de entrega y precio de contado esperado), y capítulo 5, "Mercados de tipos de interés" (tipos cupón cero, valoración de bonos, determinación de la curva cupón cero, tipos a plazo, FRA, teorías de la estructura temporal, convenciones de días, futuros sobre bonos del Tesoro y sobre eurodólares, duración y coberturas basadas en la duración).</p>
+        <p><strong>OFOD:</strong> capítulos 4 (<em>Interest Rates</em>), 5 (<em>Determination of Forward and Futures Prices</em>) y 6 (<em>Interest Rate Futures</em>). La edición en español todavía usa la LIBOR y los futuros sobre eurodólares; las ediciones recientes del OFOD tratan la transición a la SOFR y a las tasas libres de riesgo.</p>
+      </div>
+    </article>
+  </main>
+
+  <nav class="pie-navegacion" id="pie-navegacion"></nav>
+
+  <script src="vendor/katex/katex.min.js"></script>
+  <script src="vendor/katex/contrib/auto-render.min.js"></script>
+  <script src="vendor/chartjs/chart.umd.min.js"></script>
+  <script src="js/calculos.js"></script>
+  <script src="js/comun.js"></script>
+</body>
+</html>

@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Opciones sobre índices, monedas y futuros · Teoría</title>
+  <link rel="stylesheet" href="vendor/fuentes/fuentes.css">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="css/libro.css">
+</head>
+<body data-unidad="u7" data-seccion="teoria">
+  <div id="encabezado"></div>
+
+  <main class="pagina con-indice">
+    <aside class="indice" id="indice"></aside>
+
+    <article class="contenido">
+      <h1>Opciones sobre índices, monedas y futuros</h1>
+      <p class="bajada">Cómo se extiende Black-Scholes a subyacentes que "rinden" algo mientras los tenés: índices bursátiles, monedas extranjeras y contratos de futuros. Seguro de cartera, cobertura cambiaria y el modelo de Black.</p>
+      <span class="etiqueta-hull">Hull OFOD caps. 17 y 18 (cronograma)</span>
+      <span class="etiqueta-hull">Caps. 12 y 13 en la edición en español</span>
+
+      <div class="objetivos">
+        <p>Objetivos de la unidad</p>
+        <ul>
+          <li>Entender por qué una opción europea sobre un activo que rinde \(q\) se valúa como si el activo no rindiera nada y valiera \(S_0e^{-qT}\), y aplicar esa regla a los límites, la paridad put-call, Black-Scholes-Merton y el árbol binomial.</li>
+          <li>Identificar qué representa \(q\) en cada subyacente: los dividendos de un índice, la tasa de interés extranjera o la propia tasa \(r\) en un futuro.</li>
+          <li>Diseñar un seguro de cartera con puts sobre un índice, para carteras con \(\beta = 1\) y con \(\beta \ne 1\).</li>
+          <li>Valuar opciones sobre monedas con Garman-Kohlhagen y comparar la cobertura con opciones, con forwards y con un <em>range forward</em>.</li>
+          <li>Explicar cómo se ejerce una opción sobre un futuro y valuarla con árboles binomiales y con el modelo de Black (1976).</li>
+        </ul>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Activos que pagan un rendimiento continuo</h2>
+
+      <p>En la Unidad VI valuamos opciones sobre acciones que no pagan dividendos. Pero muchos subyacentes le dan algo a quien los tiene mientras pasa el tiempo. Un índice bursátil reparte los dividendos de cientos de acciones, que se pagan en fechas distintas y casi forman un flujo continuo. Una moneda extranjera se puede depositar y gana la tasa de interés de su país. Esta unidad muestra que todos esos casos se resuelven con <strong>una sola idea</strong>, que propuso Robert Merton en 1973.</p>
+
+      <h3>La regla de Merton</h3>
+      <p>Pensá en dos acciones con el mismo riesgo: una paga un dividendo continuo a una tasa \(q\) anual y la otra no paga nada. Las dos tienen que dar el mismo rendimiento total (dividendos más ganancia de capital). Como la primera "entrega" una parte de su rendimiento en dividendos, su precio crece a una tasa \(q\) menor que el de la segunda. Si la acción que paga dividendos va de \(S_0\) hoy a \(S_T\) en \(T\), la misma acción sin pagar dividendos habría llegado a \(S_Te^{qT}\). Dicho al revés: una acción sin dividendos que hoy vale \(S_0e^{-qT}\) llega a \(S_T\).</p>
+
+      <figure class="figura">
+        <div class="svg-scroll">
+          <svg viewBox="0 0 640 250" role="img" aria-label="Dos acciones que llegan a la misma distribución de precios al vencimiento: una arranca en S0 y paga dividendos; la otra arranca en S0 por e a la menos qT y no paga.">
+            <line x1="100" y1="210" x2="560" y2="210" class="s-trazo" stroke-width="1.4"/>
+            <line x1="100" y1="210" x2="100" y2="20" class="s-trazo" stroke-width="1.4"/>
+            <text x="100" y="230" text-anchor="middle" font-size="13" class="s-suave">t = 0</text>
+            <text x="520" y="230" text-anchor="middle" font-size="13" class="s-suave">T</text>
+            <line x1="520" y1="206" x2="520" y2="214" class="s-trazo" stroke-width="1.4"/>
+            <text x="108" y="24" font-size="13" class="s-suave">Precio</text>
+            <path d="M520,22 C526,22 534,44 566,60 C534,76 526,98 520,98 Z" class="s-relleno"/>
+            <line x1="100" y1="80" x2="520" y2="60" class="s-acento-trazo" stroke-width="2.6"/>
+            <line x1="100" y1="130" x2="520" y2="60" class="s-trazo" stroke-width="2" stroke-dasharray="7 5"/>
+            <circle cx="100" cy="80" r="4.5" class="s-acento"/>
+            <circle cx="100" cy="130" r="4.5" class="s-texto"/>
+            <circle cx="520" cy="60" r="4.5" class="s-texto"/>
+            <text x="92" y="85" text-anchor="end" font-size="14" class="s-texto">S₀</text>
+            <text x="92" y="135" text-anchor="end" font-size="14" class="s-texto">S₀·e^(−qT)</text>
+            <text x="300" y="58" text-anchor="middle" font-size="13" class="s-texto">Acción que rinde q: los dividendos salen del precio</text>
+            <text x="330" y="132" text-anchor="middle" font-size="13" class="s-texto">Acción sin dividendos que hoy vale S₀·e^(−qT)</text>
+            <text x="540" y="120" text-anchor="middle" font-size="13" class="s-texto">Misma distribución</text>
+            <text x="540" y="136" text-anchor="middle" font-size="13" class="s-texto">de S_T</text>
+            <text x="330" y="190" text-anchor="middle" font-size="12.5" class="s-suave">Una opción europea solo depende de S_T: vale lo mismo en los dos casos.</text>
+          </svg>
+        </div>
+        <figcaption>Las dos acciones terminan con la misma distribución de precios en \(T\). La que paga dividendos arranca más arriba, pero crece más despacio.</figcaption>
+      </figure>
+
+      <p>Las dos situaciones producen <strong>la misma distribución de probabilidad para \(S_T\)</strong>. Y una opción europea solo depende de \(S_T\). Por lo tanto vale lo mismo en los dos casos:</p>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">Regla de Merton</p>
+        <p>Para valuar una opción europea de plazo \(T\) sobre un activo que paga un rendimiento continuo \(q\), se reemplaza \(S_0\) por \(S_0e^{-qT}\) y se valúa la opción como si el activo no pagara nada.</p>
+      </div>
+
+      <p>La intuición financiera es simple: <strong>el que tiene el call no cobra los dividendos</strong>. Los dividendos "se escapan" del precio del subyacente, así que el call pierde valor y el put lo gana. \(S_0e^{-qT}\) es exactamente lo que vale hoy el subyacente <em>sin</em> los dividendos que va a repartir hasta \(T\).</p>
+
+      <h3>Límites y paridad put-call</h3>
+      <p>Aplicando la regla a los resultados de la Unidad V se obtienen, sin trabajo adicional, los límites inferiores de las europeas:</p>
+      <div class="formula">\[ c \ge \max\left(S_0e^{-qT} - Ke^{-rT};\ 0\right) \qquad\qquad p \ge \max\left(Ke^{-rT} - S_0e^{-qT};\ 0\right) \]</div>
+      <p>y la paridad put-call:</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Paridad put-call con rendimiento q</span>\[ c + Ke^{-rT} = p + S_0e^{-qT} \]</div>
+      <p>También se puede probar directamente. La cartera A tiene un call y \(Ke^{-rT}\) en efectivo; la cartera B tiene un put y \(e^{-qT}\) unidades del activo, con los dividendos reinvertidos en más unidades. Reinvirtiendo a la tasa \(q\), las \(e^{-qT}\) unidades se convierten exactamente en <strong>una</strong> unidad en \(T\). Al vencimiento las dos carteras valen \(\max(S_T;\ K)\), así que hoy tienen que valer lo mismo. Para las americanas vale la banda:</p>
+      <div class="formula">\[ S_0e^{-qT} - K \le C - P \le S_0 - Ke^{-rT} \]</div>
+
+      <h3>Black-Scholes-Merton con rendimiento q</h3>
+      <p>Reemplazando \(S_0\) por \(S_0e^{-qT}\) en Black-Scholes, y usando que \(\ln(S_0e^{-qT}/K) = \ln(S_0/K) - qT\):</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Black-Scholes-Merton</span>\[ c = S_0e^{-qT}N(d_1) - Ke^{-rT}N(d_2) \qquad p = Ke^{-rT}N(-d_2) - S_0e^{-qT}N(-d_1) \]
+        \[ d_1 = \frac{\ln(S_0/K) + (r - q + \sigma^2/2)\,T}{\sigma\sqrt{T}} \qquad d_2 = d_1 - \sigma\sqrt{T} \]</div>
+      <p>Fijate que \(q\) aparece en dos lugares: dentro de \(d_1\) (restando a \(r\)) y multiplicando a \(S_0\). La tasa \(r\) sigue descontando el strike.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo (guía U7, ej. 1)</p>
+        <p>Una acción vale \(S_0 = 50\) y paga un rendimiento por dividendos del 2 % anual continuo. Strike \(K = 50\), \(r = 5\%\), \(\sigma = 30\%\), \(T = 8\) meses \(= 0{,}6667\) años.</p>
+        <ul>
+          <li>\(S_0e^{-qT} = 50e^{-0{,}02 \times 0{,}6667} = 49{,}3378\) y \(Ke^{-rT} = 50e^{-0{,}05 \times 0{,}6667} = 48{,}3608\).</li>
+          <li><strong>Mínimo del call:</strong> \(49{,}3378 - 48{,}3608 = 0{,}98\). <strong>Mínimo del put:</strong> \(\max(48{,}3608 - 49{,}3378;\ 0) = 0\).</li>
+          <li>\(d_1 = \dfrac{\ln(50/50) + (0{,}05 - 0{,}02 + 0{,}045) \times 0{,}6667}{0{,}30\sqrt{0{,}6667}} = \dfrac{0{,}05}{0{,}2449} = 0{,}2041\) y \(d_2 = 0{,}2041 - 0{,}2449 = -0{,}0408\).</li>
+          <li>\(N(d_1) = 0{,}5809\), \(N(d_2) = 0{,}4837\), \(N(-d_1) = 0{,}4191\), \(N(-d_2) = 0{,}5163\).</li>
+          <li><strong>Call:</strong> \(c = 49{,}3378 \times 0{,}5809 - 48{,}3608 \times 0{,}4837 = 5{,}27\).</li>
+          <li><strong>Put:</strong> \(p = 48{,}3608 \times 0{,}5163 - 49{,}3378 \times 0{,}4191 = 4{,}29\).</li>
+          <li><strong>Paridad:</strong> \(c + Ke^{-rT} = 5{,}27 + 48{,}36 = 53{,}63\) y \(p + S_0e^{-qT} = 4{,}29 + 49{,}34 = 53{,}63\).</li>
+        </ul>
+        <p>Si la acción no pagara dividendos (\(q = 0\)), el call valdría 5,66 y el put 4,02. El rendimiento del 2 % le quitó 0,39 al call y le sumó 0,27 al put.</p>
+      </div>
+
+      <div class="caja prueba">
+        <p class="caja-titulo">Probá vos</p>
+        <p>Con los mismos datos, pero con un rendimiento por dividendos del 4 %, ¿cuánto valen el call y el put?</p>
+        <details class="desplegable">
+          <summary>Ver la resolución</summary>
+          <p>\(S_0e^{-qT} = 50e^{-0{,}04 \times 0{,}6667} = 48{,}6842\). \(d_1 = (0{,}05 - 0{,}04 + 0{,}045) \times 0{,}6667 / 0{,}2449 = 0{,}1497\) y \(d_2 = -0{,}0953\). Con \(N(d_1) = 0{,}5595\) y \(N(d_2) = 0{,}4621\): \(c = 48{,}6842 \times 0{,}5595 - 48{,}3608 \times 0{,}4621 = 4{,}89\). Por paridad, \(p = 4{,}89 + 48{,}36 - 48{,}68 = 4{,}57\). Más rendimiento: el call baja y el put sube.</p>
+        </details>
+      </div>
+
+      <h3>Árbol binomial con rendimiento q</h3>
+      <p>En el mundo neutral al riesgo, el rendimiento <strong>total</strong> esperado de cualquier activo es \(r\). Si el activo entrega \(q\) en dividendos, su precio solo tiene que crecer a \(r - q\). Por eso la probabilidad neutral al riesgo cumple \(pS_0u + (1-p)S_0d = S_0e^{(r-q)\Delta t}\):</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Árbol con rendimiento q</span>\[ p = \frac{e^{(r-q)\Delta t} - d}{u - d} \qquad\qquad f = e^{-r\Delta t}\left[p\,f_u + (1-p)\,f_d\right] \]</div>
+      <p>El valor de la opción se sigue descontando a \(r\): lo único que cambia es \(p\).</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo (Hull, sección 12.3)</p>
+        <p>Una acción vale 30 y en 6 meses puede subir a 36 o bajar a 24 (\(u = 1{,}2\); \(d = 0{,}8\)). La tasa es 5 % y el rendimiento por dividendos, 3 %. Entonces \(p = \dfrac{e^{(0{,}05 - 0{,}03) \times 0{,}5} - 0{,}8}{1{,}2 - 0{,}8} = 0{,}5251\). Un put a 6 meses con strike 28 paga 0 si la acción sube y 4 si baja:</p>
+        <div class="formula">\[ p_{\text{put}} = e^{-0{,}05 \times 0{,}5}\,[0{,}5251 \times 0 + 0{,}4749 \times 4] = 1{,}85 \]</div>
+      </div>
+
+      <div class="caja error">
+        <p class="caja-titulo">Errores frecuentes</p>
+        <ul>
+          <li>Descontar el valor esperado a \(r - q\). Se descuenta a \(r\); \(q\) solo cambia la probabilidad \(p\).</li>
+          <li>Poner \(q\) en \(d_1\) pero olvidar multiplicar \(S_0\) por \(e^{-qT}\) (o al revés).</li>
+          <li>Descontar el strike con \(e^{-qT}\). El strike es efectivo que se paga o se cobra: se descuenta con \(r\).</li>
+        </ul>
+      </div>
+
+      <h3>Qué es q en cada subyacente</h3>
+      <p>El resto de la unidad aplica la misma regla a tres subyacentes. Lo único que cambia es qué cumple el papel de \(q\):</p>
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th>Subyacente</th><th>\(S_0\) es…</th><th>\(q\) es…</th><th>Paridad put-call</th><th>Modelo</th></tr></thead>
+          <tbody>
+            <tr><td>Acción sin dividendos</td><td>Precio de la acción</td><td>0</td><td>\(c + Ke^{-rT} = p + S_0\)</td><td>Black-Scholes</td></tr>
+            <tr><td>Índice bursátil</td><td>Valor del índice</td><td>Rendimiento por dividendos del índice</td><td>\(c + Ke^{-rT} = p + S_0e^{-qT}\)</td><td>Black-Scholes-Merton</td></tr>
+            <tr><td>Moneda extranjera</td><td>Tipo de cambio contado (moneda local por unidad extranjera)</td><td>Tasa libre de riesgo extranjera \(r_f\)</td><td>\(c + Ke^{-rT} = p + S_0e^{-r_fT}\)</td><td>Garman-Kohlhagen</td></tr>
+            <tr><td>Contrato de futuros</td><td>Precio futuro \(F_0\)</td><td>La tasa doméstica \(r\)</td><td>\(c + Ke^{-rT} = p + F_0e^{-rT}\)</td><td>Black (1976)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>En la <a href="u7-simulacion.html#calculadora">calculadora generalizada</a> podés elegir el subyacente y ver cómo cambian los límites, los precios y la paridad.</p>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">Si sube el rendimiento por dividendos \(q\) de un índice (todo lo demás igual), ¿qué pasa con el call y el put europeos?</p>
+          <ol class="qr-op"><li>El call baja y el put sube.</li><li>Los dos suben, porque el índice rinde más.</li><li>El call sube y el put baja.</li></ol>
+          <p class="qr-explicacion">Los dividendos salen del precio del índice y el dueño de la opción no los cobra. Un \(S_0e^{-qT}\) menor baja el call y sube el put.</p>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Opciones sobre índices bursátiles</h2>
+
+      <h3>Los contratos</h3>
+      <p>Una opción sobre un índice da derecho a "comprar" o "vender" el índice a \(K\). Como no es práctico entregar cientos de acciones, se <strong>liquida en efectivo</strong> (<em>cash settlement</em>): al ejercer un call, el comprador cobra la diferencia entre el índice y el strike, multiplicada por el <strong>multiplicador</strong> del contrato (en general, 100). La mayoría son <strong>europeas</strong>; por ejemplo, las opciones sobre el S&amp;P 500 (SPX) del CBOE son europeas y las del S&amp;P 100 (OEX) son americanas.</p>
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>Un call sobre un índice tiene strike 900 y multiplicador 100. Si al vencimiento el índice cierra en 935, el comprador cobra \((935 - 900) \times 100 = 3.500\) en efectivo. Si cierra en 880, el call vence sin valor.</p>
+      </div>
+
+      <h3>Valuación</h3>
+      <p>Un índice se comporta como una acción que paga un rendimiento por dividendos continuo: \(S_0\) es el valor del índice y \(q\) es el rendimiento por dividendos anual promedio <strong>durante la vida de la opción</strong>. Solo cuentan los dividendos cuya fecha ex-dividendo cae antes del vencimiento. Por eso \(q\) puede depender del plazo: en Estados Unidos muchas empresas pagan en las mismas semanas del año, y en otros mercados la concentración es todavía mayor.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo (Hull, sección 12.4)</p>
+        <p>Un call europeo sobre el S&amp;P 500 vence en 2 meses. El índice vale 930, el strike es 900, \(r = 8\%\) y \(\sigma = 20\%\). Se esperan rendimientos por dividendos del 0,2 % en el primer mes y del 0,3 % en el segundo: 0,5 % en dos meses, es decir, \(q = 3\%\) anual.</p>
+        <ul>
+          <li>\(d_1 = \dfrac{\ln(930/900) + (0{,}08 - 0{,}03 + 0{,}02) \times 0{,}1667}{0{,}20\sqrt{0{,}1667}} = 0{,}5445\) y \(d_2 = 0{,}4628\).</li>
+          <li>\(N(d_1) = 0{,}70694\) y \(N(d_2) = 0{,}67826\).</li>
+          <li>\(c = 930e^{-0{,}03 \times 0{,}1667} \times 0{,}70694 - 900e^{-0{,}08 \times 0{,}1667} \times 0{,}67826 = 925{,}36 \times 0{,}70694 - 888{,}08 \times 0{,}67826 = 654{,}18 - 602{,}35 = 51{,}83\).</li>
+        </ul>
+        <p>Un contrato (100 veces el índice) cuesta \(51{,}83 \times 100 = 5.183\).</p>
+      </div>
+
+      <p>Si en lugar de una tasa se conocen los dividendos en monto, se puede restar su valor presente a \(S_0\), como en la Unidad VI. Para un índice es poco práctico, porque habría que proyectar los dividendos de cada empresa. Las opciones <strong>americanas</strong> sobre índices pueden ejercerse antes (sobre todo los puts y, en menor medida, los calls), así que valen un poco más que las europeas y se valúan con árboles.</p>
+
+      <h3>Seguro de cartera (portfolio insurance)</h3>
+      <p>Un administrador de una cartera diversificada quiere protegerse de una caída fuerte del mercado sin vender las acciones. La herramienta natural es <strong>comprar puts sobre un índice</strong>: es el <em>protective put</em> de la Unidad VIII, pero sobre toda la cartera. Hay que decidir <strong>cuántos puts</strong> y con <strong>qué strike</strong>.</p>
+
+      <h4>Cartera con β = 1</h4>
+      <p>Si la cartera tiene \(\beta = 1\) y el mismo rendimiento por dividendos que el índice, su valor se mueve en el mismo porcentaje que el índice. Si el contrato es por \(m\) veces el índice, la cartera "equivale" a \(V_0/S_0\) unidades del índice y se protege con</p>
+      <div class="formula">\[ N = \frac{V_0}{m \times S_0} \text{ puts} \qquad\qquad K = S_0 \times \frac{\text{valor asegurado}}{V_0} \]</div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo (Hull, sección 12.4)</p>
+        <p>La cartera vale 500.000 dólares y el S&amp;P 500 está en 1.000 (multiplicador 100). La cartera equivale a 500 veces el índice, así que \(N = 500.000/(100 \times 1.000) = 5\) contratos. Para asegurar 450.000 dólares durante 3 meses (una caída máxima del 10 %), el strike es \(1.000 \times 0{,}9 = 900\).</p>
+        <p>Si en 3 meses el índice cae a 880 (−12 %), la cartera vale unos 440.000 dólares. Los puts pagan \(5 \times (900 - 880) \times 100 = 10.000\), y el total vuelve a <strong>450.000</strong>.</p>
+      </div>
+
+      <figure class="grafico-payoff" data-patas="compra accion 1000; compra put 900 0" data-modo="payoff" data-desde="700" data-hasta="1300" data-eje-x="Nivel del índice al vencimiento"><figcaption>Cartera que replica al índice (medida en puntos de índice, comprada a 1.000) más un put 900, sin contar la prima: la pérdida queda acotada en 100 puntos, el 10 %.</figcaption></figure>
+
+      <h4>Cartera con β ≠ 1</h4>
+      <p>Si la cartera no replica al índice, se usa el <strong>CAPM</strong> (<em>capital asset pricing model</em>): el exceso de rendimiento de la cartera sobre la tasa libre de riesgo es \(\beta\) veces el exceso de rendimiento del índice. Con \(\beta = 2\), cada punto que cae el índice hace caer la cartera el doble. De ahí salen dos cambios respecto del caso anterior:</p>
+      <ul>
+        <li><strong>Cantidad:</strong> se necesitan \(\beta\) veces más puts, \(N = \beta \times \dfrac{V_0}{m \times S_0}\), porque cada punto de caída del índice le cuesta a la cartera \(\beta\) veces más.</li>
+        <li><strong>Strike:</strong> es el nivel del índice en el que la cartera vale exactamente el monto asegurado. Con \(\beta \gt 1\) ese nivel está más cerca del valor actual del índice, porque basta una caída chica del índice para que la cartera caiga mucho.</li>
+      </ul>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo (Hull, sección 12.4): β = 2</p>
+        <p>La misma cartera de 500.000 dólares tiene \(\beta = 2\). La tasa libre de riesgo es 12 % anual y el rendimiento por dividendos de la cartera y del índice es 4 % anual. El índice está en 1.000 y se quiere asegurar 450.000 dólares durante 3 meses. Como Hull, usamos rendimientos simples del trimestre. Si en 3 meses el índice está en 1.040:</p>
+        <div class="tabla-wrap">
+          <table class="tabla compacta">
+            <tbody>
+              <tr><td>Rendimiento por la variación del índice</td><td class="num">40/1.000 = 4 %</td></tr>
+              <tr><td>Dividendos del índice (0,25 × 4 %)</td><td class="num">1 %</td></tr>
+              <tr><td>Rendimiento total del índice</td><td class="num">5 %</td></tr>
+              <tr><td>Tasa libre de riesgo (0,25 × 12 %)</td><td class="num">3 %</td></tr>
+              <tr><td>Exceso de rendimiento del índice</td><td class="num">5 − 3 = 2 %</td></tr>
+              <tr><td>Exceso de rendimiento de la cartera (β × 2 %)</td><td class="num">4 %</td></tr>
+              <tr><td>Rendimiento total de la cartera</td><td class="num">3 + 4 = 7 %</td></tr>
+              <tr><td>Dividendos de la cartera</td><td class="num">1 %</td></tr>
+              <tr><td>Variación del valor de la cartera</td><td class="num">7 − 1 = 6 %</td></tr>
+              <tr class="total"><td>Valor de la cartera</td><td class="num">500.000 × 1,06 = 530.000</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Repitiendo la cuenta para otros niveles del índice se arma la tabla de abajo. La cartera vale 450.000 cuando el índice está en <strong>960</strong>: ese es el strike. La cantidad es \(N = 2 \times 500.000/(100 \times 1.000) = 10\) contratos.</p>
+        <div class="tabla-wrap">
+          <table class="tabla">
+            <thead><tr><th class="num">Índice en 3 meses</th><th class="num">Cartera sin seguro</th><th class="num">Pago de 10 puts 960</th><th class="num">Cartera con seguro</th></tr></thead>
+            <tbody>
+              <tr><td class="num">1.080</td><td class="num">570.000</td><td class="num">0</td><td class="num">570.000</td></tr>
+              <tr><td class="num">1.040</td><td class="num">530.000</td><td class="num">0</td><td class="num">530.000</td></tr>
+              <tr><td class="num">1.000</td><td class="num">490.000</td><td class="num">0</td><td class="num">490.000</td></tr>
+              <tr class="resaltada"><td class="num">960</td><td class="num">450.000</td><td class="num">0</td><td class="num">450.000</td></tr>
+              <tr><td class="num">920</td><td class="num">410.000</td><td class="num">40.000</td><td class="num">450.000</td></tr>
+              <tr><td class="num">880</td><td class="num">370.000</td><td class="num">80.000</td><td class="num">450.000</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Si el índice cae a 880, la cartera vale 370.000, pero los puts pagan \((960 - 880) \times 10 \times 100 = 80.000\): el total es exactamente 450.000.</p>
+      </div>
+
+      <p>La cuenta de la tabla se resume en una fórmula. Con rendimientos simples del período, el valor de la cartera cuando el índice termina en \(S_T\) es</p>
+      <div class="formula">\[ V_T = V_0\left[1 + rT + \beta\left(\frac{S_T}{S_0} - 1 + qT - rT\right) - qT\right] \]</div>
+      <p>e igualando \(V_T\) al valor asegurado \(V^*\) se despeja el strike:</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Strike del seguro de cartera</span>\[ K = S_0\left[1 + \frac{V^*/V_0 - 1 - rT + qT}{\beta} + rT - qT\right] \]</div>
+      <p>Con los datos: \(\dfrac{0{,}9 - 1 - 0{,}03 + 0{,}01}{2} = -0{,}06\), así que \(K = 1.000 \times (1 - 0{,}06 + 0{,}03 - 0{,}01) = 960\). Con \(\beta = 1\) la fórmula da \(K = S_0 \times V^*/V_0\), como en el primer caso.</p>
+
+      <div class="caja importante">
+        <p class="caja-titulo">¿Cuánto cuesta el seguro?</p>
+        <p>Supongamos \(\sigma = 20\%\) para el índice y tomemos \(r\) y \(q\) como tasas continuas. Con Black-Scholes-Merton, un put 960 a 3 meses vale 15,97 puntos: los 10 contratos cuestan \(10 \times 100 \times 15{,}97 = 15.973\) dólares, el 3,2 % de la cartera. Con los mismos datos, asegurar una cartera con \(\beta = 1\) (5 puts 900 de 4,66 puntos) costaría solo 2.332 dólares. <strong>Asegurar una cartera de beta alta es mucho más caro</strong>: hacen falta más puts y con un strike más alto.</p>
+      </div>
+
+      <div class="caja error">
+        <p class="caja-titulo">Errores frecuentes</p>
+        <ul>
+          <li>Calcular la cantidad como \(V_0/(m S_0)\) aunque \(\beta \ne 1\): la cartera queda subasegurada.</li>
+          <li>Usar el strike "proporcional" (\(S_0 \times V^*/V_0 = 900\)) con \(\beta = 2\): si el índice cae a 920 la cartera vale 410.000 y los puts 900 no pagan nada.</li>
+          <li>Olvidar la tasa libre de riesgo y los dividendos en la cuenta del CAPM.</li>
+        </ul>
+      </div>
+
+      <div class="caja prueba">
+        <p class="caja-titulo">Probá vos</p>
+        <p>Con la cartera de \(\beta = 2\) del ejemplo, ¿qué strike corresponde si se quiere asegurar 475.000 dólares?</p>
+        <details class="desplegable">
+          <summary>Ver la resolución</summary>
+          <p>\(V^*/V_0 = 0{,}95\). \(K = 1.000 \times \left[1 + \dfrac{0{,}95 - 1 - 0{,}03 + 0{,}01}{2} + 0{,}03 - 0{,}01\right] = 1.000 \times (1 - 0{,}035 + 0{,}02) = 985\). La cantidad no cambia: 10 contratos. Un piso más alto exige un strike más alto y un seguro más caro.</p>
+        </details>
+      </div>
+
+      <p>En la <a href="u7-simulacion.html#seguro">simulación del seguro de cartera</a> podés cambiar el beta, el piso y la volatilidad, y ver el costo.</p>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">Una cartera de 2.000.000 con \(\beta = 1{,}5\) se asegura con puts sobre un índice que vale 2.000 (multiplicador 100). ¿Cuántos contratos hacen falta?</p>
+          <ol class="qr-op"><li>10</li><li>15</li><li>7</li></ol>
+          <p class="qr-explicacion">\(N = \beta \times V_0/(m S_0) = 1{,}5 \times 2.000.000/(100 \times 2.000) = 15\). Con 10 contratos se ignora el beta.</p>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Opciones sobre monedas</h2>
+
+      <p>Las opciones sobre monedas se negocian sobre todo en el mercado OTC, donde los bancos las arman a medida de las empresas, y también en algunas bolsas. Llamamos \(S_0\) al <strong>precio de una unidad de moneda extranjera expresado en moneda local</strong>: por ejemplo, dólares por euro (EURUSD = 1,10) o pesos por dólar. Un call sobre euros da derecho a comprar euros a \(K\) dólares cada uno; un put, a venderlos.</p>
+
+      <h3>El modelo de Garman-Kohlhagen</h3>
+      <p>Tener una moneda extranjera es como tener un activo que rinde \(q = r_f\): el que tiene euros los puede depositar y cobrar la tasa libre de riesgo en euros. Reemplazando \(q\) por \(r_f\) se obtiene el modelo de Garman y Kohlhagen (1983):</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Garman-Kohlhagen</span>\[ c = S_0e^{-r_fT}N(d_1) - Ke^{-rT}N(d_2) \qquad p = Ke^{-rT}N(-d_2) - S_0e^{-r_fT}N(-d_1) \]
+        \[ d_1 = \frac{\ln(S_0/K) + (r - r_f + \sigma^2/2)\,T}{\sigma\sqrt{T}} \qquad d_2 = d_1 - \sigma\sqrt{T} \]</div>
+      <p>Los límites y la paridad salen de la misma forma: \(c \ge S_0e^{-r_fT} - Ke^{-rT}\), \(p \ge Ke^{-rT} - S_0e^{-r_fT}\) y \(c + Ke^{-rT} = p + S_0e^{-r_fT}\).</p>
+      <p>Como el forward de la moneda es \(F_0 = S_0e^{(r - r_f)T}\) (Unidad III), \(S_0e^{-r_fT} = F_0e^{-rT}\) y las fórmulas se pueden escribir con el forward:</p>
+      <div class="formula">\[ c = e^{-rT}\left[F_0N(d_1) - KN(d_2)\right] \qquad p = e^{-rT}\left[KN(-d_2) - F_0N(-d_1)\right] \qquad d_1 = \frac{\ln(F_0/K) + \sigma^2T/2}{\sigma\sqrt{T}} \]</div>
+      <p>Esta forma anticipa el modelo de Black de la última sección: la opción sobre la moneda depende del forward al mismo plazo.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo (guía U7, ej. 2)</p>
+        <p>EURUSD vale 1,10 (dólares por euro). Strike 1,05, plazo 6 meses, \(\sigma = 25\%\), tasa en dólares \(r = 6\%\) y tasa en euros \(r_f = 3\%\).</p>
+        <ul>
+          <li>\(S_0e^{-r_fT} = 1{,}10e^{-0{,}03 \times 0{,}5} = 1{,}0836\) y \(Ke^{-rT} = 1{,}05e^{-0{,}06 \times 0{,}5} = 1{,}0190\).</li>
+          <li><strong>Mínimo del call:</strong> \(1{,}0836 - 1{,}0190 = 0{,}06\). <strong>Mínimo del put:</strong> 0.</li>
+          <li>\(d_1 = \dfrac{\ln(1{,}10/1{,}05) + (0{,}06 - 0{,}03 + 0{,}03125) \times 0{,}5}{0{,}25\sqrt{0{,}5}} = 0{,}4364\) y \(d_2 = 0{,}2596\); \(N(d_1) = 0{,}6687\) y \(N(d_2) = 0{,}6024\).</li>
+          <li><strong>Call:</strong> \(c = 1{,}0836 \times 0{,}6687 - 1{,}0190 \times 0{,}6024 = 0{,}1108\), unos 0,11 dólares por euro.</li>
+          <li><strong>Put:</strong> \(p = 1{,}0190 \times 0{,}3976 - 1{,}0836 \times 0{,}3313 = 0{,}0461\), unos 0,05 dólares por euro.</li>
+          <li><strong>Paridad:</strong> \(0{,}1108 + 1{,}0190 = 1{,}1298\) y \(0{,}0461 + 1{,}0836 = 1{,}1298\).</li>
+        </ul>
+        <p>El forward a 6 meses es \(1{,}10e^{(0{,}06 - 0{,}03) \times 0{,}5} = 1{,}1166\): como la tasa en dólares es mayor que la tasa en euros, el euro cotiza "con prima" a plazo, y el call está todavía más dentro del dinero respecto del forward.</p>
+      </div>
+
+      <h3>Cobertura de importadores y exportadores</h3>
+      <p>Las opciones sobre monedas son una alternativa a los forwards para cubrir el riesgo de tipo de cambio:</p>
+      <ul>
+        <li>Un <strong>exportador</strong> que va a <strong>cobrar</strong> moneda extranjera teme que esa moneda se deprecie: <strong>compra puts</strong>. Se asegura un tipo de cambio mínimo \(K\) y conserva la ganancia si la moneda se aprecia.</li>
+        <li>Un <strong>importador</strong> que va a <strong>pagar</strong> moneda extranjera teme que se aprecie: <strong>compra calls</strong>. Se asegura un tipo de cambio máximo \(K\) y aprovecha si la moneda baja.</li>
+      </ul>
+      <p>La diferencia con el forward es la <strong>asimetría</strong>. El forward fija un tipo de cambio único, no cuesta nada al entrar, pero obliga a renunciar a los movimientos favorables. La opción funciona como un <strong>seguro</strong>: protege del movimiento desfavorable y deja abierto el favorable, pero hay que pagar la prima por adelantado.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: un exportador que cobra euros</p>
+        <p>Una empresa de Estados Unidos va a cobrar 1.000.000 de euros dentro de 6 meses (datos del ejemplo anterior).</p>
+        <ul>
+          <li><strong>Forward:</strong> vende los euros a 1,1166 y se asegura 1.116.624 dólares, pase lo que pase.</li>
+          <li><strong>Put 1,05:</strong> paga hoy \(0{,}0461 \times 1.000.000 = 46.143\) dólares, que a 6 meses equivalen a \(46.143\,e^{0{,}03} = 47.548\). Tiene garantizado un mínimo de \(1.050.000 - 47.548 = 1.002.452\) dólares netos, y si el euro sube a 1,25 recibe \(1.250.000 - 47.548 = 1.202.452\).</li>
+        </ul>
+      </div>
+
+      <h3>Range forward (collar de costo cero)</h3>
+      <p>Muchas empresas no quieren pagar la prima del put. La solución es <strong>financiarla vendiendo un call</strong> con un strike más alto: el exportador compra un put con strike \(K_1\) y vende un call con strike \(K_2 \gt K_1\), elegido para que las dos primas sean iguales. Esa combinación se llama <em>range forward</em> (forward de rango) o <em>collar</em> de costo cero. Por cada unidad de moneda extranjera, el exportador recibe</p>
+      <div class="formula">\[ \min\left(\max(S_T;\ K_1);\ K_2\right) = \begin{cases} K_1 & \text{si } S_T \lt K_1 \text{ (ejerce el put)} \\ S_T & \text{si } K_1 \le S_T \le K_2 \\ K_2 & \text{si } S_T \gt K_2 \text{ (le ejercen el call)} \end{cases} \]</div>
+      <p>El tipo de cambio queda encerrado en una banda. Si se acercan los strikes hasta \(K_1 = K_2 = F_0\), el range forward se convierte en un forward: por paridad, un call y un put con strike igual al forward valen lo mismo. El importador arma la posición opuesta: compra el call \(K_2\) y vende el put \(K_1\).</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: range forward para el exportador</p>
+        <p>Con los datos de EURUSD, el put 1,05 vale 0,0461. Buscando el strike del call que vale lo mismo, se obtiene \(K_2 = 1{,}1968\) (un call 1,20 vale 0,0452, casi lo mismo). El exportador compra el put 1,05, vende el call 1,1968 y <strong>no paga nada hoy</strong>: va a recibir entre 1.050.000 y 1.196.809 dólares.</p>
+        <div class="tabla-wrap">
+          <table class="tabla">
+            <thead><tr><th>EURUSD al vencimiento</th><th class="num">0,95</th><th class="num">1,10</th><th class="num">1,25</th></tr></thead>
+            <tbody>
+              <tr><td>Sin cobertura</td><td class="num">950.000</td><td class="num">1.100.000</td><td class="num">1.250.000</td></tr>
+              <tr><td>Forward a 1,1166</td><td class="num">1.116.624</td><td class="num">1.116.624</td><td class="num">1.116.624</td></tr>
+              <tr><td>Put 1,05 (neto de la prima capitalizada)</td><td class="num">1.002.452</td><td class="num">1.052.452</td><td class="num">1.202.452</td></tr>
+              <tr><td>Range forward 1,05 – 1,1968</td><td class="num">1.050.000</td><td class="num">1.100.000</td><td class="num">1.196.809</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <figure class="figura">
+        <div class="svg-scroll">
+          <svg viewBox="0 0 660 330" role="img" aria-label="Dólares recibidos por el exportador según el tipo de cambio al vencimiento, sin cobertura, con forward, con put y con range forward.">
+            <line x1="80" y1="280" x2="530" y2="280" class="s-trazo" stroke-width="1.4"/>
+            <line x1="80" y1="280" x2="80" y2="20" class="s-trazo" stroke-width="1.4"/>
+            <g font-size="12" class="s-suave" text-anchor="middle">
+              <text x="142.9" y="297">1,00</text><text x="205.7" y="297">1,05</text><text x="268.6" y="297">1,10</text><text x="331.4" y="297">1,15</text><text x="394.3" y="297">1,20</text><text x="457.1" y="297">1,25</text><text x="520" y="297">1,30</text>
+            </g>
+            <g font-size="12" class="s-suave" text-anchor="end">
+              <text x="72" y="248">1,00</text><text x="72" y="177">1,10</text><text x="72" y="105">1,20</text>
+            </g>
+            <text x="300" y="320" text-anchor="middle" font-size="13" class="s-suave">EURUSD al vencimiento (S_T)</text>
+            <text x="18" y="150" text-anchor="middle" font-size="13" class="s-suave" transform="rotate(-90 18 150)">Millones de USD recibidos</text>
+            <line x1="80" y1="280" x2="520" y2="30" class="s-trazo" stroke-width="1.6" stroke-dasharray="6 5"/>
+            <line x1="80" y1="161" x2="520" y2="161" class="s-trazo" stroke-width="1.6" stroke-dasharray="2 4"/>
+            <polyline points="80,242.5 205.7,242.5 520,64" class="s-acento-trazo" stroke-width="2" stroke-dasharray="8 5"/>
+            <polyline points="80,208.6 205.7,208.6 390.3,103.7 520,103.7" class="s-acento-trazo" stroke-width="3.2"/>
+            <text x="528" y="34" font-size="13" class="s-texto">Sin cobertura</text>
+            <text x="528" y="68" font-size="13" class="s-texto">Put 1,05</text>
+            <text x="528" y="108" font-size="13" class="s-texto">Range forward</text>
+            <text x="528" y="165" font-size="13" class="s-texto">Forward 1,1166</text>
+          </svg>
+        </div>
+        <figcaption>Dólares que recibe el exportador por 1.000.000 de euros. El forward es una línea horizontal; el put pone un piso y deja abierta la suba, pero cuesta la prima; el range forward no cuesta nada y encierra el resultado entre 1,05 y 1,1968.</figcaption>
+      </figure>
+
+      <div class="caja error">
+        <p class="caja-titulo">Errores frecuentes</p>
+        <ul>
+          <li>Pensar que el range forward "sale gratis" sin costo de oportunidad: se paga con la suba que se resigna por encima de \(K_2\).</li>
+          <li>Confundir quién compra qué: el que <strong>cobra</strong> moneda extranjera necesita un piso (put); el que <strong>paga</strong>, un techo (call).</li>
+          <li>Usar \(r\) donde va \(r_f\): la tasa extranjera multiplica a \(S_0\) y la doméstica descuenta el strike.</li>
+        </ul>
+      </div>
+
+      <p>En la <a href="u7-simulacion.html#exportador">simulación de cobertura cambiaria</a> podés comparar las cuatro alternativas y mover los strikes.</p>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="3">
+          <p class="qr-enunciado">Un importador argentino va a pagar dólares en 3 meses. Quiere un tipo de cambio máximo, pero sin renunciar a una eventual baja del dólar. ¿Qué hace?</p>
+          <ol class="qr-op"><li>Compra un put sobre el dólar.</li><li>Vende un call sobre el dólar.</li><li>Compra un call sobre el dólar.</li></ol>
+          <p class="qr-explicacion">El call le da derecho a comprar los dólares a \(K\): ese es su techo. Si el dólar baja, no ejerce y compra más barato en el mercado.</p>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Opciones sobre futuros</h2>
+
+      <p>Hasta ahora, al ejercer una opción se compraba o vendía el activo en el momento: son <strong>opciones sobre el contado</strong> (<em>spot options</em>). Una <strong>opción sobre futuros</strong> (<em>futures option</em>) da el derecho a entrar en un <strong>contrato de futuros</strong>: el call, a tomar una posición larga; el put, una posición corta, al precio de ejercicio. La mayoría son americanas, se identifican por el mes del futuro subyacente (no por el de la opción) y vencen el mismo día o pocos días antes que el futuro.</p>
+
+      <h3>Qué pasa al ejercer</h3>
+      <p>Al ejercer un call sobre un futuro, el comprador recibe una <strong>posición larga en el futuro</strong>, registrada al último precio de ajuste \(F_{aj}\), y un <strong>pago en efectivo de \(F_{aj} - K\)</strong>. Como el futuro no cuesta nada al abrirse, si lo cierra enseguida a \(F\) gana \(F - F_{aj}\). En total cobra \(F - K\): el payoff de un call. El put funciona igual al revés: posición corta en el futuro más \(K - F_{aj}\) en efectivo.</p>
+
+      <figure class="figura">
+        <div class="svg-scroll">
+          <svg viewBox="0 0 700 170" role="img" aria-label="Ejercicio de un call sobre un futuro: se recibe un futuro largo al último ajuste más efectivo, y al cerrarlo el total es F menos K.">
+            <defs><marker id="flecha-u7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="s-flecha"/></marker></defs>
+            <rect x="10" y="20" width="190" height="78" rx="8" class="s-caja" stroke-width="2"/>
+            <rect x="255" y="20" width="190" height="78" rx="8" class="s-caja" stroke-width="2"/>
+            <rect x="500" y="20" width="190" height="78" rx="8" class="s-caja" stroke-width="2"/>
+            <line x1="204" y1="59" x2="250" y2="59" class="s-trazo" stroke-width="1.6" marker-end="url(#flecha-u7)"/>
+            <line x1="449" y1="59" x2="495" y2="59" class="s-trazo" stroke-width="1.6" marker-end="url(#flecha-u7)"/>
+            <g text-anchor="middle" font-size="14" class="s-texto">
+              <text x="105" y="52" font-weight="700">Ejercés el call</text>
+              <text x="105" y="72">(strike K)</text>
+              <text x="350" y="46" font-weight="700">Recibís</text>
+              <text x="350" y="66">futuro largo a F_aj</text>
+              <text x="350" y="86">+ efectivo F_aj − K</text>
+              <text x="595" y="46" font-weight="700">Cerrás el futuro a F</text>
+              <text x="595" y="66">(F − F_aj) + (F_aj − K)</text>
+              <text x="595" y="86">= F − K</text>
+            </g>
+            <g text-anchor="middle" font-size="12.5" class="s-suave">
+              <text x="105" y="125">Oro: K = 300, 100 onzas</text>
+              <text x="350" y="125">F_aj = 338: cobra 3.800</text>
+              <text x="595" y="125">F = 340: gana 200 más</text>
+              <text x="595" y="145">Total: 4.000 = (340 − 300) × 100</text>
+            </g>
+          </svg>
+        </div>
+        <figcaption>Ejercicio de un call sobre un futuro de oro (Hull, sección 13.1). El que lanzó el call recibe la posición corta y paga el efectivo.</figcaption>
+      </figure>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: put sobre un futuro de maíz (Hull, sección 13.1)</p>
+        <p>Un put sobre el futuro de maíz de septiembre tiene strike 200 centavos por bushel y el contrato es de 5.000 bushels. Se ejerce cuando el futuro cotiza a 180 y el último ajuste fue 179. El comprador recibe una posición corta en el futuro y \((2{,}00 - 1{,}79) \times 5.000 = 1.050\) dólares. Si cierra el futuro a 1,80 pierde \((1{,}80 - 1{,}79) \times 5.000 = 50\). Resultado bruto: 1.000 dólares, es decir \((2{,}00 - 1{,}80) \times 5.000\).</p>
+      </div>
+
+      <h3>Por qué son populares</h3>
+      <ul>
+        <li>En muchos casos el futuro es <strong>más líquido</strong> y más fácil de operar que el activo físico: es más simple recibir un futuro sobre bonos del Tesoro o sobre ganado que el bono o el ganado mismo.</li>
+        <li>El precio del futuro se conoce al instante, porque se forma en la bolsa; el del contado a veces hay que salir a buscarlo.</li>
+        <li>El ejercicio <strong>no exige entregar ni pagar el activo</strong>: el futuro se suele cerrar antes de la entrega, así que en la práctica se liquida en efectivo. Eso atrae a quien no tiene el capital para pagar el subyacente.</li>
+        <li>Futuros y opciones se negocian en el mismo mercado, lo que facilita la cobertura, el arbitraje y la especulación, y en general los costos de transacción son menores.</li>
+      </ul>
+
+      <h3>Paridad put-call y límites</h3>
+      <p>Comparemos dos carteras con opciones europeas sobre el mismo futuro, mismo strike y mismo vencimiento:</p>
+      <ul>
+        <li><strong>Cartera A:</strong> un call más \(Ke^{-rT}\) en efectivo. En \(T\) vale \(\max(F_T;\ K)\).</li>
+        <li><strong>Cartera B:</strong> un put, un futuro largo y \(F_0e^{-rT}\) en efectivo. En \(T\) vale \(F_0 + (F_T - F_0) + \max(K - F_T;\ 0) = \max(F_T;\ K)\).</li>
+      </ul>
+      <p>El futuro no cuesta nada hoy, así que la cartera B vale \(p + F_0e^{-rT}\). Igualando:</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Paridad put-call para opciones sobre futuros</span>\[ c + Ke^{-rT} = p + F_0e^{-rT} \qquad\Longleftrightarrow\qquad c - p = (F_0 - K)\,e^{-rT} \]</div>
+      <p>Es la paridad con rendimiento \(q\) cuando se pone \(S_0 = F_0\) y \(q = r\). Un caso particular útil: si \(F_0 = K\), el call y el put valen lo mismo.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo (Hull, sección 13.4)</p>
+        <p>Un call europeo a 6 meses sobre el futuro de plata cuesta 0,56 dólares por onza, con strike 8,50. El futuro a 6 meses cotiza a 8,00 y \(r = 10\%\). El put con igual strike y vencimiento vale</p>
+        <div class="formula">\[ p = c + Ke^{-rT} - F_0e^{-rT} = 0{,}56 + 8{,}50e^{-0{,}05} - 8{,}00e^{-0{,}05} = 1{,}04 \]</div>
+      </div>
+
+      <p>Como el put y el call no pueden valer menos que cero, la paridad da los <strong>límites inferiores</strong> de las europeas. Las americanas, que se pueden ejercer ya, valen al menos su valor intrínseco:</p>
+      <div class="formula">\[ c \ge \max\left((F_0 - K)e^{-rT};\ 0\right) \quad p \ge \max\left((K - F_0)e^{-rT};\ 0\right) \qquad C \ge F_0 - K \quad P \ge K - F_0 \]</div>
+      <p>Para las americanas, la paridad se convierte en la banda \(F_0e^{-rT} - K \le C - P \le F_0 - Ke^{-rT}\).</p>
+
+      <h3>Árbol binomial para un futuro</h3>
+      <p>La diferencia clave con el árbol de una acción es que <strong>entrar en un futuro no cuesta nada</strong>. Veamos el ejemplo de Hull: el futuro vale hoy 30 y en un mes puede subir a 33 o bajar a 28. Un call a un mes con strike 29 paga 4 o 0.</p>
+
+      <figure class="figura">
+        <svg viewBox="0 0 440 160" role="img" aria-label="Árbol de un paso: el futuro vale 30 y puede subir a 33, donde el call paga 4, o bajar a 28, donde paga 0.">
+          <line x1="78" y1="80" x2="312" y2="30" class="s-trazo" stroke-width="1.6"/>
+          <line x1="78" y1="80" x2="312" y2="130" class="s-trazo" stroke-width="1.6"/>
+          <circle cx="72" cy="80" r="6" class="s-acento"/>
+          <circle cx="318" cy="30" r="6" class="s-acento"/>
+          <circle cx="318" cy="130" r="6" class="s-acento"/>
+          <text x="62" y="70" text-anchor="end" font-size="14" class="s-texto">F₀ = 30</text>
+          <text x="62" y="98" text-anchor="end" font-size="14" class="s-texto">c = ?</text>
+          <text x="330" y="26" font-size="14" class="s-texto">F = 33 (u = 1,1)</text>
+          <text x="330" y="46" font-size="14" class="s-suave">c_u = 4</text>
+          <text x="330" y="126" font-size="14" class="s-texto">F = 28 (d = 0,9333)</text>
+          <text x="330" y="146" font-size="14" class="s-suave">c_d = 0</text>
+        </svg>
+        <figcaption>Árbol de un paso para el precio de un futuro (Hull, sección 13.6).</figcaption>
+      </figure>
+
+      <p>Armamos una cartera sin riesgo: lanzamos el call y compramos \(\Delta\) futuros. Si sube, vale \(3\Delta - 4\); si baja, \(-2\Delta\) (el futuro gana o pierde la diferencia de precio). Igualando, \(\Delta = 0{,}8\) y la cartera vale \(-1{,}6\) en los dos estados. Su valor hoy es \(-1{,}6\,e^{-0{,}06/12} = -1{,}592\). Como el futuro no cuesta nada, la cartera hoy es solo el call lanzado: \(-c = -1{,}592\), así que \(c = 1{,}592\).</p>
+      <p>En general, con \(\Delta = (f_u - f_d)/(F_0u - F_0d)\) se llega a</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Árbol binomial para futuros</span>\[ p = \frac{1 - d}{u - d} \qquad\qquad f = e^{-r\Delta t}\left[p\,f_u + (1 - p)\,f_d\right] \]</div>
+      <p>En el ejemplo, \(p = (1 - 0{,}9333)/(1{,}1 - 0{,}9333) = 0{,}4\) y \(f = e^{-0{,}06/12}(0{,}4 \times 4 + 0{,}6 \times 0) = 1{,}592\), igual que antes.</p>
+
+      <div class="caja importante">
+        <p class="caja-titulo">¿Por qué el futuro "rinde" r?</p>
+        <p>Un futuro <strong>no requiere inversión</strong>: entrar no cuesta nada. En un mundo neutral al riesgo, una posición que no cuesta nada tiene que tener una ganancia esperada nula, así que \(\hat{E}[F_T] = F_0\): <strong>el precio futuro no crece en promedio</strong>. Un activo que rinde \(q\) crece en promedio a \(r - q\) en el mundo neutral al riesgo. Para que eso dé cero hay que poner \(q = r\). Por eso un futuro se trata como un activo con rendimiento \(q = r\), y \(p = (e^{(r-q)\Delta t} - d)/(u - d)\) se convierte en \((1 - d)/(u - d)\).</p>
+      </div>
+
+      <div class="caja prueba">
+        <p class="caja-titulo">Probá vos</p>
+        <p>Un futuro vale 40 y en 3 meses valdrá 35 o 45. Con \(r = 7\%\), ¿cuánto vale un call europeo a 3 meses sobre el futuro con strike 42? (Hull, problema 13.20)</p>
+        <details class="desplegable">
+          <summary>Ver la resolución</summary>
+          <p>\(u = 45/40 = 1{,}125\) y \(d = 35/40 = 0{,}875\), así que \(p = (1 - 0{,}875)/(1{,}125 - 0{,}875) = 0{,}5\). El call paga 3 si sube y 0 si baja: \(c = e^{-0{,}07 \times 0{,}25}(0{,}5 \times 3) = 1{,}47\).</p>
+        </details>
+      </div>
+
+      <h3>El modelo de Black (1976)</h3>
+      <p>Fischer Black mostró en 1976 que, si el precio futuro tiene volatilidad constante (distribución lognormal), las opciones europeas sobre futuros se valúan con Black-Scholes-Merton poniendo \(S_0 = F_0\) y \(q = r\). Como \(F_0e^{-rT}\) reemplaza a \(S_0e^{-qT}\) y \(r - q = 0\):</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Modelo de Black</span>\[ c = e^{-rT}\left[F_0N(d_1) - KN(d_2)\right] \qquad p = e^{-rT}\left[KN(-d_2) - F_0N(-d_1)\right] \]
+        \[ d_1 = \frac{\ln(F_0/K) + \sigma^2T/2}{\sigma\sqrt{T}} \qquad d_2 = d_1 - \sigma\sqrt{T} \]</div>
+      <p>Aquí \(\sigma\) es la volatilidad del precio <strong>futuro</strong>. La fórmula no exige que la opción y el futuro venzan el mismo día.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo (guía U7, ej. 3)</p>
+        <p>El futuro vale \(F_0 = 20\), el strike es \(K = 19\), \(r = 4\%\), \(\sigma = 35\%\) y \(T = 4\) meses.</p>
+        <ul>
+          <li>\(e^{-rT} = e^{-0{,}04/3} = 0{,}98676\); \(Ke^{-rT} = 18{,}75\) y \(F_0e^{-rT} = 19{,}74\).</li>
+          <li><strong>Mínimo del call:</strong> \((20 - 19) \times 0{,}98676 = 0{,}99\). <strong>Mínimo del put:</strong> \(\max((19 - 20) \times 0{,}98676;\ 0) = 0\).</li>
+          <li>\(d_1 = \dfrac{\ln(20/19) + 0{,}35^2 \times 0{,}3333/2}{0{,}35\sqrt{0{,}3333}} = \dfrac{0{,}0513 + 0{,}0204}{0{,}2021} = 0{,}3549\) y \(d_2 = 0{,}1528\); \(N(d_1) = 0{,}63866\) y \(N(d_2) = 0{,}56072\).</li>
+          <li><strong>Call:</strong> \(c = 0{,}98676\,(20 \times 0{,}63866 - 19 \times 0{,}56072) = 2{,}09\).</li>
+          <li><strong>Put:</strong> \(p = 0{,}98676\,(19 \times 0{,}43928 - 20 \times 0{,}36134) = 1{,}10\).</li>
+          <li><strong>Paridad:</strong> \(2{,}09 + 18{,}75 = 20{,}84\) y \(1{,}10 + 19{,}74 = 20{,}84\).</li>
+        </ul>
+      </div>
+
+      <div class="caja importante">
+        <p class="caja-titulo">Atención con la guía</p>
+        <p>En la guía de la cátedra las respuestas del ejercicio 3 figuran como a) 0, b) 0,99, c) 1,10 y d) 2,09: los valores son correctos, pero están <strong>intercambiados entre el call y el put</strong>. Con \(F_0 = 20 \gt K = 19\), el call está dentro del dinero: su mínimo es 0,99 y vale 2,09. El put está fuera del dinero: su mínimo es 0 y vale 1,10. La paridad que da la guía (20,83) solo cierra con el call de 2,09: \(2{,}09 + 18{,}75 = 20{,}84\).</p>
+      </div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo (Hull, sección 13.8)</p>
+        <p>Un put europeo a 4 meses sobre el futuro de petróleo: \(F_0 = K = 20\), \(r = 9\%\), \(\sigma = 25\%\). Como \(\ln(F_0/K) = 0\), \(d_1 = \sigma\sqrt{T}/2 = 0{,}0722\) y \(d_2 = -0{,}0722\). Entonces \(p = e^{-0{,}09/3}(20 \times 0{,}5288 - 20 \times 0{,}4712) = 1{,}12\). El call con el mismo strike también vale 1,12, porque está en el dinero respecto del futuro.</p>
+      </div>
+
+      <h3>Opciones americanas sobre futuros</h3>
+      <p>Con una opción americana sobre un futuro <strong>puede convenir ejercer antes</strong>, tanto un put como un <strong>call</strong>. Con un call americano sobre una acción sin dividendos eso nunca pasaba, porque ejercer obligaba a pagar \(K\) antes de tiempo. Acá no hay nada que pagar: al ejercer un call muy dentro del dinero se cobra \(F - K\) en efectivo, que empieza a ganar intereses, y la posición en el futuro no cuesta nada. Si el valor tiempo que queda es menor que esos intereses, conviene ejercer. Visto con la regla de Merton, el futuro es un activo que "rinde" \(q = r\), como una acción con un dividendo alto. Como no hay fórmula cerrada, se valúan con árboles binomiales.</p>
+      <p>En el <a href="u7-simulacion.html#arbol-futuro">árbol binomial de un futuro</a> podés ver en qué nodos conviene ejercer el call.</p>
+
+      <h3>Opciones sobre futuros frente a opciones sobre el contado</h3>
+      <ul>
+        <li>Si la opción europea sobre el futuro vence el mismo día que el futuro, \(F_T = S_T\) y vale lo mismo que la opción europea sobre el contado.</li>
+        <li>Si la opción vence antes que el futuro, en un <strong>mercado normal</strong> (futuros por encima del contado) el call sobre el futuro vale más que el call sobre el contado y el put vale menos. En un <strong>mercado invertido</strong> (futuros por debajo del contado), al revés.</li>
+        <li>Con opciones <strong>americanas</strong>, aunque venzan junto con el futuro: en un mercado normal, el call americano sobre el futuro vale más que el call americano sobre el contado, porque en los ejercicios anticipados se cobra \(F - K \gt S - K\). El put vale menos. En un mercado invertido (por ejemplo, una moneda extranjera cuya tasa es mayor que la doméstica, \(r_f \gt r\)) se da lo contrario.</li>
+      </ul>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">En un árbol binomial para el precio de un futuro, la probabilidad neutral al riesgo es…</p>
+          <ol class="qr-op"><li>\(\dfrac{e^{r\Delta t} - d}{u - d}\)</li><li>\(\dfrac{1 - d}{u - d}\)</li><li>\(\dfrac{u - 1}{u - d}\)</li></ol>
+          <p class="qr-explicacion">El futuro no requiere inversión, así que su precio esperado no crece en el mundo neutral al riesgo: \(pu + (1-p)d = 1\). La primera es la de una acción sin dividendos y la tercera es \(1 - p\).</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">¿Puede convenir ejercer anticipadamente un call americano sobre un futuro?</p>
+          <ol class="qr-op"><li>Sí: si está muy dentro del dinero, cobrar \(F - K\) hoy y ganar intereses puede valer más que el valor tiempo que se pierde.</li><li>No, nunca, igual que un call sobre una acción sin dividendos.</li><li>Solo si el futuro paga dividendos.</li></ol>
+          <p class="qr-explicacion">Al ejercer no hay que pagar \(K\): se cobra \(F - K\) en efectivo. El futuro se comporta como un activo con \(q = r\), y con rendimiento positivo el ejercicio anticipado del call puede ser óptimo.</p>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>En Argentina: opciones sobre el dólar futuro</h2>
+
+      <div class="caja argentina">
+        <p class="caja-titulo">En Argentina</p>
+        <p>En A3 Mercados, el principal mercado de futuros del país (surgido de la fusión de Matba Rofex y MAE), se negocian <strong>opciones sobre el contrato de dólar futuro</strong>. El subyacente de la opción no es el dólar contado sino el futuro: un contrato de USD 1.000 que cotiza en pesos por dólar, vence el último día hábil del mes, tiene ajuste diario y se liquida por diferencias en pesos contra el tipo de cambio de referencia del BCRA (Comunicación "A" 3500). La cámara es Argentina Clearing y Registro (ACyRSA).</p>
+        <p>Según la guía de producto de A3, estas opciones son de <strong>ejercicio americano</strong> y la prima se paga al operar. Como el subyacente es un futuro, el valor exacto sale de un <strong>árbol binomial</strong> con \(p = (1 - d)/(u - d)\), en el que puede convenir ejercer antes de tiempo (ver "Opciones americanas sobre futuros"). El <strong>modelo de Black</strong>, con la tasa en pesos como \(r\) y la volatilidad del dólar futuro como \(\sigma\), da el valor de la opción europea: es una buena aproximación, pero algo menor. Antes de operar, consultá en A3 las especificaciones vigentes: strikes disponibles, vencimientos y márgenes.</p>
+      </div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo ilustrativo: un exportador con un put sobre el dólar</p>
+        <p>Un exportador va a cobrar USD 500.000 a fin del mes que vence dentro de 3 meses y teme que el dólar baje. Los números que siguen son <strong>ilustrativos</strong>, no precios de mercado: el dólar futuro de ese mes cotiza a 1.500 pesos, la tasa en pesos es 30 % anual y la volatilidad del futuro es 18 %.</p>
+        <p>Compra 500 puts (uno por cada contrato de USD 1.000) con strike 1.450. Con Black:</p>
+        <ul>
+          <li>\(d_1 = \dfrac{\ln(1.500/1.450) + 0{,}18^2 \times 0{,}25/2}{0{,}18\sqrt{0{,}25}} = 0{,}4217\) y \(d_2 = 0{,}3317\).</li>
+          <li>\(p = e^{-0{,}30 \times 0{,}25}\,[1.450 \times N(-0{,}3317) - 1.500 \times N(-0{,}4217)] = 29{,}36\) pesos por dólar.</li>
+          <li>Costo total: \(29{,}36 \times 1.000 \times 500 = 14{,}68\) millones de pesos. Con el costo financiero de 3 meses, la prima equivale a \(29{,}36\,e^{0{,}075} = 31{,}65\) pesos por dólar al vencimiento.</li>
+          <li>Como la opción de A3 es americana, conviene compararla con un árbol: con 1.000 pasos da \(29{,}77\), unos 0,41 pesos más que Black. Esa diferencia es el valor de poder ejercer antes. La tabla usa el valor de Black para que se siga la cuenta; con el de la americana el piso baja a unos 1.417,91.</li>
+        </ul>
+        <div class="tabla-wrap">
+          <table class="tabla">
+            <thead><tr><th>Dólar al vencimiento (A3500)</th><th class="num">1.300</th><th class="num">1.450</th><th class="num">1.700</th></tr></thead>
+            <tbody>
+              <tr><td>Vende los dólares a</td><td class="num">1.300,00</td><td class="num">1.450,00</td><td class="num">1.700,00</td></tr>
+              <tr><td>Pago del put</td><td class="num">150,00</td><td class="num">0,00</td><td class="num">0,00</td></tr>
+              <tr><td>Prima capitalizada</td><td class="num neg">−31,65</td><td class="num neg">−31,65</td><td class="num neg">−31,65</td></tr>
+              <tr class="total"><td>Pesos por dólar con el put</td><td class="num">1.418,35</td><td class="num">1.418,35</td><td class="num">1.668,35</td></tr>
+              <tr><td>Pesos por dólar vendiendo el futuro a 1.500</td><td class="num">1.500,00</td><td class="num">1.500,00</td><td class="num">1.500,00</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Con el put, el exportador se asegura un piso de 1.418,35 pesos por dólar y conserva la suba. Vendiendo el futuro se asegura 1.500, pero renuncia a la suba. Un importador haría lo contrario: compraría calls sobre el dólar futuro para ponerle un techo a su costo.</p>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Resumen</h2>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">Para recordar</p>
+        <ul>
+          <li><strong>Regla de Merton:</strong> una opción europea sobre un activo que rinde \(q\) se valúa reemplazando \(S_0\) por \(S_0e^{-qT}\).</li>
+          <li>Límites: \(c \ge S_0e^{-qT} - Ke^{-rT}\) y \(p \ge Ke^{-rT} - S_0e^{-qT}\). Paridad: \(c + Ke^{-rT} = p + S_0e^{-qT}\).</li>
+          <li>BSM: \(c = S_0e^{-qT}N(d_1) - Ke^{-rT}N(d_2)\), con \(d_1 = [\ln(S_0/K) + (r - q + \sigma^2/2)T]/(\sigma\sqrt{T})\). Árbol: \(p = (e^{(r-q)\Delta t} - d)/(u - d)\), descontando a \(r\).</li>
+          <li>Un \(q\) mayor baja el call y sube el put.</li>
+          <li><strong>Índices:</strong> \(q\) = rendimiento por dividendos. Seguro de cartera: \(N = \beta V_0/(mS_0)\) puts, con el strike en el nivel del índice donde la cartera vale el monto asegurado (CAPM).</li>
+          <li><strong>Monedas:</strong> \(q = r_f\) (Garman-Kohlhagen). Exportador: compra puts; importador: compra calls. Range forward: put \(K_1\) comprado y call \(K_2\) vendido, de costo cero.</li>
+          <li><strong>Futuros:</strong> \(S_0 = F_0\) y \(q = r\). Paridad: \(c + Ke^{-rT} = p + F_0e^{-rT}\). Árbol: \(p = (1-d)/(u-d)\). Modelo de Black: \(c = e^{-rT}[F_0N(d_1) - KN(d_2)]\).</li>
+          <li>Al ejercer un call sobre un futuro se recibe un futuro largo más \(F - K\) en efectivo. Las americanas sobre futuros (calls y puts) pueden ejercerse antes.</li>
+        </ul>
+      </div>
+
+      <div class="caja hull">
+        <p class="caja-titulo">Para leer en Hull</p>
+        <p>Edición en español del material: capítulo 12, "Opciones sobre índices bursátiles y divisas" (12.1 una regla sencilla, 12.2 fórmulas de valoración, 12.3 árboles binomiales, 12.4 opciones sobre índices bursátiles y aseguramiento de cartera, 12.5 opciones sobre divisas), y capítulo 13, "Opciones sobre contratos de futuros" (naturaleza, popularidad, paridad put-call, límites, árboles binomiales, el futuro como activo con rendimiento continuo, modelo de Black y comparación con las opciones al contado).</p>
+        <p><em>Options, Futures and Other Derivatives</em> (cronograma): capítulo 17, "Options on Stock Indices and Currencies" (incluye <em>range forwards</em>), y capítulo 18, "Futures Options and Black's Model".</p>
+      </div>
+    </article>
+  </main>
+
+  <nav class="pie-navegacion" id="pie-navegacion"></nav>
+
+  <script src="vendor/katex/katex.min.js"></script>
+  <script src="vendor/katex/contrib/auto-render.min.js"></script>
+  <script src="vendor/chartjs/chart.umd.min.js"></script>
+  <script src="js/calculos.js"></script>
+  <script src="js/comun.js"></script>
+</body>
+</html>

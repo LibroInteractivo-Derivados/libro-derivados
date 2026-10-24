@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Formulario y glosario · Derivados I</title>
+  <link rel="stylesheet" href="vendor/fuentes/fuentes.css">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="css/libro.css">
+  <style>
+    .buscador { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 6px 0 18px; }
+    .buscador input { flex: 1; min-width: 220px; }
+    .ficha { break-inside: avoid; }
+    .ficha > p { margin: 4px 0 2px; }
+    .ficha .formula { margin: 6px 0 14px; }
+    .ficha-titulo { font-family: var(--fuente-ui); font-weight: 700; font-size: 0.95rem; color: var(--texto); }
+    .oculto { display: none !important; }
+    .sin-resultados { font-family: var(--fuente-ui); color: var(--suave); }
+    @media print { .buscador, .indice { display: none !important; } h2 { break-before: auto; } }
+  </style>
+</head>
+<body data-pagina="formulario">
+  <div id="encabezado"></div>
+
+  <main class="pagina con-indice">
+    <aside class="indice" id="indice"></aside>
+    <article class="contenido">
+      <h1>Formulario y glosario</h1>
+      <p class="bajada">Todas las fórmulas de la materia, unidad por unidad, y los términos clave. Convención de la cátedra: tasas anuales con composición continua y año de 360 días (30/360), salvo que se indique otra cosa.</p>
+
+      <div class="buscador">
+        <input type="search" id="f-buscar" placeholder="Buscar: paridad, delta, tasa swap, base…" aria-label="Buscar en el formulario y el glosario">
+        <button class="btn" type="button" onclick="window.print()">Imprimir</button>
+      </div>
+      <p class="sin-resultados oculto" id="f-vacio">No hay fórmulas ni términos que coincidan con la búsqueda.</p>
+
+      <!-- ================================================================== -->
+      <h2>Unidad I · Forwards y futuros</h2>
+      <div class="ficha"><p class="ficha-titulo">Resultado de un forward al vencimiento</p>
+        <div class="formula">\[ \text{Largo: } S_T - K \qquad \text{Corto: } K - S_T \]</div></div>
+      <div class="ficha"><p class="ficha-titulo">Ajuste diario de una posición en futuros</p>
+        <div class="formula">\[ \text{Ganancia del día} = (F_t - F_{t-1}) \times \text{tamaño del contrato} \times \text{contratos} \quad (\text{posición larga}) \]</div>
+        <p>Si el saldo de la cuenta cae por debajo del margen de mantenimiento, hay llamado de margen: se repone <b>hasta el margen inicial</b>.</p></div>
+      <p><a class="chip acento" href="u1-teoria.html">Teoría U I</a> <a class="chip" href="herramientas.html#cuenta-de-margenes">Herramienta: cuenta de márgenes</a></p>
+
+      <!-- ================================================================== -->
+      <h2>Unidad II · Cobertura con futuros</h2>
+      <div class="ficha"><p class="ficha-titulo">Base y precio efectivo</p>
+        <div class="formula">\[ b_t = S_t - F_t \qquad \text{Precio efectivo} = F_1 + b_2 = S_2 + (F_1 - F_2) \]</div></div>
+      <div class="ficha"><p class="ficha-titulo">Ratio de cobertura de mínima varianza</p>
+        <div class="formula">\[ h^* = \rho\,\frac{\sigma_S}{\sigma_F} \qquad N^* = \frac{h^* Q_A}{Q_F} \qquad \text{efectividad} = \rho^2 \]</div></div>
+      <div class="ficha"><p class="ficha-titulo">Tailing the hedge (ajuste por valor)</p>
+        <div class="formula">\[ N^* = \frac{h^* V_A}{V_F} \]</div></div>
+      <div class="ficha"><p class="ficha-titulo">Cobertura con futuros sobre índices</p>
+        <div class="formula">\[ N^* = \beta\,\frac{V_A}{V_F} \qquad \text{Cambiar la beta de } \beta \text{ a } \beta^*: \; N = (\beta^* - \beta)\,\frac{V_A}{V_F} \]</div>
+        <p>\(V_F\) = precio del futuro × multiplicador. Si \(N > 0\) se compran futuros; si \(N < 0\), se venden.</p></div>
+      <p><a class="chip acento" href="u2-teoria.html">Teoría U II</a> <a class="chip" href="herramientas.html#cobertura-con-futuros">Herramienta: cobertura</a></p>
+
+      <!-- ================================================================== -->
+      <h2>Unidad III · Tasas y precios forward</h2>
+      <div class="ficha"><p class="ficha-titulo">Conversión de tasas</p>
+        <div class="formula">\[ R_c = m \ln\!\left(1 + \frac{R_m}{m}\right) \qquad R_m = m\left(e^{R_c/m} - 1\right) \]</div>
+        <div class="formula">\[ \text{TNA}_{n} \to \text{efectiva a } d \text{ días: } \left(1 + \text{TNA}_n \tfrac{n}{360}\right)^{d/n} - 1 \]</div></div>
+      <div class="ficha"><p class="ficha-titulo">Tasa forward</p>
+        <div class="formula">\[ R_F = \frac{R_2 T_2 - R_1 T_1}{T_2 - T_1} = R_2 + (R_2 - R_1)\,\frac{T_1}{T_2 - T_1} \]</div></div>
+      <div class="ficha"><p class="ficha-titulo">Bonos: precio y duración</p>
+        <div class="formula">\[ B = \sum_i c_i\,e^{-r_i t_i} \qquad D = \frac{\sum_i t_i\,c_i\,e^{-y t_i}}{B} \qquad \Delta B \approx -B\,D\,\Delta y \]</div></div>
+      <div class="ficha"><p class="ficha-titulo">FRA</p>
+        <div class="formula">\[ \text{Flujo del largo en } T_2: \; L\,(R_M - R_K)\,\tau \qquad \text{Liquidación en } T_1: \; \frac{L\,(R_M - R_K)\,\tau}{1 + R_M\,\tau} \]</div>
+        <div class="formula">\[ V_{FRA} = L\,(R_K - R_F)\,\tau\,e^{-R_2 T_2} \quad (\text{para quien recibe } R_K) \]</div></div>
+      <div class="ficha"><p class="ficha-titulo">Precio forward</p>
+        <div class="formula">\[ F_0 = S_0 e^{rT} \qquad F_0 = (S_0 - I)\,e^{rT} \qquad F_0 = S_0 e^{(r - q)T} \]</div>
+        <div class="formula">\[ \text{Monedas: } F_0 = S_0 e^{(r - r_f)T} \qquad \text{Commodities: } F_0 = (S_0 + U)\,e^{rT} \;\; \text{o} \;\; F_0 \le S_0 e^{(r + u - y)T} \]</div></div>
+      <div class="ficha"><p class="ficha-titulo">Valor de un forward ya pactado</p>
+        <div class="formula">\[ f = (F_0 - K)\,e^{-rT} \quad (\text{largo}) \]</div></div>
+      <p><a class="chip acento" href="u3-teoria.html">Teoría U III</a> <a class="chip" href="herramientas.html#conversor-de-tasas">Conversor de tasas</a> <a class="chip" href="herramientas.html#precio-forward-y-arbitraje">Precio forward</a></p>
+
+      <!-- ================================================================== -->
+      <h2>Unidad IV · Swaps</h2>
+      <div class="ficha"><p class="ficha-titulo">Ventaja comparativa</p>
+        <div class="formula">\[ \text{Ganancia total} = \left|\,\Delta_{\text{fija}} - \Delta_{\text{variable}}\,\right| \]</div></div>
+      <div class="ficha"><p class="ficha-titulo">Valuación de un swap de tasa</p>
+        <div class="formula">\[ V_{\text{recibe fija}} = B_{fix} - B_{fl} \qquad B_{fix} = \sum_i k\,e^{-r_i t_i} + L\,e^{-r_n t_n} \qquad B_{fl} = (L + k^*)\,e^{-r_1 t_1} \]</div></div>
+      <div class="ficha"><p class="ficha-titulo">Tasa swap (valor cero al inicio)</p>
+        <div class="formula">\[ R_{swap} = \frac{1 - e^{-r_n T_n}}{\tau \sum_{i} e^{-r_i t_i}} \]</div></div>
+      <div class="ficha"><p class="ficha-titulo">Swap de monedas</p>
+        <div class="formula">\[ V_{\text{recibe doméstica}} = B_D - S_0\,B_F \qquad F_t = S_0\,e^{(r - r_f)t} \]</div></div>
+      <p><a class="chip acento" href="u4-teoria.html">Teoría U IV</a> <a class="chip" href="u4-ejemplos.html">Ejemplos prácticos</a></p>
+
+      <!-- ================================================================== -->
+      <h2>Unidad V · Opciones: propiedades</h2>
+      <div class="ficha"><p class="ficha-titulo">Pagos al vencimiento</p>
+        <div class="formula">\[ \text{Call: } \max(S_T - K;\,0) \qquad \text{Put: } \max(K - S_T;\,0) \qquad \text{Beneficio} = \text{pago} - \text{prima} \]</div></div>
+      <div class="ficha"><p class="ficha-titulo">Límites (sin dividendos)</p>
+        <div class="formula">\[ \max(S_0 - Ke^{-rT};\,0) \le c \le S_0 \qquad \max(Ke^{-rT} - S_0;\,0) \le p \le Ke^{-rT} \]</div>
+        <p>Con dividendos de valor presente \(D\): reemplazar \(S_0\) por \(S_0 - D\).</p></div>
+      <div class="ficha"><p class="ficha-titulo">Paridad put-call</p>
+        <div class="formula">\[ c + Ke^{-rT} = p + S_0 \qquad \text{con dividendos: } c + D + Ke^{-rT} = p + S_0 \]</div></div>
+      <div class="ficha"><p class="ficha-titulo">Banda para americanas</p>
+        <div class="formula">\[ S_0 - K \le C - P \le S_0 - Ke^{-rT} \qquad \text{con dividendos: } S_0 - D - K \le C - P \le S_0 - Ke^{-rT} \]</div></div>
+      <p><a class="chip acento" href="u5-teoria.html">Teoría U V</a> <a class="chip" href="herramientas.html#limites-de-precios">Límites</a> <a class="chip" href="herramientas.html#paridad-put-call-despejar-la-incognita">Paridad</a></p>
+
+      <!-- ================================================================== -->
+      <h2>Unidad VI · Valuación de opciones</h2>
+      <div class="ficha"><p class="ficha-titulo">Binomial de un paso</p>
+        <div class="formula">\[ \Delta = \frac{f_u - f_d}{S_0u - S_0d} \qquad p = \frac{e^{r\Delta t} - d}{u - d} \qquad f = e^{-r\Delta t}\left[p\,f_u + (1 - p)\,f_d\right] \]</div></div>
+      <div class="ficha"><p class="ficha-titulo">Árbol de Cox-Ross-Rubinstein</p>
+        <div class="formula">\[ u = e^{\sigma\sqrt{\Delta t}} \qquad d = \frac{1}{u} \qquad \text{con rendimiento } q: \; p = \frac{e^{(r - q)\Delta t} - d}{u - d} \]</div></div>
+      <div class="ficha"><p class="ficha-titulo">Propiedad lognormal</p>
+        <div class="formula">\[ \ln S_T \sim N\!\left[\ln S_0 + \left(\mu - \tfrac{\sigma^2}{2}\right)T;\; \sigma^2 T\right] \qquad E(S_T) = S_0e^{\mu T} \]</div>
+        <div class="formula">\[ P(S_T > K) = N(d_2) \text{ calculado con } \mu \text{ en lugar de } r \]</div></div>
+      <div class="ficha"><p class="ficha-titulo">Volatilidad histórica</p>
+        <div class="formula">\[ u_i = \ln\frac{S_i}{S_{i-1}} \qquad \hat\sigma = \frac{s}{\sqrt{\tau}} \qquad \text{error estándar} \approx \frac{\hat\sigma}{\sqrt{2n}} \]</div></div>
+      <div class="ficha"><p class="ficha-titulo">Black-Scholes-Merton</p>
+        <div class="formula">\[ c = S_0N(d_1) - Ke^{-rT}N(d_2) \qquad p = Ke^{-rT}N(-d_2) - S_0N(-d_1) \]</div>
+        <div class="formula">\[ d_1 = \frac{\ln(S_0/K) + (r + \sigma^2/2)\,T}{\sigma\sqrt T} \qquad d_2 = d_1 - \sigma\sqrt T \]</div></div>
+      <div class="ficha"><p class="ficha-titulo">Griegas (sin dividendos)</p>
+        <div class="formula">\[ \Delta_c = N(d_1) \quad \Delta_p = N(d_1) - 1 \quad \Gamma = \frac{N'(d_1)}{S_0\sigma\sqrt T} \quad \mathcal V = S_0\sqrt T\,N'(d_1) \]</div>
+        <div class="formula">\[ \Theta_c = -\frac{S_0N'(d_1)\sigma}{2\sqrt T} - rKe^{-rT}N(d_2) \qquad \Theta_p = -\frac{S_0N'(d_1)\sigma}{2\sqrt T} + rKe^{-rT}N(-d_2) \]</div></div>
+      <p><a class="chip acento" href="u6-teoria.html">Teoría U VI</a> <a class="chip" href="herramientas.html#black-scholes-paso-a-paso">Black-Scholes paso a paso</a> <a class="chip" href="herramientas.html#tabla-de-la-normal-n-x">Tabla N(x)</a></p>
+
+      <!-- ================================================================== -->
+      <h2>Unidad VII · Índices, monedas y futuros</h2>
+      <div class="ficha"><p class="ficha-titulo">Regla de Merton (activo que rinde q)</p>
+        <div class="formula">\[ c = S_0e^{-qT}N(d_1) - Ke^{-rT}N(d_2) \qquad d_1 = \frac{\ln(S_0/K) + (r - q + \sigma^2/2)\,T}{\sigma\sqrt T} \]</div>
+        <div class="formula">\[ c + Ke^{-rT} = p + S_0e^{-qT} \qquad c \ge S_0e^{-qT} - Ke^{-rT} \]</div>
+        <p>Índice: \(q\) = rendimiento por dividendos. Moneda (Garman-Kohlhagen): \(q = r_f\). Futuro (Black): \(S_0 = F_0\) y \(q = r\).</p></div>
+      <div class="ficha"><p class="ficha-titulo">Modelo de Black (opciones sobre futuros)</p>
+        <div class="formula">\[ c = e^{-rT}\left[F_0N(d_1) - KN(d_2)\right] \qquad p = e^{-rT}\left[KN(-d_2) - F_0N(-d_1)\right] \qquad d_1 = \frac{\ln(F_0/K) + \sigma^2T/2}{\sigma\sqrt T} \]</div>
+        <div class="formula">\[ c + Ke^{-rT} = p + F_0e^{-rT} \qquad \text{árbol: } p = \frac{1 - d}{u - d} \]</div></div>
+      <div class="ficha"><p class="ficha-titulo">Seguro de cartera con puts sobre índice</p>
+        <div class="formula">\[ N = \beta\,\frac{V_0}{m\,S_0} \qquad V_T = V_0\left[1 + rT + \beta\left(\frac{S_T}{S_0} - 1 + qT - rT\right) - qT\right] \]</div>
+        <p>El strike es el nivel del índice que hace \(V_T\) igual al valor asegurado.</p></div>
+      <p><a class="chip acento" href="u7-teoria.html">Teoría U VII</a> <a class="chip" href="u7-simulacion.html">Simulación</a></p>
+
+      <!-- ================================================================== -->
+      <h2>Unidad VIII · Estrategias con opciones</h2>
+      <div class="tabla-wrap ficha">
+        <table class="tabla">
+          <thead><tr><th>Estrategia</th><th>Cómo se arma</th><th>Para qué</th></tr></thead>
+          <tbody>
+            <tr><td>Principal-protected note</td><td>Bono cupón cero \(Ke^{-rT}\) + call</td><td>Capital garantizado con participación en la suba</td></tr>
+            <tr><td>Covered call</td><td>Acción + call vendido</td><td>Cobrar prima resignando la suba (= put vendido)</td></tr>
+            <tr><td>Protective put</td><td>Acción + put comprado</td><td>Piso para la cartera (= call comprado)</td></tr>
+            <tr><td>Collar</td><td>Acción + put comprado + call vendido</td><td>Protección financiada, con techo</td></tr>
+            <tr><td>Bull spread</td><td>Call \(K_1\) comprado + call \(K_2\) vendido (o con puts)</td><td>Suba moderada, riesgo acotado</td></tr>
+            <tr><td>Bear spread</td><td>Put \(K_2\) comprado + put \(K_1\) vendido (o con calls)</td><td>Baja moderada, riesgo acotado</td></tr>
+            <tr><td>Box spread</td><td>Bull call + bear put con los mismos strikes</td><td>Vale \((K_2 - K_1)e^{-rT}\): tasa sintética</td></tr>
+            <tr><td>Butterfly</td><td>Call \(K_1\) + call \(K_3\) comprados, 2 calls \(K_2\) vendidos</td><td>Precio quieto, riesgo acotado</td></tr>
+            <tr><td>Straddle</td><td>Call + put con el mismo strike</td><td>Movimiento grande hacia cualquier lado</td></tr>
+            <tr><td>Strangle</td><td>Put \(K_1\) + call \(K_2\), con \(K_1 < K_2\)</td><td>Movimiento grande, más barato que el straddle</td></tr>
+            <tr><td>Strip / strap</td><td>1 call + 2 puts / 2 calls + 1 put</td><td>Volatilidad con sesgo bajista / alcista</td></tr>
+            <tr><td>Calendar spread</td><td>Opción corta vendida + opción larga comprada, mismo strike</td><td>Precio quieto cerca del strike (theta)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="ficha"><p class="ficha-titulo">Break-evens habituales (\(C\) = costo neto)</p>
+        <div class="formula">\[ \text{Straddle: } K \pm C \qquad \text{Strangle: } K_1 - C,\; K_2 + C \qquad \text{Butterfly: } K_1 + C,\; K_3 - C \qquad \text{Bull call: } K_1 + C \]</div></div>
+      <p><a class="chip acento" href="u8-teoria.html">Teoría U VIII</a> <a class="chip" href="u8-simulacion.html">Simulador de estrategias</a></p>
+
+      <!-- ================================================================== -->
+      <h2>Glosario</h2>
+      <dl class="glosario" id="lista-glosario"></dl>
+    </article>
+  </main>
+
+  <nav class="pie-navegacion" id="pie-navegacion"></nav>
+
+  <script src="vendor/katex/katex.min.js"></script>
+  <script src="vendor/katex/contrib/auto-render.min.js"></script>
+  <script src="js/calculos.js"></script>
+  <script src="js/comun.js"></script>
+  <script src="js/formulario.js"></script>
+</body>
+</html>

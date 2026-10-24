@@ -1,0 +1,154 @@
+/* ==========================================================================
+   Batalla (Active Time Battle) · usa los tokens de libro.css
+   El escenario es siempre oscuro (como un escenario de juego); el resto de la
+   interfaz sigue el tema claro/oscuro del libro. --acento cambia según el jefe.
+   ========================================================================== */
+
+.batalla { max-width: 980px; margin: 0 auto; }
+.batalla .bajada { margin-bottom: 18px; }
+
+/* ---------- Elección del jefe ---------- */
+.jefes { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin: 8px 0 20px; }
+.jefe-tarjeta {
+  font: inherit; text-align: left; cursor: pointer;
+  display: grid; grid-template-columns: 46px 1fr; gap: 4px 10px; align-items: center;
+  padding: 10px 12px; border-radius: var(--radio);
+  border: 1px solid var(--borde); background: var(--superficie); color: var(--texto);
+  border-left: 4px solid var(--acento);
+}
+.jefe-tarjeta:hover { border-color: var(--acento); }
+.jefe-tarjeta[aria-pressed="true"] { background: var(--acento-suave); border-color: var(--acento); box-shadow: 0 0 0 1px var(--acento); }
+.jefe-tarjeta .icono { font-size: 34px; line-height: 1; grid-row: span 2; text-align: center; }
+.jefe-tarjeta .nombre { font-weight: 600; font-size: 0.92rem; line-height: 1.25; }
+.jefe-tarjeta .detalle { font-size: 0.76rem; color: var(--suave); line-height: 1.35; }
+.jefe-tarjeta .record { grid-column: 1 / -1; display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.grupo-jefes { font-family: var(--fuente-ui); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--suave); margin: 14px 0 6px; }
+
+.opciones-batalla { display: flex; gap: 16px; flex-wrap: wrap; margin: 6px 0 18px; }
+.opciones-batalla fieldset { border: 1px solid var(--borde); border-radius: var(--radio); padding: 8px 14px 10px; background: var(--superficie); min-width: 0; }
+.opciones-batalla legend { font-size: 0.8rem; font-weight: 600; color: var(--suave); padding: 0 4px; }
+.opciones-batalla label { display: block; margin: 4px 0; cursor: pointer; font-size: 0.92rem; }
+.opciones-batalla small { color: var(--suave); }
+.reglas { font-size: 0.93rem; }
+.reglas li { margin: 4px 0; }
+.btn-comenzar { font-size: 1rem; padding: 11px 22px; }
+
+/* ---------- Escenario ---------- */
+.escena {
+  position: relative; height: 230px; overflow: hidden;
+  border-radius: var(--radio);
+  background:
+    radial-gradient(ellipse at 30% 0%, color-mix(in srgb, var(--acento) 45%, transparent) 0%, transparent 65%),
+    linear-gradient(180deg, #161b26 0%, #0c0f13 62%, #191f2b 63%, #10141b 100%);
+  color: #edf1f6;
+  border: 1px solid #2e343e;
+}
+.escena.sacudida { animation: sacudir 0.35s; }
+@keyframes sacudir {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-8px, 3px); }
+  40% { transform: translate(7px, -3px); }
+  60% { transform: translate(-5px, 2px); }
+  80% { transform: translate(4px, -1px); }
+}
+.zona-jefe { position: absolute; left: 6%; top: 16px; width: 46%; text-align: center; }
+.sprite-jefe { font-size: 104px; line-height: 1; display: inline-block; animation: flotar 2.6s ease-in-out infinite; filter: drop-shadow(0 10px 8px rgba(0, 0, 0, 0.6)); }
+.sprite-jefe.golpeado { animation: golpe 0.4s; }
+.sprite-jefe.derrotado { animation: desaparecer 0.9s forwards; }
+@keyframes flotar { 50% { transform: translateY(-10px); } }
+@keyframes golpe { 0% { filter: brightness(3) saturate(0); } 50% { transform: translateX(10px); } 100% { filter: none; } }
+@keyframes desaparecer { to { opacity: 0; transform: scale(0.3) rotate(25deg); } }
+.nombre-jefe { font-family: var(--fuente-datos); font-size: 0.8rem; font-weight: 600; margin-top: 6px; letter-spacing: 0.04em; text-transform: uppercase; text-shadow: 0 2px 0 #000; }
+.zona-jugador { position: absolute; right: 10%; bottom: 26px; text-align: center; }
+.sprite-jugador { font-size: 60px; line-height: 1; }
+.numero-flotante {
+  position: absolute; left: 50%; top: 18%;
+  font-family: var(--fuente-datos); font-weight: 700; font-size: 1.6rem;
+  text-shadow: 0 2px 0 #000; pointer-events: none;
+  animation: subir 1.1s forwards;
+}
+.numero-flotante.al-jefe { color: #ffffff; }
+.numero-flotante.al-jugador { color: #f87171; }
+.numero-flotante.cura { color: #4ade80; }
+@keyframes subir { from { transform: translate(-50%, 0); opacity: 1; } to { transform: translate(-50%, -50px); opacity: 0; } }
+.etiqueta-modo { position: absolute; right: 10px; top: 8px; font-size: 0.74rem; background: rgba(0, 0, 0, 0.5); padding: 3px 8px; border-radius: 4px; }
+.velo-pausa { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.62); display: grid; place-items: center; font-family: var(--fuente-datos); font-weight: 700; letter-spacing: 0.2em; font-size: 1.2rem; }
+
+.mensaje-batalla {
+  margin: 10px 0; min-height: 2.9em; padding: 9px 14px;
+  border: 1px solid var(--borde); border-left: 4px solid var(--acento);
+  border-radius: var(--radio); background: var(--superficie);
+  font-weight: 600; font-size: 0.95rem;
+}
+
+/* ---------- Panel: estado y pregunta ---------- */
+.panel-batalla { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 12px; align-items: start; }
+.ventana-b { border: 1px solid var(--borde); border-radius: var(--radio); background: var(--superficie); padding: 14px 16px; box-shadow: var(--sombra); min-width: 0; }
+.fila-barra { margin-bottom: 10px; }
+.fila-barra .rotulo { display: flex; justify-content: space-between; gap: 8px; font-size: 0.8rem; color: var(--suave); margin-bottom: 3px; }
+.fila-barra .rotulo b { font-family: var(--fuente-datos); color: var(--texto); font-variant-numeric: tabular-nums; }
+.barra-b { height: 10px; background: var(--superficie-3); border: 1px solid var(--borde-fuerte); border-radius: 999px; overflow: hidden; }
+.barra-b > div { height: 100%; width: 0; border-radius: 999px; }
+.barra-b .vida { background: var(--ganancia); transition: width 0.3s; }
+.barra-b .vida.baja { background: var(--perdida); }
+.barra-b .vida-jefe { background: var(--acento); transition: width 0.3s; }
+.barra-b .atb { background: var(--aviso); }
+.barra-b .atb.lleno { animation: titilar 0.5s infinite alternate; }
+.barra-b .atb-jefe { background: var(--serie-2); }
+.barra-b .atb-jefe.peligro { background: var(--perdida); }
+@keyframes titilar { to { filter: brightness(1.5); } }
+.separador-b { border: none; border-top: 1px solid var(--borde); margin: 12px 0; }
+.combo { font-family: var(--fuente-datos); font-weight: 700; font-size: 0.85rem; color: var(--aviso); min-height: 1.3em; }
+.items { display: grid; gap: 6px; margin-top: 8px; }
+.items .btn { text-align: left; white-space: normal; }
+.controles-b { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+
+.pregunta-tema { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.pregunta-texto { font-family: var(--fuente-texto); font-size: 1.04rem; line-height: 1.55; margin: 0 0 12px; }
+.opciones-b { display: grid; gap: 6px; }
+.opciones-b button {
+  font: inherit; font-size: 0.94rem; text-align: left; cursor: pointer;
+  display: grid; grid-template-columns: 24px 1fr; gap: 8px; align-items: baseline;
+  padding: 9px 12px; border-radius: 8px; white-space: normal;
+  border: 1px solid var(--borde-fuerte); background: var(--superficie-2); color: var(--texto);
+}
+.opciones-b button b { font-family: var(--fuente-datos); color: var(--suave); }
+.opciones-b button:hover:not(:disabled) { border-color: var(--acento); background: var(--acento-suave); }
+.opciones-b button:disabled { cursor: default; opacity: 0.38; text-decoration: line-through; }
+.esperando { color: var(--suave); font-style: italic; display: grid; place-items: center; min-height: 160px; text-align: center; }
+.ayuda-teclas { font-size: 0.78rem; color: var(--tenue); margin: 10px 0 0; }
+
+/* ---------- Fin ---------- */
+.fin-batalla { text-align: center; }
+.fin-batalla h2 { border: none; margin: 4px 0; padding: 0; font-size: 1.6rem; }
+.fin-batalla h2.victoria { color: var(--ganancia); }
+.fin-batalla h2.derrota { color: var(--perdida); }
+.rango { font-family: var(--fuente-datos); font-weight: 700; font-size: 3.6rem; line-height: 1.1; color: var(--acento); margin: 4px 0; }
+.rango-rotulo { font-size: 0.8rem; color: var(--suave); text-transform: uppercase; letter-spacing: 0.08em; }
+.fin-batalla .marcador { text-align: left; }
+.fin-botones { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 8px 0 18px; }
+.informe { text-align: left; }
+.informe h3 { margin-bottom: 4px; }
+.informe-item { border: 1px solid var(--borde); border-radius: 8px; margin: 6px 0; padding: 8px 12px; background: var(--superficie); }
+.informe-item summary { cursor: pointer; display: flex; gap: 10px; align-items: baseline; }
+.informe-item .marca { font-weight: 700; }
+.informe-item.acierto .marca { color: var(--ganancia); }
+.informe-item.error .marca { color: var(--perdida); }
+.informe-item .tema { flex: 1; min-width: 0; }
+.informe-item .tiempo { color: var(--suave); font-size: 0.84rem; font-family: var(--fuente-datos); }
+.informe-item p { margin: 8px 0 0; line-height: 1.5; font-size: 0.93rem; }
+
+@media (max-width: 760px) {
+  .panel-batalla { grid-template-columns: 1fr; }
+  .panel-batalla > .ventana-b:last-child { order: -1; } /* la pregunta primero, sin tener que bajar */
+  .escena { height: 180px; }
+  .sprite-jefe { font-size: 76px; }
+  .sprite-jugador { font-size: 44px; }
+  .items { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .items .btn { text-align: center; font-size: 0.82rem; padding: 7px 6px; }
+  .ayuda-teclas { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sprite-jefe, .escena.sacudida, .barra-b .atb.lleno { animation: none; }
+}

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Simulacro · Derivados I</title>
+  <link rel="stylesheet" href="vendor/fuentes/fuentes.css">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="css/libro.css">
+  <link rel="stylesheet" href="css/simulacro.css">
+</head>
+<body data-pagina="simulacro">
+  <div id="encabezado"></div>
+
+  <main class="pagina">
+    <article class="contenido ancho simulacro" id="simulacro">
+
+      <!-- ====================== INICIO ====================== -->
+      <section id="pantalla-inicio">
+        <h1>Simulacro de examen</h1>
+        <p class="bajada">Practicá con un examen de opción múltiple armado al azar con las preguntas del libro, con tiempo límite y nota al final. Cada simulacro prioriza las preguntas que todavía no te tocaron.</p>
+
+        <div id="en-curso"></div>
+
+        <h2>1. Elegí el examen</h2>
+        <div class="elecciones" id="lista-examenes"></div>
+
+        <h2>2. Elegí la modalidad</h2>
+        <div class="elecciones" id="lista-modalidades"></div>
+
+        <button class="btn-primario btn-empezar" id="btn-empezar" type="button">Empezar el simulacro</button>
+
+        <h2>Cómo funciona</h2>
+        <ul>
+          <li>Las preguntas son mitad prácticas y mitad teóricas, de todas las unidades del examen y de distintas dificultades.</li>
+          <li>Podés avanzar, volver atrás, cambiar respuestas y marcar preguntas para revisar. El reloj no se detiene: cuando llega a cero, el examen se entrega solo.</li>
+          <li>Si cerrás o recargás la página, el simulacro sigue donde lo dejaste (el tiempo sigue corriendo).</li>
+          <li>Los simulacros del 2.º parcial (y algunos del final) incluyen una pregunta práctica para completar: el diagrama de un swap armado por un banco a partir de la ventaja comparativa de dos empresas, con datos distintos cada vez. Cuenta como una pregunta y es correcta si todos los casilleros están bien.</li>
+          <li>Todas las preguntas valen lo mismo. Las que quedan sin responder cuentan como incorrectas.</li>
+          <li>Al terminar ves tu nota, el tiempo promedio por respuesta y tu rendimiento por tema, para saber qué reforzar.</li>
+        </ul>
+        <div id="escala"></div>
+
+        <h2 id="historial-titulo">Tus simulacros anteriores</h2>
+        <div id="historial"></div>
+      </section>
+
+      <!-- ====================== EXAMEN ====================== -->
+      <section id="pantalla-examen" hidden>
+        <div class="barra-examen" id="barra-examen">
+          <div class="be-titulo" id="ex-titulo"></div>
+          <div class="be-progreso" id="ex-progreso"></div>
+          <div class="reloj" id="reloj" role="timer" aria-label="Tiempo restante"></div>
+          <button class="btn-primario" id="btn-entregar" type="button">Entregar</button>
+        </div>
+        <div class="examen-cuerpo">
+          <article class="pregunta-ex" id="pregunta">
+            <div class="pregunta-cabecera">
+              <span class="pregunta-num" id="pregunta-num"></span>
+              <span id="pregunta-chips"></span>
+            </div>
+            <p class="pregunta-enunciado" id="pregunta-enunciado"></p>
+            <div class="opciones-ex" id="pregunta-opciones"></div>
+            <div class="pregunta-pie">
+              <div class="grupo">
+                <button class="btn" id="btn-anterior" type="button">← Anterior</button>
+                <button class="btn" id="btn-siguiente" type="button">Siguiente →</button>
+              </div>
+              <div class="grupo">
+                <button class="btn" id="btn-borrar" type="button">Borrar respuesta</button>
+                <button class="btn" id="btn-marcar" type="button">Marcar para revisar</button>
+              </div>
+            </div>
+            <p class="ayuda-teclas">Atajos: teclas 1 a 4 (o A a D) para elegir · flechas ← → para moverte · M para marcar.</p>
+          </article>
+          <aside class="navegador">
+            <h3>Preguntas</h3>
+            <div class="grilla" id="grilla"></div>
+            <div class="leyenda"><span class="l-resp">Respondida</span><span class="l-marc">Marcada para revisar</span><span>Sin responder</span></div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ====================== RESULTADO ====================== -->
+      <section id="pantalla-resultado" hidden>
+        <h1 id="res-titulo">Resultado</h1>
+        <p class="bajada" id="res-bajada"></p>
+        <div id="res-nota"></div>
+        <div class="marcador" id="res-datos"></div>
+        <h2>Rendimiento por tema</h2>
+        <p class="ayuda">Ordenado de menor a mayor porcentaje de aciertos. Los temas por debajo del 60 % conviene reforzarlos.</p>
+        <div id="res-temas"></div>
+        <h2>Rendimiento por unidad</h2>
+        <div id="res-unidades"></div>
+        <div class="botones-fila">
+          <button class="btn-primario" id="btn-otro" type="button">Hacer otro simulacro</button>
+          <button class="btn" id="btn-volver" type="button">Ver mis simulacros</button>
+        </div>
+        <h2>Revisión pregunta por pregunta</h2>
+        <p class="ayuda">Tocá cada pregunta para ver la respuesta correcta y la explicación.</p>
+        <div id="res-revision"></div>
+      </section>
+    </article>
+  </main>
+
+  <script src="vendor/katex/katex.min.js"></script>
+  <script src="vendor/katex/contrib/auto-render.min.js"></script>
+  <script src="js/calculos.js"></script>
+  <script src="js/comun.js"></script>
+  <script src="js/preguntas-base.js"></script>
+  <script src="js/preguntas-u1.js"></script>
+  <script src="js/preguntas-u2.js"></script>
+  <script src="js/preguntas-u3.js"></script>
+  <script src="js/preguntas-u4.js"></script>
+  <script src="js/preguntas-u5.js"></script>
+  <script src="js/preguntas-u6.js"></script>
+  <script src="js/preguntas-u7.js"></script>
+  <script src="js/preguntas-u8.js"></script>
+  <script src="js/diagrama-swap.js"></script>
+  <script src="js/simulacro.js"></script>
+</body>
+</html>

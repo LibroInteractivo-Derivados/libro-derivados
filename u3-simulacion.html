@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Valuación de forwards y futuros · Simulación</title>
+  <link rel="stylesheet" href="vendor/fuentes/fuentes.css">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="css/libro.css">
+  <style>
+    .sim-dos { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 18px; align-items: start; }
+    @media (max-width: 1100px) { .sim-dos { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body data-unidad="u3" data-seccion="simulacion">
+  <div id="encabezado"></div>
+
+  <main class="pagina con-indice">
+    <aside class="indice" id="indice"></aside>
+    <article class="contenido ancho">
+      <h1>Simulación</h1>
+      <p class="bajada">Cinco simulaciones: el arbitraje que fija el precio forward, la curva de futuros, el valor de un forward en el tiempo, la curva cero y la duración de un bono. Cada cambio viene con su explicación.</p>
+      <!-- ================================================================== -->
+      <h2 id="arbitraje">Arbitraje cash-and-carry paso a paso</h2>
+      <section class="widget" id="w-arb">
+        <p class="widget-intro">El precio forward teórico surge de comprar hoy y "acarrear" el activo hasta T. Mové el precio forward de mercado: si se aparta del teórico, el simulador arma el arbitraje y explica cada operación. Precargado: el ejemplo de la cátedra (S₀ = 40, r = 5 %, 3 meses).</p>
+        <div class="entradas">
+          <div class="ancho-doble">
+            <label for="ar-tipo">Activo</label>
+            <select id="ar-tipo">
+              <option value="simple" selected>Sin ingresos</option>
+              <option value="ingreso">Con un ingreso conocido (dividendo o cupón)</option>
+              <option value="rendimiento">Con rendimiento continuo q</option>
+            </select>
+          </div>
+          <div><label for="ar-s">Precio contado S₀</label><input id="ar-s" type="number" value="40" step="any"></div>
+          <div><label for="ar-r">Tasa r (%, continua)</label><input id="ar-r" type="number" value="5" step="any"></div>
+          <div><label for="ar-t">Plazo T (meses)</label><input id="ar-t" type="number" value="3" step="any"></div>
+          <div data-para="ingreso"><label for="ar-i">Ingreso</label><input id="ar-i" type="number" value="1" step="any"></div>
+          <div data-para="ingreso"><label for="ar-ti">Se cobra en (meses)</label><input id="ar-ti" type="number" value="2" step="any"></div>
+          <div data-para="rendimiento"><label for="ar-q">Rendimiento q (%)</label><input id="ar-q" type="number" value="2" step="any"></div>
+          <div class="ancho-doble" id="ar-fm-box"></div>
+        </div>
+        <div class="sim-dos">
+          <div style="min-width:0">
+            <div class="resultados" id="ar-datos"></div>
+            <div class="lienzo-medio"><canvas id="ar-grafico" aria-label="Ganancia del arbitraje según el precio forward de mercado"></canvas></div>
+            <div id="ar-tabla"></div>
+          </div>
+          <div id="ar-narrador"></div>
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="curva-futuros">Curva de futuros: contango y backwardation</h2>
+      <section class="widget" id="w-curva">
+        <p class="widget-intro">El precio de los futuros para distintos vencimientos sale del costo de tenencia: \(F(T) = S_0\,e^{(r + u - q - y)\,T}\). Mové cada componente y mirá cómo se inclina la curva.</p>
+        <div class="entradas">
+          <div class="ancho-doble">
+            <label for="cf-tipo">Subyacente</label>
+            <select id="cf-tipo">
+              <option value="commodity" selected>Commodity (almacenamiento u y conveniencia y)</option>
+              <option value="indice">Índice accionario (dividendos q)</option>
+              <option value="moneda">Moneda extranjera (tasa r_f)</option>
+            </select>
+          </div>
+          <div><label for="cf-s">Precio contado S₀</label><input id="cf-s" type="number" value="70" step="any"></div>
+          <div id="cf-r-box"></div>
+          <div id="cf-a-box"></div>
+          <div id="cf-b-box"></div>
+        </div>
+        <div class="sim-dos">
+          <div style="min-width:0">
+            <div class="resultados" id="cf-datos"></div>
+            <div class="lienzo-medio"><canvas id="cf-grafico" aria-label="Curva de precios futuros"></canvas></div>
+          </div>
+          <div id="cf-narrador"></div>
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="valor-forward">Valor de un forward ya pactado</h2>
+      <section class="widget" id="w-valor">
+        <p class="widget-intro">Pactaste un forward largo a K. Al inicio vale cero; después, a medida que el mercado se mueve, gana o pierde valor. Mové el precio contado y el tiempo restante.</p>
+        <div class="entradas">
+          <div><label for="vf-k">Precio pactado K</label><input id="vf-k" type="number" value="40.5" step="any"></div>
+          <div><label for="vf-r">Tasa r (%, continua)</label><input id="vf-r" type="number" value="5" step="any"></div>
+          <div id="vf-s-box"></div>
+          <div id="vf-t-box"></div>
+        </div>
+        <div class="sim-dos">
+          <div style="min-width:0">
+            <div class="resultados" id="vf-datos"></div>
+            <div class="lienzo-medio"><canvas id="vf-grafico" aria-label="Valor del forward según el precio contado"></canvas></div>
+          </div>
+          <div id="vf-narrador"></div>
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="curva-cero">Curva cero (bootstrap) y tasas forward</h2>
+      <section class="widget" id="w-boot">
+        <p class="widget-intro">A partir de precios de bonos se obtiene la curva de tasas cero, un plazo por vez. Editá los precios y mirá cómo cambian la curva y las tasas forward implícitas. Precargado: el ejemplo de Hull que usa la cátedra.</p>
+        <div class="tabla-wrap">
+          <table class="tabla compacta">
+            <thead><tr><th class="num">Plazo (años)</th><th class="num">Cupón anual (%, semestral)</th><th class="num">Precio</th><th class="num">Tasa cero (%)</th><th class="num">Forward del tramo (%)</th></tr></thead>
+            <tbody id="bt-filas"></tbody>
+          </table>
+        </div>
+        <div class="sim-dos">
+          <div style="min-width:0"><div class="lienzo-medio"><canvas id="bt-grafico" aria-label="Curva de tasas cero y tasas forward"></canvas></div></div>
+          <div id="bt-narrador"></div>
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="bono">Precio, rendimiento y duración</h2>
+      <section class="widget" id="w-bono">
+        <p class="widget-intro">La relación entre el precio de un bono y su rendimiento es una curva. La duración da la recta tangente; la convexidad, la curvatura. Mové el cambio de tasa y compará la aproximación con el precio exacto.</p>
+        <div class="entradas">
+          <div><label for="bn-c">Cupón anual (%)</label><input id="bn-c" type="number" value="6" step="any"></div>
+          <div><label for="bn-m">Cupones por año</label><select id="bn-m"><option value="1">1</option><option value="2" selected>2</option></select></div>
+          <div><label for="bn-t">Plazo (años)</label><input id="bn-t" type="number" value="10" step="any"></div>
+          <div><label for="bn-y">Rendimiento actual (%, continuo)</label><input id="bn-y" type="number" value="6" step="any"></div>
+          <div class="ancho-doble" id="bn-dy-box"></div>
+        </div>
+        <div class="sim-dos">
+          <div style="min-width:0">
+            <div class="resultados" id="bn-datos"></div>
+            <div class="lienzo-medio"><canvas id="bn-grafico" aria-label="Precio del bono según el rendimiento"></canvas></div>
+          </div>
+          <div id="bn-narrador"></div>
+        </div>
+      </section>
+
+    </article>
+  </main>
+
+  <nav class="pie-navegacion" id="pie-navegacion"></nav>
+
+  <script src="vendor/katex/katex.min.js"></script>
+  <script src="vendor/katex/contrib/auto-render.min.js"></script>
+  <script src="vendor/chartjs/chart.umd.min.js"></script>
+  <script src="js/calculos.js"></script>
+  <script src="js/comun.js"></script>
+  <script src="js/u3-simulacion.js"></script>
+</body>
+</html>

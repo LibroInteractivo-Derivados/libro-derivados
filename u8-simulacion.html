@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Simulador de estrategias · Derivados I</title>
+  <link rel="stylesheet" href="vendor/fuentes/fuentes.css">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="css/libro.css">
+  <style>
+    /* Estilos propios del simulador (solo tokens del tema) */
+    .sim-layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 18px; align-items: start; }
+    .sim-layout .narrador ol { max-height: 560px; }
+    .escenario { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px 18px; margin: 6px 0 4px; }
+    .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 10px 0; }
+    @media (max-width: 560px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .tiles .dato-valor { font-size: 1.08rem; }
+    .recorrido { border: 1px solid var(--acento); background: var(--acento-suave); border-radius: var(--radio); padding: 12px 16px; margin-top: 12px; }
+    .recorrido .paso-n { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 700; color: var(--acento); }
+    .recorrido p { margin: 6px 0; font-family: var(--fuente-texto); line-height: 1.6; }
+    .griegas-pos { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+    .griegas-pos .dato p { margin: 4px 0 0; font-size: 0.84rem; color: var(--suave); line-height: 1.45; }
+    .tramo { font-size: 0.92rem; }
+    .tramo li { margin: 3px 0; }
+    .leyenda-sim { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.82rem; color: var(--suave); margin-top: 4px; }
+    .leyenda-sim span::before { content: ""; display: inline-block; width: 18px; height: 0; border-top: 3px solid var(--acento); margin-right: 6px; vertical-align: middle; }
+    .leyenda-sim .hoy::before { border-top-style: dashed; border-top-width: 2px; }
+    .leyenda-sim .dist::before { border-top: 8px solid var(--acento-suave); }
+    .condiciones summary { cursor: pointer; font-weight: 600; color: var(--acento); }
+    .tabla-patas select, .tabla-patas input { min-width: 74px; }
+    .prima-auto { font-size: 0.72rem; color: var(--suave); }
+    @media (max-width: 1100px) { .sim-layout { grid-template-columns: 1fr; } .sim-layout .narrador ol { max-height: 320px; } }
+  </style>
+</head>
+<body data-unidad="u8" data-seccion="simulacion">
+  <div id="encabezado"></div>
+
+  <main class="pagina">
+    <article class="contenido ancho">
+      <h1>Simulador de estrategias</h1>
+      <p class="bajada">Armá una estrategia con opciones, acciones y bonos, y movete en el tiempo, en el precio y en la volatilidad. El narrador te explica qué cambió y por qué.</p>
+
+      <!-- 1. Estrategia -->
+      <section class="widget" id="w-armado">
+        <div class="entradas" style="margin-bottom:8px">
+          <div class="ancho-doble">
+            <label for="plantilla">Estrategia</label>
+            <select id="plantilla"><option value="">— Elegí una estrategia o armala abajo —</option></select>
+          </div>
+          <div class="ancho-doble">
+            <label for="recorrido-sel">Recorrido guiado</label>
+            <select id="recorrido-sel"><option value="">— Sin recorrido —</option></select>
+          </div>
+        </div>
+        <div id="info-estrategia" class="info-estrategia"></div>
+        <div id="recorrido" class="recorrido" hidden></div>
+        <details class="condiciones" style="margin-top:12px">
+          <summary>Condiciones del mercado cuando armaste la estrategia (definen las primas)</summary>
+          <div class="entradas" style="margin-top:10px" id="w-inicial">
+            <div><label for="ini-s">Precio del subyacente S₀</label><input id="ini-s" type="number" value="100" step="any" min="0.01"></div>
+            <div><label for="ini-sigma">Volatilidad σ (%)</label><input id="ini-sigma" type="number" value="25" step="any" min="1"></div>
+            <div><label for="ini-r">Tasa libre de riesgo r (%, continua)</label><input id="ini-r" type="number" value="5" step="any"></div>
+            <div><label class="check" style="margin-top:22px"><input type="checkbox" id="primas-auto" checked> Primas con Black-Scholes</label><div class="ayuda">Desmarcalo para escribir primas propias.</div></div>
+          </div>
+          <p class="ayuda">El año se cuenta de 360 días (convención de la materia). Con S₀ = 100, σ = 25 %, r = 5 % y 90 días, las primas coinciden con las de la teoría de la unidad.</p>
+        </details>
+      </section>
+
+      <!-- 2. Gráfico, escenario y narrador -->
+      <section class="widget" id="w-sim">
+        <div class="sim-layout">
+          <div style="min-width:0">
+            <div class="tiles" id="tiles"></div>
+            <div class="lienzo-grande" style="height:380px"><canvas id="grafico" aria-label="Resultado de la estrategia según el precio del subyacente"></canvas></div>
+            <div class="leyenda-sim"><span>Al vencimiento</span><span class="hoy" id="ley-hoy">Si cerrás hoy</span><span class="dist" id="ley-dist" hidden>Distribución del precio (neutral al riesgo)</span></div>
+            <div class="escenario" id="w-escenario">
+              <div id="c-s"></div>
+              <div id="c-t"></div>
+              <div id="c-sigma"></div>
+              <div id="c-r"></div>
+            </div>
+            <div class="botones" style="margin-top:4px">
+              <label class="check"><input type="checkbox" id="ver-patas"> Cada pata por separado</label>
+              <label class="check"><input type="checkbox" id="ver-dist"> Distribución del precio</label>
+              <span class="espacio"></span>
+              <button class="btn" id="btn-vencer" type="button">Ir al vencimiento</button>
+              <button class="btn" id="btn-hoy" type="button">Volver a hoy</button>
+            </div>
+            <div class="explicacion tramo" id="tramo"></div>
+          </div>
+          <div id="narrador" aria-label="Explicación de los cambios"></div>
+        </div>
+      </section>
+
+      <!-- 3. Posiciones -->
+      <section class="widget">
+        <h2>Posiciones</h2>
+        <div class="tabla-wrap">
+          <table class="tabla tabla-patas">
+            <thead><tr><th>Instrumento</th><th>Operación</th><th>Strike / nominal</th><th>Vence en (días)</th><th>Prima / precio</th><th>Cantidad</th><th></th></tr></thead>
+            <tbody id="patas"></tbody>
+          </table>
+        </div>
+        <p id="patas-vacio" class="vacio">Todavía no hay posiciones. Elegí una estrategia o agregá una pata.</p>
+        <div class="botones">
+          <button class="btn" data-agregar="call" type="button">+ Call</button>
+          <button class="btn" data-agregar="put" type="button">+ Put</button>
+          <button class="btn" data-agregar="stock" type="button">+ Acción</button>
+          <button class="btn" data-agregar="bond" type="button">+ Bono cupón cero</button>
+          <span class="espacio"></span>
+          <button class="btn" id="limpiar" type="button">Limpiar todo</button>
+        </div>
+        <p class="ayuda">Para la acción, la prima es el precio de compra o venta. Para el bono cupón cero, el strike es el nominal que paga al vencimiento y la prima, lo que cuesta hoy. Con vencimientos distintos (spreads de calendario), "al vencimiento" significa al vencimiento de la primera pata; las que siguen vivas se valúan con Black-Scholes.</p>
+      </section>
+
+      <!-- 4. Griegas -->
+      <section class="widget">
+        <h2>Sensibilidades de la posición (griegas)</h2>
+        <p class="widget-intro">Calculadas con Black-Scholes en el escenario actual (precio, días restantes, volatilidad y tasa de los controles). Se explican en la <a href="u6-teoria.html#las-griegas">Unidad VI</a>.</p>
+        <div class="griegas-pos" id="griegas"></div>
+      </section>
+
+      <!-- 5. Cuadro -->
+      <section class="widget">
+        <h2>Cuadro de resultados al vencimiento</h2>
+        <div class="tabla-wrap"><table class="tabla tabla-pnl"><thead id="cuadro-cab"></thead><tbody id="cuadro"></tbody></table></div>
+      </section>
+    </article>
+  </main>
+
+  <nav class="pie-navegacion" id="pie-navegacion"></nav>
+
+  <script src="vendor/katex/katex.min.js"></script>
+  <script src="vendor/katex/contrib/auto-render.min.js"></script>
+  <script src="vendor/chartjs/chart.umd.min.js"></script>
+  <script src="js/calculos.js"></script>
+  <script src="js/comun.js"></script>
+  <script src="js/estrategias.js"></script>
+  <script src="js/u8-simulacion.js"></script>
+</body>
+</html>

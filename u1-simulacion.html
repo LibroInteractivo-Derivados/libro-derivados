@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Introducción a los derivados · Simulación</title>
+  <link rel="stylesheet" href="vendor/fuentes/fuentes.css">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="css/libro.css">
+  <style>
+    .sim-dos { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 18px; align-items: start; }
+    @media (max-width: 1100px) { .sim-dos { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body data-unidad="u1" data-seccion="simulacion">
+  <div id="encabezado"></div>
+
+  <main class="pagina con-indice">
+    <aside class="indice" id="indice"></aside>
+    <article class="contenido ancho">
+      <h1>Simulación</h1>
+      <p class="bajada">Tres simulaciones para ver la mecánica de los futuros y los objetivos de cada operador. Cada cambio viene con su explicación.</p>
+      <!-- ================================================================== -->
+      <h2 id="cuenta-de-margenes">Cuenta de márgenes día a día</h2>
+      <section class="widget" id="w-margen">
+        <p class="widget-intro">Abrís una posición en futuros y el mercado se mueve día a día. Avanzá con los botones y mirá qué pasa con tu cuenta: el narrador explica cada ajuste y cada llamado de margen. Arranca con el ejemplo del oro de Hull (2 contratos de 100 onzas).</p>
+        <div class="entradas">
+          <div>
+            <label>Posición</label>
+            <div class="opciones-radio">
+              <label><input type="radio" name="mg-lado" value="larga" checked> Larga (compré)</label>
+              <label><input type="radio" name="mg-lado" value="corta"> Corta (vendí)</label>
+            </div>
+          </div>
+          <div><label for="mg-n">Contratos</label><input id="mg-n" type="number" value="2" min="1" step="1"></div>
+          <div><label for="mg-tam">Tamaño (onzas por contrato)</label><input id="mg-tam" type="number" value="100" step="any"></div>
+          <div><label for="mg-p0">Precio pactado</label><input id="mg-p0" type="number" value="1450" step="any"></div>
+          <div><label for="mg-mi">Margen inicial por contrato</label><input id="mg-mi" type="number" value="6000" step="any"></div>
+          <div><label for="mg-mm">Margen de mantenimiento por contrato</label><input id="mg-mm" type="number" value="4500" step="any"></div>
+        </div>
+        <div class="botones" style="margin-top:0">
+          <button class="btn" type="button" data-mov="-20">Baja fuerte (−20)</button>
+          <button class="btn" type="button" data-mov="-5">Baja (−5)</button>
+          <button class="btn-primario" type="button" id="mg-azar">Día siguiente al azar</button>
+          <button class="btn" type="button" data-mov="5">Sube (+5)</button>
+          <button class="btn" type="button" data-mov="20">Suba fuerte (+20)</button>
+          <span class="espacio"></span>
+          <button class="btn" type="button" id="mg-hull">Cargar los 16 días de Hull</button>
+          <button class="btn" type="button" id="mg-reiniciar">Reiniciar</button>
+        </div>
+        <div class="sim-dos" style="margin-top:14px">
+          <div style="min-width:0">
+            <div class="resultados" id="mg-datos"></div>
+            <div class="lienzo-medio"><canvas id="mg-grafico" aria-label="Saldo de la cuenta de márgenes"></canvas></div>
+            <div id="mg-tabla"></div>
+          </div>
+          <div id="mg-narrador"></div>
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="payoffs">Forward, futuro u opción: ¿qué payoff tengo?</h2>
+      <section class="widget" id="w-payoff">
+        <p class="widget-intro">Elegí una posición y mové el precio al vencimiento. El forward obliga a las dos partes; la opción da un derecho que se paga con la prima.</p>
+        <div class="entradas">
+          <div class="ancho-doble">
+            <label for="po-pos">Posición</label>
+            <select id="po-pos">
+              <option value="long-fwd">Forward largo (compro a plazo)</option>
+              <option value="short-fwd">Forward corto (vendo a plazo)</option>
+              <option value="long-call" selected>Call comprado</option>
+              <option value="short-call">Call vendido</option>
+              <option value="long-put">Put comprado</option>
+              <option value="short-put">Put vendido</option>
+            </select>
+          </div>
+          <div><label for="po-k">Precio pactado / strike K</label><input id="po-k" type="number" value="100" step="any"></div>
+          <div><label for="po-prima">Prima (solo opciones)</label><input id="po-prima" type="number" value="5" step="any"></div>
+          <div class="ancho-doble" id="po-st-box"></div>
+        </div>
+        <div class="sim-dos">
+          <div style="min-width:0">
+            <div class="resultados" id="po-datos"></div>
+            <div class="lienzo-medio"><canvas id="po-grafico" aria-label="Payoff de la posición"></canvas></div>
+          </div>
+          <div id="po-narrador"></div>
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <h2 id="operadores">Coberturista, especulador o arbitrajista</h2>
+      <section class="widget" id="w-oper">
+        <p class="widget-intro">Los tres tipos de operadores usan los mismos instrumentos con objetivos distintos.</p>
+        <div class="tabs" data-grupo="op">
+          <button data-tab="cobertura" aria-selected="true">Coberturista</button>
+          <button data-tab="especulador">Especulador</button>
+          <button data-tab="arbitrajista">Arbitrajista</button>
+        </div>
+        <div data-panel="cobertura" data-grupo="op">
+          <p class="widget-intro">Un exportador va a cobrar USD 1.000.000 dentro de 3 meses y le preocupa que el dólar baje. Compará no cubrirse, venderlos a plazo con un forward o comprar un put (un seguro).</p>
+          <div class="entradas">
+            <div><label for="co-s">Dólar contado hoy ($ por USD)</label><input id="co-s" type="number" value="1400" step="any"></div>
+            <div><label for="co-f">Forward a 3 meses</label><input id="co-f" type="number" value="1480" step="any"></div>
+            <div><label for="co-k">Strike del put</label><input id="co-k" type="number" value="1450" step="any"></div>
+            <div><label for="co-prima">Prima del put ($ por USD)</label><input id="co-prima" type="number" value="35" step="any"></div>
+            <div class="ancho-doble" id="co-st-box"></div>
+          </div>
+          <div class="sim-dos">
+            <div style="min-width:0">
+              <div class="resultados" id="co-datos"></div>
+              <div class="lienzo-medio"><canvas id="co-grafico" aria-label="Pesos recibidos según el tipo de cambio"></canvas></div>
+              <p class="ayuda">Números ilustrativos, no cotizaciones reales.</p>
+            </div>
+            <div id="co-narrador"></div>
+          </div>
+        </div>
+        <div data-panel="especulador" data-grupo="op" hidden>
+          <p class="widget-intro">Un especulador tiene 20.000 y cree que el activo va a subir. Puede comprar el activo, comprar futuros (poniendo solo el margen) o comprar calls. Mové el precio final y compará el rendimiento sobre lo invertido.</p>
+          <div class="entradas">
+            <div><label for="es-cap">Capital</label><input id="es-cap" type="number" value="20000" step="any"></div>
+            <div><label for="es-s">Precio hoy</label><input id="es-s" type="number" value="100" step="any"></div>
+            <div><label for="es-f">Futuro a 3 meses</label><input id="es-f" type="number" value="101" step="any"></div>
+            <div><label for="es-m">Margen (% del valor del futuro)</label><input id="es-m" type="number" value="10" step="any"></div>
+            <div><label for="es-k">Strike del call</label><input id="es-k" type="number" value="100" step="any"></div>
+            <div><label for="es-c">Prima del call</label><input id="es-c" type="number" value="5" step="any"></div>
+            <div class="ancho-doble" id="es-st-box"></div>
+          </div>
+          <div class="sim-dos">
+            <div style="min-width:0">
+              <div class="resultados" id="es-datos"></div>
+              <div class="lienzo-medio"><canvas id="es-grafico" aria-label="Rendimiento según el precio final"></canvas></div>
+            </div>
+            <div id="es-narrador"></div>
+          </div>
+        </div>
+        <div data-panel="arbitrajista" data-grupo="op" hidden>
+          <p class="widget-intro">Una acción cotiza en dos mercados: en Nueva York en dólares y en Buenos Aires en pesos. Con el tipo de cambio, el precio tendría que ser el mismo. Si no lo es, hay arbitraje.</p>
+          <div class="entradas">
+            <div><label for="ar-ny">Precio en Nueva York (USD)</label><input id="ar-ny" type="number" value="50" step="any"></div>
+            <div><label for="ar-ba">Precio en Buenos Aires ($)</label><input id="ar-ba" type="number" value="71000" step="any"></div>
+            <div><label for="ar-tc">Tipo de cambio ($ por USD)</label><input id="ar-tc" type="number" value="1400" step="any"></div>
+            <div><label for="ar-n">Acciones</label><input id="ar-n" type="number" value="1000" step="1"></div>
+            <div><label for="ar-costo">Costos de transacción (% del monto)</label><input id="ar-costo" type="number" value="0.5" step="any"></div>
+          </div>
+          <div class="resultados" id="ar-datos"></div>
+          <div id="ar-texto"></div>
+        </div>
+      </section>
+
+    </article>
+  </main>
+
+  <nav class="pie-navegacion" id="pie-navegacion"></nav>
+
+  <script src="vendor/katex/katex.min.js"></script>
+  <script src="vendor/katex/contrib/auto-render.min.js"></script>
+  <script src="vendor/chartjs/chart.umd.min.js"></script>
+  <script src="js/calculos.js"></script>
+  <script src="js/comun.js"></script>
+  <script src="js/u1-simulacion.js"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+# Archivos del sistema y de editores
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+~$*
+.vscode/
+.idea/
+
+# Material de la cátedra: no se publica (derechos de autor)
+*.pdf
+*.pptx
+*.xlsx
+*.xlsm
+
+# Exportaciones de resultados de los alumnos (datos de la tesis)
+simulacros-derivados*.csv
+simulacros-derivados*.json

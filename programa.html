@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Programa y cronograma · Derivados I</title>
+  <link rel="stylesheet" href="vendor/fuentes/fuentes.css">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="css/libro.css">
+</head>
+<body data-pagina="programa">
+  <div id="encabezado"></div>
+
+  <main class="pagina con-indice">
+    <aside class="indice" id="indice"></aside>
+    <article class="contenido">
+      <h1>Programa y cronograma</h1>
+      <p class="bajada">Instrumentos Financieros Derivados I · 2.º cuatrimestre 2026 · viernes de 18:30 a 22:00 · 68 horas.</p>
+
+      <h2>Cronograma de clases</h2>
+      <p>La fila resaltada es la próxima clase. Cada unidad enlaza a su teoría en el libro.</p>
+      <div id="cronograma"></div>
+      <p class="ayuda">Las condiciones de aprobación de la cursada y de la materia, y la bibliografía básica y complementaria, están en el Programa Analítico publicado en WebCampus.</p>
+
+      <h2>Unidades y bibliografía</h2>
+      <p>El cronograma cita los capítulos de Hull, <em>Options, Futures and Other Derivatives</em> (OFOD). El material de la cátedra incluye la edición en español <em>Introducción a los mercados de futuros y opciones</em>, que numera distinto. Esta tabla da las dos referencias.</p>
+      <div id="bibliografia"></div>
+      <div class="caja importante">
+        <p class="caja-titulo">Ojo con la numeración de capítulos</p>
+        <p>En el cronograma, la Unidad VII (opciones sobre índices, monedas y futuros) figura con el capítulo 12 y la Unidad VIII (estrategias) con los capítulos 17 y 18. En OFOD es al revés: estrategias es el capítulo 12, y opciones sobre índices y monedas y opciones sobre futuros son los capítulos 17 y 18. El capítulo 12 de la edición en español sí corresponde a la Unidad VII.</p>
+      </div>
+
+      <h2>Convenciones de la materia</h2>
+      <ul>
+        <li>Salvo que el enunciado diga otra cosa: <strong>tasas anuales con composición continua</strong> y convención de días <strong>30/360</strong>. Cuando un ejemplo usa datos de mercado se aclara la base: el mercado argentino informa las tasas implícitas sobre días corridos y 365.</li>
+        <li><strong>Theta por día.</strong> La fórmula da theta por año. En la teoría, la caja de herramientas y la simulación de la Unidad VI se divide por 365 (día calendario, como Hull) o por 252 (día hábil). En el simulador de estrategias se divide por 360, porque ahí los días al vencimiento se cuentan con la convención 30/360.</li>
+        <li>\(S_0\): precio contado hoy; \(S_T\): precio al vencimiento; \(K\): precio de ejercicio o precio pactado; \(F_0\): precio forward o futuro hoy; \(r\): tasa libre de riesgo; \(q\): rendimiento continuo (dividendos de un índice, tasa extranjera); \(\sigma\): volatilidad anual; \(T\): plazo en años.</li>
+        <li>Opciones europeas en minúscula (\(c, p\)) y americanas en mayúscula (\(C, P\)).</li>
+        <li>Decimales con coma. En los campos de ejercitación podés escribir 3,66 o 3.66; para montos grandes, sin puntos de miles (2109129,17).</li>
+      </ul>
+
+      <h2>Cómo está armado el libro</h2>
+      <ul>
+        <li><strong>Teoría</strong>: cada unidad abre con sus objetivos, desarrolla los temas con ejemplos resueltos y cierra con un resumen y la lectura de Hull. Las autoevaluaciones rápidas te dicen si entendiste antes de seguir.</li>
+        <li><strong>Simulación</strong>: modelos interactivos con datos de ejemplo. Al cambiar un dato, el narrador explica qué cambió y por qué.</li>
+        <li><strong>Ejercitación</strong>: los ejercicios de las guías de la cátedra y adicionales, con corrección automática, diagnóstico de errores típicos, pistas y resolución; y un banco de preguntas de opción múltiple.</li>
+        <li><strong>Herramientas</strong>: calculadoras paso a paso para verificar tus resoluciones.</li>
+      </ul>
+      <p>Tu progreso (secciones leídas y ejercicios resueltos) se guarda solo en este navegador.</p>
+    </article>
+  </main>
+
+  <script src="vendor/katex/katex.min.js"></script>
+  <script src="vendor/katex/contrib/auto-render.min.js"></script>
+  <script src="js/calculos.js"></script>
+  <script src="js/comun.js"></script>
+  <script src="js/programa.js"></script>
+</body>
+</html>

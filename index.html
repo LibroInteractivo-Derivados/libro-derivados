@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Derivados I · Libro interactivo</title>
+  <link rel="stylesheet" href="vendor/fuentes/fuentes.css">
+  <link rel="stylesheet" href="css/libro.css">
+</head>
+<body data-pagina="portada">
+  <div id="encabezado"></div>
+
+  <main class="portada">
+    <h1>Instrumentos Financieros Derivados I</h1>
+    <p class="bajada">
+      El libro de la materia: teoría completa de las ocho unidades del programa, simulaciones que explican
+      el porqué de cada cambio, herramientas de cálculo paso a paso y ejercitación con corrección automática.
+    </p>
+
+    <!-- Próxima clase y próxima evaluación: se calculan solas con el cronograma de js/comun.js -->
+    <div id="hoy"></div>
+
+    <!-- Las unidades, agrupadas por evaluación: se arman solas a partir del objeto LIBRO -->
+    <div id="bloques"></div>
+
+    <section class="como-usar" aria-label="Cómo usar el libro">
+      <div>
+        <h3>Leé la teoría</h3>
+        <p>Cada unidad sigue las clases y los capítulos de Hull del cronograma, con ejemplos resueltos, errores frecuentes y autoevaluaciones rápidas.</p>
+      </div>
+      <div>
+        <h3>Simulá</h3>
+        <p>Mové precios, tasas y plazos. Un narrador te explica qué cambió y por qué.</p>
+      </div>
+      <div>
+        <h3>Ejercitá</h3>
+        <p>Ejercicios de la guía de la cátedra y adicionales, con corrección automática, diagnóstico de errores típicos y resolución.</p>
+      </div>
+      <div>
+        <h3>Calculá</h3>
+        <p>La <a href="herramientas.html">caja de herramientas</a> resuelve cada fórmula paso a paso, como se escribe en un examen.</p>
+      </div>
+      <div>
+        <h3>Repasá</h3>
+        <p>El <a href="formulario.html">formulario</a> reúne todas las fórmulas de la materia, unidad por unidad, con un glosario y un buscador. Se puede imprimir.</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="vendor/chartjs/chart.umd.min.js"></script>
+  <script src="js/calculos.js"></script>
+  <script src="js/comun.js"></script>
+  <script src="js/portada.js"></script>
+</body>
+</html>

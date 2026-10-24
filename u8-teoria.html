@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Estrategias con opciones · Teoría</title>
+  <link rel="stylesheet" href="vendor/fuentes/fuentes.css">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="css/libro.css">
+</head>
+<body data-unidad="u8" data-seccion="teoria">
+  <div id="encabezado"></div>
+
+  <main class="pagina con-indice">
+    <aside class="indice" id="indice"></aside>
+
+    <article class="contenido">
+      <h1>Estrategias con opciones</h1>
+      <p class="bajada">Cómo combinar calls, puts, la acción y bonos para apostar a una dirección, a la volatilidad o a un rango de precios, o para garantizar el capital.</p>
+      <span class="etiqueta-hull">Hull OFOD cap. 12</span>
+      <span class="etiqueta-hull">Cap. 9 en la edición en español del material</span>
+
+      <div class="objetivos">
+        <p>Objetivos de la unidad</p>
+        <ul>
+          <li>Combinar calls, puts, la acción y bonos para construir un perfil de resultados a medida.</li>
+          <li>Leer cualquier estrategia por tramos de precio: qué opciones se ejercen, cuánto se gana o pierde y por qué.</li>
+          <li>Elegir la estrategia según la expectativa: dirección, volatilidad, precio quieto o capital garantizado.</li>
+          <li>Reconocer equivalencias por paridad put-call y arbitrajes como el box spread.</li>
+          <li>Entender qué pasa antes del vencimiento: el valor tiempo, la volatilidad y los spreads de calendario.</li>
+        </ul>
+      </div>
+      <p><a class="boton-sim" href="u8-simulacion.html">Abrir el simulador de estrategias →</a> Cada estrategia de esta página se puede cargar en el simulador, moverla en el tiempo y ver la explicación de cada cambio.</p>
+
+      <!-- ================================================================== -->
+      <h2>¿Para qué sirven las estrategias?</h2>
+
+      <p>Partiendo de los payoffs de calls y puts, comprados y vendidos, se los puede combinar para <strong>diseñar perfiles de riesgo a medida</strong>. Según el objetivo, una estrategia sirve para:</p>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th>Objetivo</th><th>Qué se busca</th><th>Estrategias de esta unidad</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Garantizar el capital</strong></td><td>Proteger el 100 % del capital inicial pase lo que pase.</td><td>Principal-protected note</td></tr>
+            <tr><td><strong>Apostar al alza o a la baja</strong></td><td>Tomar una dirección con riesgo acotado.</td><td>Bull y bear spreads, estrategias cubiertas</td></tr>
+            <tr><td><strong>Apostar a la volatilidad</strong></td><td>Ganar si el precio se mueve fuerte, hacia cualquier lado.</td><td>Bottom straddle, long strangle, strip, strap, short butterfly</td></tr>
+            <tr><td><strong>Apostar a la NO volatilidad</strong></td><td>Ganar si el precio se queda quieto.</td><td>Butterfly, top straddle, short strangle</td></tr>
+            <tr><td><strong>Reducir el costo</strong></td><td>Financiar la compra de una opción vendiendo otra.</td><td>Spreads, collar</td></tr>
+            <tr><td><strong>Diseñar payoffs a medida</strong></td><td>Construir el perfil exacto que uno busca.</td><td>Cualquier combinación (probala en el simulador)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Dos conceptos transversales</h2>
+
+      <div class="grilla-graficos">
+        <div class="caja definicion">
+          <p class="caja-titulo">Net debit (débito)</p>
+          <p>Pago más por lo que compro de lo que cobro por lo que vendo. La estrategia <strong>requiere una inversión inicial</strong>.</p>
+        </div>
+        <div class="caja definicion">
+          <p class="caja-titulo">Net credit (crédito)</p>
+          <p>Cobro más por lo que vendo de lo que pago por lo que compro. La estrategia <strong>deja un flujo de fondos inicial</strong>.</p>
+        </div>
+      </div>
+
+      <p>Además hay que distinguir dos formas de medir el resultado:</p>
+      <ul>
+        <li><strong>Payoff bruto:</strong> lo que pagan las opciones al vencimiento, <strong>sin considerar las primas</strong>.</li>
+        <li><strong>Payoff neto (beneficio):</strong> el payoff bruto descontando las primas pagadas o sumando las cobradas.</li>
+      </ul>
+
+      <div class="caja importante">
+        <p class="caja-titulo">Supuestos de esta unidad</p>
+        <p>Igual que Hull, suponemos que todas las opciones son <strong>europeas</strong>, que vencen en la misma fecha y que, para calcular el beneficio, se puede <strong>ignorar el valor tiempo del dinero</strong>:</p>
+        <p>\[ \text{Beneficio} = \text{Payoff bruto al vencimiento} - \text{Costo neto inicial} \]</p>
+        <p>En los ejemplos el subyacente vale hoy 100 y las primas se calcularon con Black-Scholes (\(r = 5\%\), \(\sigma = 25\%\), 3 meses). Son las mismas que usa el simulador:</p>
+        <div class="tabla-wrap">
+          <table class="tabla">
+            <thead><tr><th>Strike</th><th class="num">90</th><th class="num">95</th><th class="num">100</th><th class="num">105</th><th class="num">110</th></tr></thead>
+            <tbody>
+              <tr><td>Call</td><td class="num">12,21</td><td class="num">8,53</td><td class="num">5,60</td><td class="num">3,44</td><td class="num">1,98</td></tr>
+              <tr><td>Put</td><td class="num">1,09</td><td class="num">2,35</td><td class="num">4,36</td><td class="num">7,14</td><td class="num">10,61</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <p><strong>Cómo leer los gráficos:</strong> el eje horizontal es el precio del subyacente al vencimiento (\(S_T\)) y el vertical, el beneficio. Las <strong>líneas punteadas</strong> son cada posición por separado; la <strong>línea continua</strong> es la estrategia completa, que es la <strong>suma</strong> de las punteadas. Para cada estrategia interesan tres datos: <strong>ganancia máxima</strong>, <strong>pérdida máxima</strong> y <strong>break-even</strong> (el precio, o los precios, donde el beneficio es cero).</p>
+
+      <!-- ================================================================== -->
+      <h2>Garantizar el capital: principal-protected notes</h2>
+
+      <p>Una <strong>principal-protected note</strong> (PPN) garantiza el capital inicial, <strong>independientemente de cómo le vaya al subyacente</strong>. En el mejor caso hay ganancia; en el peor, se recupera el capital. Combina tasa fija con derivados: se compra un bono y, con el interés que va a generar hasta el vencimiento, se compran opciones.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <ol>
+          <li><strong>Compro un bono cupón cero</strong> que paga $1.000 en 3 años. Con una tasa del 6 % continua, hoy cuesta \(1.000\,e^{-0{,}06 \times 3} = 835{,}27\).</li>
+          <li><strong>Uso los $164,73 restantes</strong> para comprar un call sobre un índice que hoy vale 1.000.</li>
+          <li><strong>Al cabo de 3 años</strong> recibo $1.000 del bono más el payoff del call.</li>
+        </ol>
+        <p>El piso queda garantizado por el bono; el call aporta solo upside. Con una volatilidad del 20 %, un call a 3 años <em>at the money</em> cuesta 224,99: no alcanza. Hay dos salidas: comprar un call con strike más alto (con \(K = 1.130\) cuesta 163,56) o comprar solo una fracción del call ATM (\(164{,}73 / 224{,}99 = 73\%\), la <strong>tasa de participación</strong>).</p>
+      </div>
+
+      <figure class="grafico-payoff" data-patas="compra bono 1000 835,27; compra call 1130 163,56" data-individuales data-desde="700" data-hasta="1500">
+        <figcaption>PPN: bono cupón cero (nominal 1.000) + call con strike 1.130. Si el índice no supera 1.130, se recupera el capital (sobra 1,17 sin invertir).</figcaption>
+      </figure>
+
+      <p>Cuanto más alta es la tasa de interés, más "sobra" para comprar opciones y más atractiva resulta la nota. Con tasas bajas, el remanente alcanza para muy poco upside.</p>
+      <p><a class="boton-sim" href="u8-simulacion.html?estrategia=ppn">Abrir la PPN en el simulador →</a></p>
+
+      <!-- ================================================================== -->
+      <h2>Estrategias cubiertas: subyacente + opción</h2>
+
+      <p>Combinan una posición en el subyacente con una opción. Por la <strong>paridad put-call</strong>, cada una equivale a una opción simple más (o menos) una cantidad fija de dinero:</p>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th>Estrategia</th><th>Composición</th><th>Equivale a</th><th>Lógica</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Covered call</strong></td><td>Long acción + short call</td><td>≡ Short put</td><td>Vendo la suba sobre K: limito la ganancia y reduzco la pérdida con la prima.</td></tr>
+            <tr><td><strong>Reverse covered call</strong></td><td>Short acción + long call</td><td>≡ Long put</td><td>Sigo bajista, pero limito la pérdida si el precio supera K.</td></tr>
+            <tr><td><strong>Protective put</strong></td><td>Long acción + long put</td><td>≡ Long call</td><td>Sigo alcista, pero limito la pérdida si el precio cae bajo K.</td></tr>
+            <tr><td><strong>Reverse protective put</strong></td><td>Short acción + short put</td><td>≡ Short call</td><td>Vendo la caída bajo K: limito la ganancia y reduzco la pérdida con la prima.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="caja importante">
+        <p class="caja-titulo">Regla mnemotécnica</p>
+        <p>Hay dos lógicas posibles: <strong>comprar un seguro</strong> (mantener la apuesta direccional y pagar una prima para limitar la pérdida) o <strong>vender un escenario</strong> (cobrar una prima a cambio de renunciar a parte de la ganancia).</p>
+        <ul>
+          <li>Compran un seguro: <strong>reverse covered call</strong> y <strong>protective put</strong>.</li>
+          <li>Venden un escenario: <strong>covered call</strong> y <strong>reverse protective put</strong>.</li>
+        </ul>
+      </div>
+
+      <p>La equivalencia sale de reordenar la paridad put-call, \(c + Ke^{-rT} = p + S_0\):</p>
+      <div class="formula">\[ \underbrace{S_0 - c}_{\text{covered call}} = \underbrace{Ke^{-rT} - p}_{\text{short put + bono}} \qquad\qquad \underbrace{S_0 + p}_{\text{protective put}} = \underbrace{c + Ke^{-rT}}_{\text{long call + bono}} \]</div>
+      <p>Las versiones reverse son exactamente las posiciones opuestas.</p>
+
+      <div class="grilla-graficos">
+        <figure class="grafico-payoff" data-patas="compra accion 100; venta call 105 3,44" data-individuales>
+          <figcaption>Covered call (K = 105). Costo 96,56 · ganancia máx. 8,44 · break-even 96,56.</figcaption>
+        </figure>
+        <figure class="grafico-payoff" data-patas="venta accion 100; compra call 105 3,44" data-individuales>
+          <figcaption>Reverse covered call. Pérdida máx. 8,44 si el precio supera 105.</figcaption>
+        </figure>
+        <figure class="grafico-payoff" data-patas="compra accion 100; compra put 95 2,35" data-individuales>
+          <figcaption>Protective put (K = 95). Costo 102,35 · pérdida máx. 7,35.</figcaption>
+        </figure>
+        <figure class="grafico-payoff" data-patas="venta accion 100; venta put 95 2,35" data-individuales>
+          <figcaption>Reverse protective put. Ganancia máx. 7,35 · pérdida ilimitada si sube.</figcaption>
+        </figure>
+      </div>
+
+      <p>
+        <a class="boton-sim" href="u8-simulacion.html?estrategia=covered-call">Covered call →</a>
+        <a class="boton-sim" href="u8-simulacion.html?estrategia=reverse-covered-call">Reverse covered call →</a>
+        <a class="boton-sim" href="u8-simulacion.html?estrategia=protective-put">Protective put →</a>
+        <a class="boton-sim" href="u8-simulacion.html?estrategia=reverse-protective-put">Reverse protective put →</a>
+      </p>
+
+      <h3>Extensión: el collar</h3>
+      <p>El <strong>collar</strong> une un protective put con un covered call: long acción + <strong>long put</strong> \(K_1\) + <strong>short call</strong> \(K_2\). Quien tiene la acción se protege de una caída y <strong>financia</strong> ese seguro vendiendo la suba por encima de \(K_2\). Pérdidas y ganancias quedan acotadas; si las dos primas son iguales, el collar no cuesta nada (<em>zero-cost collar</em>).</p>
+      <figure class="grafico-payoff" data-patas="compra accion 100; compra put 95 2,35; venta call 105 3,44" data-individuales>
+        <figcaption>Collar 95/105. Costo 98,91 · ganancia máx. 6,09 · pérdida máx. 3,91 · break-even 98,91.</figcaption>
+      </figure>
+      <p><a class="boton-sim" href="u8-simulacion.html?estrategia=collar">Abrir el collar en el simulador →</a></p>
+
+      <div class="caja argentina">
+        <p class="caja-titulo">En Argentina: el lanzamiento cubierto</p>
+        <p>En BYMA, la estrategia con opciones más difundida entre inversores individuales es el <strong>lanzamiento cubierto</strong>: es el covered call de esta sección. Se compran 100 acciones por cada contrato y se vende un call, en general fuera del dinero y al vencimiento más cercano, para cobrar la prima. Las acciones quedan depositadas como garantía del lanzamiento: si el comprador ejerce, se entregan.</p>
+        <ul>
+          <li>Si al vencimiento la acción está por debajo del strike, el call vence sin valor y el inversor se queda con la prima y las acciones. Si está por encima, se las ejercen: vende a \(K\) y la ganancia queda topeada en \(K - S_0 + c\).</li>
+          <li>El lanzamiento <strong>descubierto</strong> (vender calls sin tener las acciones) tiene pérdida ilimitada y exige garantías, que se ajustan si la acción sube.</li>
+          <li>Las estrategias de varias patas (spreads, mariposas, cajas) se arman con las series disponibles, pero cada pata paga comisiones y derechos de mercado. En una mariposa, que gana poco, esos costos pueden comerse buena parte del resultado.</li>
+        </ul>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Spreads verticales: apuestas de dirección</h2>
+
+      <p>Un spread vertical combina <strong>dos opciones del mismo tipo</strong>, con el mismo vencimiento y <strong>distinto strike</strong> (\(K_1 \lt K_2\)). Se compra una y se vende la otra: la vendida financia parte de la comprada a cambio de <strong>limitar la ganancia</strong>. En todos los spreads verticales tanto la ganancia como la pérdida son limitadas.</p>
+
+      <h3>Bull spreads: apuesta al alza moderada</h3>
+      <p>Hay dos formas de armarlo:</p>
+      <ul>
+        <li><strong>Bull call spread:</strong> long call \(K_1\) + short call \(K_2\). Es <strong>net debit</strong>: se cobra menos por el call vendido que lo que se paga por el comprado. Payoff bruto \(\ge 0\).</li>
+        <li><strong>Bull put spread:</strong> long put \(K_1\) + short put \(K_2\). Es <strong>net credit</strong>: se recauda más por el put vendido (el de \(K_2\), más caro). Payoff bruto \(\le 0\).</li>
+      </ul>
+
+      <h4>Bull call spread: payoff bruto</h4>
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th>Rango de precio</th><th class="num">Long call \(K_1\)</th><th class="num">Short call \(K_2\)</th><th class="num">Payoff total</th></tr></thead>
+          <tbody>
+            <tr><td>\(S_T \le K_1\)</td><td class="num">0</td><td class="num">0</td><td class="num">0</td></tr>
+            <tr><td>\(K_1 \lt S_T \lt K_2\)</td><td class="num">\(S_T - K_1\)</td><td class="num">0</td><td class="num">\(S_T - K_1\)</td></tr>
+            <tr><td>\(S_T \ge K_2\)</td><td class="num">\(S_T - K_1\)</td><td class="num">\(-(S_T - K_2)\)</td><td class="num">\(K_2 - K_1\)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>Cómo leerla:</strong> por debajo de \(K_1\) no se ejerce ninguna opción y el payoff es 0. Entre \(K_1\) y \(K_2\) solo gana el long call, \(S_T - K_1\), que crece con el precio. Por encima de \(K_2\), el short call cancela ese crecimiento y la ganancia queda fija en \(K_2 - K_1\).</p>
+
+      <div class="grilla-graficos">
+        <figure class="grafico-payoff" data-patas="compra call 95 8,53; venta call 105 3,44" data-individuales>
+          <figcaption>Bull call spread 95/105. Débito 5,09 · ganancia máx. 4,91 · break-even 100,09.</figcaption>
+        </figure>
+        <figure class="grafico-payoff" data-patas="compra put 95 2,35; venta put 105 7,14" data-individuales>
+          <figcaption>Bull put spread 95/105. Crédito 4,79 · pérdida máx. 5,21 · break-even 100,21.</figcaption>
+        </figure>
+      </div>
+
+      <h3>Bear spreads: apuesta a la baja moderada</h3>
+      <ul>
+        <li><strong>Bear put spread:</strong> long put \(K_2\) + short put \(K_1\). Requiere inversión inicial (<strong>net debit</strong>). Payoff bruto \(\ge 0\).</li>
+        <li><strong>Bear call spread:</strong> short call \(K_1\) + long call \(K_2\). Deja un flujo inicial (<strong>net credit</strong>). Payoff bruto \(\le 0\).</li>
+      </ul>
+
+      <div class="grilla-graficos">
+        <figure class="grafico-payoff" data-patas="venta put 95 2,35; compra put 105 7,14" data-individuales>
+          <figcaption>Bear put spread 95/105. Débito 4,79 · ganancia máx. 5,21 · break-even 100,21.</figcaption>
+        </figure>
+        <figure class="grafico-payoff" data-patas="venta call 95 8,53; compra call 105 3,44" data-individuales>
+          <figcaption>Bear call spread 95/105. Crédito 5,09 · pérdida máx. 4,91 · break-even 100,09.</figcaption>
+        </figure>
+      </div>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">Patrón</p>
+        <p>Si se <strong>compra la opción más cara</strong>, el spread es <strong>net debit</strong> y su payoff bruto es \(\ge 0\). Si se <strong>vende la más cara</strong>, es <strong>net credit</strong> y su payoff bruto es \(\le 0\).</p>
+        <p>Para spreads de débito: ganancia máx. \(= K_2 - K_1 - D\), pérdida máx. \(= D\). Para spreads de crédito: ganancia máx. \(= Cr\), pérdida máx. \(= K_2 - K_1 - Cr\).</p>
+      </div>
+
+      <p>La elección de los strikes define cuán agresivo es el spread. Si las dos opciones están fuera del dinero, el spread es barato pero tiene poca probabilidad de pagar; si las dos están dentro del dinero, es más caro y más conservador.</p>
+
+      <p>
+        <a class="boton-sim" href="u8-simulacion.html?estrategia=bull-call-spread">Bull call spread →</a>
+        <a class="boton-sim" href="u8-simulacion.html?estrategia=bull-put-spread">Bull put spread →</a>
+        <a class="boton-sim" href="u8-simulacion.html?estrategia=bear-put-spread">Bear put spread →</a>
+        <a class="boton-sim" href="u8-simulacion.html?estrategia=bear-call-spread">Bear call spread →</a>
+      </p>
+
+      <!-- ================================================================== -->
+      <h2>Box spread: la tasa sintética</h2>
+
+      <p>El <strong>box spread</strong> combina un <strong>bull call spread</strong> con un <strong>bear put spread</strong>, con los mismos strikes \(K_1\) y \(K_2\). El resultado es un payoff <strong>siempre fijo</strong>:</p>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th>Rango de precio</th><th class="num">Bull call spread</th><th class="num">Bear put spread</th><th class="num">Payoff total</th></tr></thead>
+          <tbody>
+            <tr><td>\(S_T \le K_1\)</td><td class="num">0</td><td class="num">\(K_2 - K_1\)</td><td class="num">\(K_2 - K_1\)</td></tr>
+            <tr><td>\(K_1 \lt S_T \lt K_2\)</td><td class="num">\(S_T - K_1\)</td><td class="num">\(K_2 - S_T\)</td><td class="num">\(K_2 - K_1\)</td></tr>
+            <tr><td>\(S_T \ge K_2\)</td><td class="num">\(K_2 - K_1\)</td><td class="num">0</td><td class="num">\(K_2 - K_1\)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Como paga \(K_2 - K_1\) pase lo que pase, es un activo libre de riesgo, y su valor hoy tiene que ser:</p>
+      <div class="formula">\[ \text{Box} = (K_2 - K_1)\, e^{-rT} \]</div>
+      <p>Cualquier otro precio genera arbitraje. Si el box cotiza más barato, se compra (equivale a prestar a una tasa mayor que la libre de riesgo); si cotiza más caro, se vende (equivale a endeudarse a una tasa menor). En la valuación neutral al riesgo debe rendir exactamente la tasa libre de riesgo: por eso se lo llama <strong>"tasa sintética"</strong>.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>Box 95/105: bull call spread (\(8{,}53 - 3{,}44 = 5{,}09\)) + bear put spread (\(7{,}14 - 2{,}35 = 4{,}79\)). Cuesta 9,88 y paga 10 seguro en 3 meses.</p>
+        <p>Su valor teórico es \(10\, e^{-0{,}05 \times 0{,}25} = 9{,}876\): coincide (salvo redondeo). La "ganancia" de 0,12 es exactamente el interés de la tasa libre de riesgo, no un arbitraje.</p>
+      </div>
+
+      <figure class="grafico-payoff" data-patas="compra call 95 8,53; venta call 105 3,44; compra put 105 7,14; venta put 95 2,35">
+        <figcaption>Box spread 95/105: el resultado es el mismo para cualquier precio del subyacente.</figcaption>
+      </figure>
+
+      <p>Esto vale para opciones <strong>europeas</strong>. Con americanas, donde puede ser \(P \gt p\) por el ejercicio anticipado, la relación puede no cumplirse.</p>
+      <p><a class="boton-sim" href="u8-simulacion.html?estrategia=box-spread">Abrir el box spread en el simulador →</a></p>
+
+      <!-- ================================================================== -->
+      <h2>Butterfly: apuesta a la NO volatilidad</h2>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">Composición (call butterfly)</p>
+        <p>Involucra <strong>4 opciones con 3 strikes</strong> (\(K_1 \lt K_2 \lt K_3\), con \(K_2\) justo en el medio: \(K_2 - K_1 = K_3 - K_2\)): <strong>long call</strong> \(K_1\) + <strong>long call</strong> \(K_3\) + <strong>short 2 calls</strong> \(K_2\). Es <strong>net debit</strong>.</p>
+      </div>
+
+      <p>Gana si el precio se queda <strong>cerca de \(K_2\)</strong>, que suele elegirse cerca del precio actual. Si el precio se mueve mucho hacia cualquier lado, se pierde lo pagado, que es poco. Es la estrategia para quien cree que <strong>no habrá un movimiento importante</strong>.</p>
+
+      <div class="formula">\[ \text{Ganancia máx.} = K_2 - K_1 - \pi \qquad \text{Pérdida máx.} = \pi \qquad \text{Break-evens: } K_1 + \pi \;\text{ y }\; K_3 - \pi \]</div>
+      <p>donde \(\pi\) es la prima neta pagada. La ganancia máxima se da cuando \(S_T = K_2\). Estas fórmulas suponen strikes equidistantes. Con strikes desiguales la mariposa 1-2-1 deja de ser simétrica: por encima de \(K_3\) el resultado es \(2K_2 - K_1 - K_3 - \pi\), que puede ser una ganancia o una pérdida mayor que \(\pi\).</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>Butterfly 95/100/105: costo \(8{,}53 + 3{,}44 - 2 \times 5{,}60 = 0{,}77\). Ganancia máx. \(100 - 95 - 0{,}77 = 4{,}23\) si \(S_T = 100\); pérdida máx. 0,77; break-evens 95,77 y 104,23.</p>
+      </div>
+
+      <figure class="grafico-payoff" data-patas="compra call 95 8,53; venta call 100 5,6 2; compra call 105 3,44" data-individuales>
+        <figcaption>Call butterfly 95/100/105.</figcaption>
+      </figure>
+
+      <ul>
+        <li><strong>Put butterfly:</strong> la misma estructura con puts (long put \(K_1\) + long put \(K_3\) + short 2 puts \(K_2\)). Con strikes equidistantes y opciones europeas, por la paridad put-call cuesta lo mismo y tiene el mismo perfil.</li>
+        <li><strong>Short (reverse) butterfly:</strong> invierte todas las posiciones. Es <strong>net credit</strong> y <strong>apuesta a la volatilidad</strong>: gana un poco (el crédito) si el precio se aleja de \(K_2\) y pierde, de forma acotada, si se queda cerca.</li>
+      </ul>
+
+      <p>
+        <a class="boton-sim" href="u8-simulacion.html?estrategia=call-butterfly">Call butterfly →</a>
+        <a class="boton-sim" href="u8-simulacion.html?estrategia=put-butterfly">Put butterfly →</a>
+        <a class="boton-sim" href="u8-simulacion.html?estrategia=short-butterfly">Short butterfly →</a>
+      </p>
+
+      <!-- ================================================================== -->
+      <h2>Estrategias de volatilidad</h2>
+
+      <h3>Straddle: apuesta pura a la volatilidad</h3>
+      <ul>
+        <li><strong>Bottom straddle (long):</strong> long call + long put, <strong>mismo K</strong>. Ganancia ilimitada y pérdida limitada a las primas pagadas.</li>
+        <li><strong>Top straddle (short):</strong> short call + short put, mismo K. Ganancia limitada a las primas cobradas y <strong>pérdida ilimitada</strong>: es una apuesta a la NO volatilidad, muy riesgosa.</li>
+      </ul>
+      <p>El bottom straddle sirve cuando se espera un salto grande pero no se sabe en qué dirección; por ejemplo, ante una oferta de adquisición o un fallo judicial. Pero el mercado también lo espera, y eso ya está en las primas: para ganar, el movimiento tiene que ser <strong>mayor del que espera el mercado</strong>.</p>
+
+      <div class="grilla-graficos">
+        <figure class="grafico-payoff" data-patas="compra call 100 5,6; compra put 100 4,36" data-individuales>
+          <figcaption>Bottom straddle K = 100. Costo 9,96 · break-evens 90,04 y 109,96.</figcaption>
+        </figure>
+        <figure class="grafico-payoff" data-patas="venta call 100 5,6; venta put 100 4,36" data-individuales>
+          <figcaption>Top straddle K = 100. Crédito 9,96 · pérdida ilimitada.</figcaption>
+        </figure>
+      </div>
+
+      <h3>Strip, strap y strangle</h3>
+      <ul>
+        <li><strong>Strip:</strong> 1 call + 2 puts, mismo K. Es un bottom straddle con <strong>sesgo a la baja</strong>: gana el doble por cada peso que cae el precio.</li>
+        <li><strong>Strap:</strong> 2 calls + 1 put, mismo K. Es un bottom straddle con <strong>sesgo al alza</strong>.</li>
+        <li><strong>Strangle:</strong> como el straddle pero con <strong>strikes distintos</strong>: put \(K_1\) + call \(K_2\), ambos <strong>fuera del dinero</strong> (OTM). El <strong>long strangle</strong> es más barato que el bottom straddle pero necesita un movimiento mayor. El <strong>short strangle</strong> apuesta a la NO volatilidad: cobra menos que un top straddle, pero gana en un rango más amplio; su pérdida también es ilimitada.</li>
+      </ul>
+
+      <div class="caja importante">
+        <p class="caja-titulo">Para no confundirlos</p>
+        <p><strong>Strip</strong> → 2 <strong>p</strong>uts → sesgo a la baja. <strong>Strap</strong> → 2 calls → sesgo al alza. Los dos son straddles "inclinados" hacia el lado que tiene la opción doble.</p>
+      </div>
+
+      <div class="grilla-graficos">
+        <figure class="grafico-payoff" data-patas="compra call 100 5,6; compra put 100 4,36 2" data-individuales>
+          <figcaption>Strip. Costo 14,32 · break-evens 92,84 y 114,32.</figcaption>
+        </figure>
+        <figure class="grafico-payoff" data-patas="compra call 100 5,6 2; compra put 100 4,36" data-individuales>
+          <figcaption>Strap. Costo 15,56 · break-evens 84,44 y 107,78.</figcaption>
+        </figure>
+        <figure class="grafico-payoff" data-patas="compra put 95 2,35; compra call 105 3,44" data-individuales>
+          <figcaption>Long strangle 95/105. Costo 5,79 · break-evens 89,21 y 110,79.</figcaption>
+        </figure>
+        <figure class="grafico-payoff" data-patas="venta put 95 2,35; venta call 105 3,44" data-individuales>
+          <figcaption>Short strangle 95/105. Crédito 5,79 · gana entre 89,21 y 110,79.</figcaption>
+        </figure>
+      </div>
+
+      <p>Break-evens: en el strip, \(K - \frac{\text{costo}}{2}\) (los dos puts recuperan el costo con la mitad de la caída) y \(K + \text{costo}\). En el strap, \(K - \text{costo}\) y \(K + \frac{\text{costo}}{2}\).</p>
+
+      <p>
+        <a class="boton-sim" href="u8-simulacion.html?estrategia=straddle">Bottom straddle →</a>
+        <a class="boton-sim" href="u8-simulacion.html?estrategia=top-straddle">Top straddle →</a>
+        <a class="boton-sim" href="u8-simulacion.html?estrategia=strip">Strip →</a>
+        <a class="boton-sim" href="u8-simulacion.html?estrategia=strap">Strap →</a>
+        <a class="boton-sim" href="u8-simulacion.html?estrategia=strangle">Long strangle →</a>
+        <a class="boton-sim" href="u8-simulacion.html?estrategia=short-strangle">Short strangle →</a>
+      </p>
+
+      <!-- ================================================================== -->
+      <h2>Antes del vencimiento: valor tiempo y spreads de calendario</h2>
+
+      <p>Todos los gráficos anteriores muestran el resultado <strong>al vencimiento</strong>. Antes de esa fecha cada opción vale su valor intrínseco <strong>más un valor tiempo</strong>, así que la curva de la estrategia es más suave: los quiebres de los strikes aparecen recién el último día. Dos fuerzas mueven esa curva mientras pasa el tiempo:</p>
+      <ul>
+        <li><strong>El tiempo</strong> (theta): las opciones compradas pierden valor tiempo cada día y las vendidas lo hacen ganar. Por eso un straddle comprado pierde si el precio se queda quieto, aunque al vencimiento todavía pudiera ganar.</li>
+        <li><strong>La volatilidad</strong> (vega): si sube, todas las opciones valen más. Las estrategias compradas en opciones (straddle, strangle) ganan; las que tienen <strong>vega negativa</strong> pierden: el top straddle, el short strangle y también la mariposa comprada mientras el precio está cerca de \(K_2\), porque ahí pesan más los dos calls vendidos. El calendar spread comprado, en cambio, tiene vega positiva: gana si sube la volatilidad implícita.</li>
+      </ul>
+      <p>En el <a href="u8-simulacion.html">simulador</a> la línea punteada muestra el resultado si cerrás la posición hoy. Mové los días transcurridos y vas a ver cómo se va pegando a la línea del vencimiento.</p>
+
+      <h3>Spread de calendario</h3>
+      <p>Un <strong>spread de calendario</strong> (<em>calendar spread</em> o <em>time spread</em>) usa opciones con el <strong>mismo strike</strong> y <strong>distinto vencimiento</strong>: se vende la de vencimiento corto y se compra la de vencimiento largo. La larga cuesta más, así que es una estrategia de débito.</p>
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>Con \(S_0 = 100\), \(r = 5\%\) y \(\sigma = 25\%\): se vende un call 100 a 30 días por 3,09 y se compra un call 100 a 90 días por 5,60. Costo: 2,51.</p>
+        <p>A los 30 días vence el call corto. El largo sigue vivo, con 60 días por delante, y vale su precio de Black-Scholes. El resultado a esa fecha es:</p>
+        <div class="tabla-wrap">
+          <table class="tabla compacta">
+            <thead><tr><th>Precio a los 30 días</th><th class="num">85</th><th class="num">90</th><th class="num">95</th><th class="num">100</th><th class="num">105</th><th class="num">110</th><th class="num">115</th></tr></thead>
+            <tbody><tr><td>Resultado</td><td class="num neg">−2,25</td><td class="num neg">−1,63</td><td class="num neg">−0,30</td><td class="num pos">+1,97</td><td class="num pos">+0,19</td><td class="num neg">−0,82</td><td class="num neg">−1,33</td></tr></tbody>
+          </table>
+        </div>
+        <p>La forma es parecida a la de una mariposa: gana si el precio queda cerca de \(K\), porque la opción corta vence sin valor mientras la larga conserva casi todo su valor tiempo, que se consume más despacio. Si el precio se aleja mucho, las dos opciones se parecen a la acción (muy dentro del dinero) o a cero (muy fuera), el valor tiempo desaparece y se pierde casi todo el costo.</p>
+        <p>Hay una diferencia importante con la mariposa: el calendar comprado tiene <strong>vega positiva</strong>, porque la opción larga es más sensible a la volatilidad que la corta. Gana si el precio se queda quieto <em>y</em> si sube la volatilidad implícita. Es una apuesta a precio quieto en el corto plazo, pero no a volatilidad baja.</p>
+      </div>
+      <p>Con puts se arma igual y da un perfil similar. Si se espera una suba moderada se elige un strike por encima del precio actual (calendar <em>alcista</em>); para una baja moderada, uno por debajo (<em>bajista</em>).</p>
+
+      <h3>Spread diagonal</h3>
+      <p>Un <strong>spread diagonal</strong> cambia a la vez el strike y el vencimiento: por ejemplo, se vende un call 105 a 30 días y se compra un call 100 a 90 días. Combina la idea del bull spread (dos strikes) con la del calendar (dos vencimientos). Con los mismos datos cuesta \(5{,}60 - 1{,}21 = 4{,}39\).</p>
+
+      <h3>Forward sintético</h3>
+      <p>Comprar un call y vender un put con el mismo strike y vencimiento da \(\max(S_T - K; 0) - \max(K - S_T; 0) = S_T - K\): el payoff de un <strong>forward largo</strong> pactado a \(K\). Es la paridad put-call vista como estrategia: \(c - p = S_0 - Ke^{-rT}\). Si \(K\) es el precio forward, el call y el put valen lo mismo y la estrategia no cuesta nada, como un forward.</p>
+
+      <div class="caja error">
+        <p class="caja-titulo">Errores frecuentes</p>
+        <ul>
+          <li>Leer el beneficio con el payoff bruto: el break-even siempre incluye las primas pagadas o cobradas.</li>
+          <li>Confundir net debit con net credit: es débito si pagás más por lo que comprás que lo que cobrás por lo que vendés.</li>
+          <li>Pensar que una estrategia "no pierde" antes del vencimiento porque al vencimiento todavía puede ganar: el valor tiempo y la volatilidad la mueven todos los días.</li>
+          <li>En un calendar, analizar el resultado "al vencimiento" de la opción larga: se mide al vencimiento de la corta, con la larga todavía viva.</li>
+        </ul>
+      </div>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">Un inversor espera que el precio se mueva mucho, pero no sabe para qué lado. ¿Qué estrategia elige?</p>
+          <ol class="qr-op"><li>Butterfly comprada</li><li>Straddle comprado (bottom straddle)</li><li>Covered call</li></ol>
+          <p class="qr-explicacion">El bottom straddle gana con movimientos grandes hacia cualquier lado. La mariposa comprada y el covered call ganan si el precio se queda quieto o sube poco.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="3">
+          <p class="qr-enunciado">Un box spread con strikes 95 y 105 a 3 meses, con \(r = 5\%\), debería costar:</p>
+          <ol class="qr-op"><li>10</li><li>Cero, porque es un arbitraje</li><li>\(10\,e^{-0{,}05 \times 0{,}25} = 9{,}88\)</li></ol>
+          <p class="qr-explicacion">El payoff es siempre \(K_2 - K_1 = 10\); hoy vale su valor presente. Cualquier otro precio permite un arbitraje.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">Faltan 60 días y el precio está justo en el strike de un straddle comprado. Si el precio no se mueve durante un mes, la posición:</p>
+          <ol class="qr-op"><li>Pierde, por la theta negativa de las dos opciones compradas</li><li>No cambia, porque el precio no se movió</li><li>Gana, porque se acerca el vencimiento</li></ol>
+          <p class="qr-explicacion">Las dos opciones compradas pierden valor tiempo cada día. Sin movimiento, ese desgaste es pérdida.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">Un calendar spread con calls gana más si al vencimiento de la opción corta el precio está:</p>
+          <ol class="qr-op"><li>Muy por encima del strike</li><li>Cerca del strike</li><li>Muy por debajo del strike</li></ol>
+          <p class="qr-explicacion">Cerca del strike la opción corta vence sin valor y la larga conserva su mayor valor tiempo.</p>
+        </div>
+      </div>
+      <!-- ================================================================== -->
+      <h2>Mapa de estrategias</h2>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th>Dirección</th><th>Volatilidad (se mueve)</th><th>NO volatilidad (quieto)</th><th>Capital y arbitraje</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Bull call / put spread (alza)<br>Bear call / put spread (baja)<br>Covered call · Protective put</td>
+              <td>Bottom straddle<br>Long strangle<br>Strip / Strap<br>Short butterfly</td>
+              <td>Top straddle<br>Short strangle<br>Call / Put butterfly<br>Calendar spread (con vega positiva)</td>
+              <td>Principal-protected note<br>Box spread (tasa sintética)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Tabla resumen</h2>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead><tr><th>Estrategia</th><th>Composición</th><th>Neto</th><th>Ganancia máx.</th><th>Pérdida máx.</th><th>Break-even</th></tr></thead>
+          <tbody>
+            <tr><td>Covered call</td><td>+S, −C(K)</td><td>Débito</td><td>\(K - (S_0 - c)\)</td><td>\(S_0 - c\)</td><td>\(S_0 - c\)</td></tr>
+            <tr><td>Protective put</td><td>+S, +P(K)</td><td>Débito</td><td>Ilimitada</td><td>\(S_0 + p - K\)</td><td>\(S_0 + p\)</td></tr>
+            <tr><td>Bull call spread</td><td>+C(K₁), −C(K₂)</td><td>Débito \(D\)</td><td>\(K_2 - K_1 - D\)</td><td>\(D\)</td><td>\(K_1 + D\)</td></tr>
+            <tr><td>Bull put spread</td><td>+P(K₁), −P(K₂)</td><td>Crédito \(Cr\)</td><td>\(Cr\)</td><td>\(K_2 - K_1 - Cr\)</td><td>\(K_2 - Cr\)</td></tr>
+            <tr><td>Bear put spread</td><td>−P(K₁), +P(K₂)</td><td>Débito \(D\)</td><td>\(K_2 - K_1 - D\)</td><td>\(D\)</td><td>\(K_2 - D\)</td></tr>
+            <tr><td>Bear call spread</td><td>−C(K₁), +C(K₂)</td><td>Crédito \(Cr\)</td><td>\(Cr\)</td><td>\(K_2 - K_1 - Cr\)</td><td>\(K_1 + Cr\)</td></tr>
+            <tr><td>Box spread</td><td>Bull call + bear put</td><td>Débito</td><td colspan="2">Payoff fijo \(K_2 - K_1\)</td><td>—</td></tr>
+            <tr><td>Call butterfly</td><td>+C(K₁), −2C(K₂), +C(K₃)</td><td>Débito \(\pi\)</td><td>\(K_2 - K_1 - \pi\)</td><td>\(\pi\)</td><td>\(K_1 + \pi\); \(K_3 - \pi\)</td></tr>
+            <tr><td>Bottom straddle</td><td>+C(K), +P(K)</td><td>Débito</td><td>Ilimitada</td><td>\(c + p\)</td><td>\(K \pm (c+p)\)</td></tr>
+            <tr><td>Top straddle</td><td>−C(K), −P(K)</td><td>Crédito</td><td>\(c + p\)</td><td>Ilimitada</td><td>\(K \pm (c+p)\)</td></tr>
+            <tr><td>Long strangle</td><td>+P(K₁), +C(K₂)</td><td>Débito</td><td>Ilimitada</td><td>\(c + p\)</td><td>\(K_1 - (c+p)\); \(K_2 + (c+p)\)</td></tr>
+            <tr><td>Strip</td><td>+C(K), +2P(K)</td><td>Débito</td><td>Ilimitada</td><td>\(c + 2p\)</td><td>\(K - \frac{c+2p}{2}\); \(K + (c+2p)\)</td></tr>
+            <tr><td>Strap</td><td>+2C(K), +P(K)</td><td>Débito</td><td>Ilimitada</td><td>\(2c + p\)</td><td>\(K - (2c+p)\); \(K + \frac{2c+p}{2}\)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="caja hull">
+        <p class="caja-titulo">Para leer</p>
+        <p><strong>Presentación de clase:</strong> Unidad 8, "Estrategias con opciones".</p>
+        <p><strong>Hull, edición en español del material, capítulo 9</strong> ("Estrategias especulativas utilizando opciones"): una opción y la acción (9.1), spreads, incluida la mariposa (9.2), y combinaciones (9.3). Las principal-protected notes y el box spread no aparecen en esa edición; están en los capítulos que indica el cronograma de la edición en inglés.</p>
+      </div>
+    </article>
+  </main>
+
+  <nav class="pie-navegacion" id="pie-navegacion"></nav>
+
+  <script src="vendor/katex/katex.min.js"></script>
+  <script src="vendor/katex/contrib/auto-render.min.js"></script>
+  <script src="vendor/chartjs/chart.umd.min.js"></script>
+  <script src="js/calculos.js"></script>
+  <script src="js/comun.js"></script>
+</body>
+</html>

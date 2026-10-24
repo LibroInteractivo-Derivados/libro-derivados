@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Swaps · Teoría</title>
+  <link rel="stylesheet" href="vendor/fuentes/fuentes.css">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="css/libro.css">
+</head>
+<body data-unidad="u4" data-seccion="teoria">
+  <div id="encabezado"></div>
+
+  <main class="pagina con-indice">
+    <aside class="indice" id="indice"></aside>
+
+    <article class="contenido">
+      <h1>Swaps</h1>
+      <p class="bajada">Qué es un swap, para qué se usa, por qué existe y cuánto vale.</p>
+      <span class="etiqueta-hull">Hull cap. 7 (cronograma)</span>
+      <span class="etiqueta-hull">Cap. 6 en la edición en español del material</span>
+
+      <div class="objetivos">
+        <p>Objetivos de la unidad</p>
+        <ul>
+          <li>Describir los flujos de un swap de tasa y de un swap de monedas, y explicar para qué se usan: transformar pasivos y activos de tasa fija a variable (o al revés) y de una moneda a otra.</li>
+          <li>Analizar el argumento de la ventaja comparativa, calcular la ganancia total a repartir y entender sus límites.</li>
+          <li>Valuar un swap como diferencia entre dos bonos y como cartera de FRAs o de forwards de moneda, y calcular la tasa swap.</li>
+          <li>Identificar el papel del intermediario financiero y el riesgo de crédito de cada tipo de swap.</li>
+        </ul>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>¿Qué es un swap?</h2>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">Definición</p>
+        <p>Un <strong>swap</strong> es un acuerdo privado entre dos partes para <strong>intercambiar flujos de fondos en fechas futuras</strong>. El contrato establece las fechas de pago y la forma de calcular cada flujo.</p>
+      </div>
+
+      <p>Por lo general, al menos uno de los flujos depende de una variable que hoy no se conoce, como una tasa de interés o un tipo de cambio. Los swaps se negocian en el mercado <em>over the counter</em> (OTC): no hay una bolsa que estandarice los contratos, sino que cada swap se pacta a medida entre las partes, normalmente con un banco como intermediario.</p>
+
+      <p>Un contrato forward también intercambia flujos en el futuro, pero en <strong>una sola fecha</strong>. Un swap lo hace en <strong>varias fechas</strong>. Por eso un swap puede verse como una <strong>cartera de contratos forward</strong>, una idea que va a ser muy útil para valuarlo.</p>
+
+      <p>Los dos tipos más comunes son los <strong>swaps de tasa de interés</strong> y los <strong>swaps de monedas</strong>.</p>
+
+      <!-- ================================================================== -->
+      <h2>Swap de tasa de interés</h2>
+
+      <p>En el swap de tasa de interés más simple, llamado <em>plain vanilla</em>, una parte se compromete a <strong>pagar una tasa fija</strong> sobre un capital y a cambio <strong>recibe una tasa variable</strong> sobre ese mismo capital, durante un plazo determinado. La otra parte hace lo contrario.</p>
+
+      <ul>
+        <li>El capital sobre el que se calculan los intereses se llama <strong>nocional</strong>. <strong>No se intercambia</strong>: solo sirve para calcular cuánto paga cada parte.</li>
+        <li>En cada fecha de pago no se transfieren los dos intereses completos: <strong>se paga solo la diferencia</strong> (neteo).</li>
+        <li>La tasa variable de cada período se <strong>fija al inicio del período y se paga al final</strong>.</li>
+      </ul>
+
+      <div class="caja importante">
+        <p class="caja-titulo">¿LIBOR o SOFR?</p>
+        <p>Durante décadas la tasa variable de referencia fue la LIBOR, y así aparece en Hull. La LIBOR en dólares dejó de publicarse en 2023 y fue reemplazada por tasas como la SOFR. La mecánica del swap es exactamente la misma: en este libro hablamos de "tasa variable" y usamos SOFR o LIBOR según el ejemplo.</p>
+      </div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>La Empresa A firma un swap a 3 años con pagos semestrales, sobre un nocional de USD 50 millones. A <strong>paga 4 % anual fijo</strong> y <strong>recibe la tasa variable</strong> semestral. Cada semestre A paga \(50 \times 0{,}04 / 2 = 1\) millón y recibe \(50 \times \text{tasa variable} / 2\).</p>
+      </div>
+
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead>
+            <tr><th>Semestre</th><th class="num">Tasa variable fijada al inicio</th><th class="num">A recibe (variable)</th><th class="num">A paga (fijo)</th><th class="num">Neto para A</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td class="num">3,6 %</td><td class="num">0,900</td><td class="num">1,000</td><td class="num neg">−0,100</td></tr>
+            <tr><td>2</td><td class="num">4,1 %</td><td class="num">1,025</td><td class="num">1,000</td><td class="num pos">+0,025</td></tr>
+            <tr><td>3</td><td class="num">4,5 %</td><td class="num">1,125</td><td class="num">1,000</td><td class="num pos">+0,125</td></tr>
+            <tr><td>4</td><td class="num">4,4 %</td><td class="num">1,100</td><td class="num">1,000</td><td class="num pos">+0,100</td></tr>
+            <tr><td>5</td><td class="num">4,8 %</td><td class="num">1,200</td><td class="num">1,000</td><td class="num pos">+0,200</td></tr>
+            <tr><td>6</td><td class="num">5,0 %</td><td class="num">1,250</td><td class="num">1,000</td><td class="num pos">+0,250</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Las cifras están en millones de USD. Cuando la tasa variable supera el 4 %, A cobra la diferencia; cuando está por debajo, la paga. Podés probar con otras tasas en <a href="u4-ejemplos.html#ejemplo-1">Ejemplos prácticos → Ejemplo 1</a>.</p>
+
+      <h3>El swap como intercambio de dos bonos</h3>
+      <p>Si al final del swap las dos partes se intercambiaran también el nocional, nada cambiaría, porque los dos montos son iguales y se cancelan. Pero agregar ese intercambio ficticio permite ver el swap de otra manera: quien <strong>paga fijo y recibe variable</strong> está <strong>comprado en un bono a tasa variable</strong> y <strong>vendido en un bono a tasa fija</strong>. Esta forma de mirarlo es la base del primer método de valuación.</p>
+
+      <!-- ================================================================== -->
+      <h2>Usos: transformar pasivos y activos</h2>
+
+      <p>Un swap permite cambiar la naturaleza de una deuda o de una inversión sin tocar el contrato original.</p>
+
+      <ul>
+        <li><strong>Transformar un pasivo:</strong> una empresa endeudada a tasa variable puede pasar a pagar, en los hechos, una tasa fija (o al revés).</li>
+        <li><strong>Transformar un activo:</strong> un inversor que cobra tasa variable puede pasar a cobrar una tasa fija (o al revés).</li>
+      </ul>
+
+      <figure class="diagrama-swap"
+        data-entidades="Empresa A | Empresa B"
+        data-flujos="Empresa A > Empresa B: 4 %; Empresa B > Empresa A: SOFR; Empresa A > afuera: SOFR + 0,2 %; afuera > Empresa B: SOFR − 0,25 %">
+        <figcaption>Un mismo swap usado por las dos partes. Las flechas horizontales son los pagos del swap; las verticales, los pagos a prestamistas (hacia abajo) y los cobros de inversiones (hacia arriba).</figcaption>
+      </figure>
+
+      <p><strong>Empresa A</strong> tiene un préstamo a SOFR + 0,2 % y le preocupa que suban las tasas. Con el swap tiene tres flujos:</p>
+      <ol>
+        <li>Paga SOFR + 0,2 % a sus prestamistas.</li>
+        <li>Recibe SOFR por el swap.</li>
+        <li>Paga 4 % por el swap.</li>
+      </ol>
+      <p>Neto: paga \(4\% + 0{,}2\% = 4{,}2\%\) fijo. Su deuda a tasa variable se convirtió en una deuda a tasa fija.</p>
+
+      <p><strong>Empresa B</strong> tiene una inversión que le rinde SOFR − 0,25 % y prefiere un ingreso fijo. Con el swap recibe SOFR − 0,25 %, paga SOFR y recibe 4 %: en neto <strong>cobra 3,75 % fijo</strong>. Su activo a tasa variable se convirtió en un activo a tasa fija.</p>
+
+      <!-- ================================================================== -->
+      <h2>El rol del intermediario financiero</h2>
+
+      <p>En la práctica, dos empresas rara vez firman un swap directamente entre sí. Cada una lo firma con un <strong>banco</strong>, que hace de intermediario y se queda con un pequeño margen, de unos pocos puntos básicos (1 punto básico = 0,01 %).</p>
+
+      <figure class="diagrama-swap"
+        data-entidades="Empresa A | Banco | Empresa B"
+        data-flujos="Empresa A > Banco: 4,015 %; Banco > Empresa A: SOFR; Banco > Empresa B: 3,985 %; Empresa B > Banco: SOFR; Empresa A > afuera: SOFR + 0,2 %; afuera > Empresa B: SOFR − 0,25 %">
+        <figcaption>El banco firma dos swaps que se compensan y gana 0,03 % anual sobre el nocional.</figcaption>
+      </figure>
+
+      <p>Ahora A paga en neto 4,215 % y B cobra 3,735 %. La diferencia de 3 puntos básicos es la ganancia del banco, que compensa en parte el <strong>riesgo de crédito</strong> que asume: si una de las empresas no paga, el banco igual tiene que cumplir con la otra.</p>
+
+      <p>Muchas veces el banco entra en un swap sin tener todavía a la contraparte del otro lado y cubre ese riesgo con bonos, FRAs o futuros mientras tanto. Esto se conoce como <em>warehousing</em>: el banco funciona como un <strong>creador de mercado</strong> de swaps.</p>
+
+      <div class="caja importante">
+        <p class="caja-titulo">Convenciones de días</p>
+        <p>En los contratos reales, la tasa variable se calcula con la convención <em>actual/360</em> y la fija suele usar <em>actual/365</em> o <em>30/360</em>, por lo que los pagos no son idénticos semestre a semestre. En los ejemplos del libro, igual que en Hull, ignoramos este detalle.</p>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>El argumento de la ventaja comparativa</h2>
+
+      <p>Una explicación habitual de por qué existen los swaps es la <strong>ventaja comparativa</strong>: algunas empresas consiguen mejores condiciones relativas en el mercado de tasa fija y otras en el de tasa variable. Cada una se endeuda donde tiene ventaja y después usa un swap para quedarse con el tipo de tasa que realmente quería.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>Dos empresas necesitan financiarse a 5 años. Estas son las tasas que les ofrecen:</p>
+        <div class="tabla-wrap">
+          <table class="tabla">
+            <thead><tr><th></th><th class="num">Tasa fija</th><th class="num">Tasa variable</th></tr></thead>
+            <tbody>
+              <tr><td>Empresa AAA (quiere variable)</td><td class="num">6,0 %</td><td class="num">SOFR + 0,4 %</td></tr>
+              <tr><td>Empresa BBB (quiere fija)</td><td class="num">7,4 %</td><td class="num">SOFR + 1,1 %</td></tr>
+              <tr><td>Diferencia</td><td class="num">a = 1,4 %</td><td class="num">b = 0,7 %</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <p>AAA consigue mejor tasa en los dos mercados, porque tiene mejor calificación crediticia. Pero su ventaja es <strong>mayor en tasa fija</strong> (1,4 %) que en tasa variable (0,7 %). Entonces BBB tiene una <strong>ventaja comparativa en tasa variable</strong>: allí paga "menos de más".</p>
+
+      <p>La ganancia total que se puede repartir entre las partes es:</p>
+      <div class="formula">\[ \text{Ganancia total} = a - b = 1{,}4\% - 0{,}7\% = 0{,}7\% \]</div>
+
+      <p>Para aprovecharla, <strong>AAA se endeuda a tasa fija</strong> (6 %) y <strong>BBB a tasa variable</strong> (SOFR + 1,1 %), aunque cada una quería lo contrario. Después firman un swap en el que AAA recibe 5,95 % fijo y paga SOFR:</p>
+
+      <figure class="diagrama-swap"
+        data-entidades="Empresa AAA | Empresa BBB"
+        data-flujos="Empresa BBB > Empresa AAA: 5,95 %; Empresa AAA > Empresa BBB: SOFR; Empresa AAA > afuera: 6 %; Empresa BBB > afuera: SOFR + 1,1 %">
+        <figcaption>Sin intermediario, cada empresa gana 0,35 %.</figcaption>
+      </figure>
+
+      <ul>
+        <li><strong>AAA:</strong> paga 6 %, recibe 5,95 % y paga SOFR. Neto: <strong>SOFR + 0,05 %</strong>, contra SOFR + 0,4 % si se hubiera endeudado directamente a tasa variable. Gana 0,35 %.</li>
+        <li><strong>BBB:</strong> paga SOFR + 1,1 %, recibe SOFR y paga 5,95 %. Neto: <strong>7,05 % fijo</strong>, contra 7,4 % directo. Gana 0,35 %.</li>
+      </ul>
+
+      <p>Si interviene un banco que se queda con 0,1 %, quedan 0,6 % para repartir: cada empresa mejora un 0,3 %. AAA termina pagando SOFR + 0,1 % y BBB, 7,1 % fijo. Podés cambiar las tasas y el margen del banco en <a href="u4-ejemplos.html#ejemplo-2">Ejemplos prácticos → Ejemplo 2</a>.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo de la cátedra (con intermediario)</p>
+        <p>Las compañías A y B buscan endeudarse por $10 millones. A quiere hacerlo a tasa variable y B, a tasa fija. Estas son las tasas que les ofrecen:</p>
+        <div class="tabla-wrap">
+          <table class="tabla compacta">
+            <thead><tr><th></th><th class="num">Tasa fija</th><th class="num">Tasa variable</th></tr></thead>
+            <tbody>
+              <tr><td>Compañía A (quiere variable)</td><td class="num">4,0 %</td><td class="num">LIBOR 6m − 0,10 %</td></tr>
+              <tr><td>Compañía B (quiere fija)</td><td class="num">5,2 %</td><td class="num">LIBOR 6m + 0,60 %</td></tr>
+              <tr class="total"><td>Diferencia</td><td class="num">1,2 %</td><td class="num">0,7 %</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>A tiene ventaja absoluta en los dos mercados, pero su ventaja relativa está en tasa fija (1,2 % contra 0,7 %); B tiene ventaja relativa en tasa variable. La ganancia total es \(1{,}2\% - 0{,}7\% = 0{,}5\%\). Un intermediario cobra 4 puntos básicos, así que quedan 0,46 % para repartir: 0,23 % para cada compañía.</p>
+        <p>A se endeuda al 4 % fijo y B a LIBOR + 0,60 %. Con el intermediario, A recibe 4,33 % y paga LIBOR; B recibe LIBOR y paga 4,37 %.</p>
+        <figure class="diagrama-swap"
+          data-entidades="Compañía A | Intermediario | Compañía B"
+          data-flujos="Intermediario > Compañía A: 4,33 %; Compañía A > Intermediario: LIBOR; Compañía B > Intermediario: 4,37 %; Intermediario > Compañía B: LIBOR; Compañía A > afuera: 4 %; Compañía B > afuera: LIBOR + 0,60 %">
+          <figcaption>El intermediario cobra 4,37 % y paga 4,33 %: gana 0,04 % y asume el riesgo de crédito de las dos partes.</figcaption>
+        </figure>
+        <ul>
+          <li><strong>A:</strong> paga 4 %, recibe 4,33 % y paga LIBOR. Neto: <strong>LIBOR − 0,33 %</strong>, contra LIBOR − 0,10 % si se hubiera endeudado directamente a tasa variable. Gana 0,23 %.</li>
+          <li><strong>B:</strong> paga LIBOR + 0,60 %, recibe LIBOR y paga 4,37 %. Neto: <strong>4,97 % fijo</strong>, contra 5,2 % directo. Gana 0,23 %.</li>
+          <li><strong>Control:</strong> \(0{,}23\% + 0{,}23\% + 0{,}04\% = 0{,}5\%\), la ganancia total.</li>
+        </ul>
+      </div>
+
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Practicá: completá el diagrama</p>
+        <p class="widget-intro">Un ejercicio como el de la cátedra, con datos al azar. Es el mismo formato que aparece en los simulacros del segundo parcial. Si querés más práctica, tocá "Otro ejercicio".</p>
+        <div class="ej-diagrama-swap"></div>
+      </div>
+
+      <h3>Crítica al argumento</h3>
+      <p>Si la ventaja comparativa fuera una ganancia "gratis", el arbitraje debería haberla hecho desaparecer hace tiempo. La explicación de fondo es que <strong>los contratos comparados no son equivalentes</strong>. La tasa fija se pacta por 5 años, mientras que la tasa variable es una sucesión de préstamos de corto plazo: si la calificación de BBB empeora, el prestamista puede subirle el margen sobre SOFR en cada renovación. Por eso el 7,05 % "fijo" que obtiene BBB no está garantizado: depende de que su margen se mantenga en 1,1 %.</p>
+
+      <!-- ================================================================== -->
+      <h2>Valuación de un swap de tasa de interés</h2>
+
+      <p>Cuando se firma, la tasa fija de un swap se elige de modo que el contrato <strong>valga cero</strong> para las dos partes; esa tasa se llama <strong>tasa swap</strong>. Con el paso del tiempo las tasas de mercado cambian y el swap puede pasar a tener valor positivo para una parte y negativo para la otra. Hay dos métodos equivalentes para calcularlo; los dos descuentan con las <strong>tasas cero</strong> de mercado (en composición continua).</p>
+
+      <h3>Método 1: diferencia entre dos bonos</h3>
+      <p>Como vimos, el swap equivale a estar comprado en un bono y vendido en otro. Para quien <strong>recibe variable y paga fijo</strong>:</p>
+      <div class="formula">\[ V_{swap} = B_{fl} - B_{fix} \]</div>
+      <p>Y para quien recibe fijo y paga variable, \(V_{swap} = B_{fix} - B_{fl}\). El bono a tasa fija se valúa como cualquier bono, descontando cada cupón y el nocional final:</p>
+      <div class="formula">\[ B_{fix} = \sum_{i=1}^{n} k\, e^{-r_i t_i} + L\, e^{-r_n t_n} \]</div>
+      <p>El bono a tasa variable es más simple. <strong>Inmediatamente después de cada fecha de pago vale exactamente su nominal \(L\)</strong>, porque a partir de ahí paga la tasa de mercado. Justo antes del próximo pago vale \(L + k^*\), donde \(k^*\) es el interés variable que ya quedó fijado. Por lo tanto, hoy vale:</p>
+      <div class="formula">\[ B_{fl} = (L + k^*)\, e^{-r_1 t_1} \]</div>
+      <p>donde \(L\) es el nocional, \(k\) el pago fijo de cada período, \(k^*\) el próximo pago variable (ya conocido), \(t_i\) el tiempo hasta el pago \(i\) y \(r_i\) la tasa cero para ese plazo.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo (basado en Hull)</p>
+        <p>Un banco recibe 8 % anual fijo con pagos semestrales y paga la tasa variable a 6 meses, sobre un nocional de 100 millones. Al swap le quedan 1,25 años: hay pagos dentro de 3, 9 y 15 meses. Las tasas cero para esos plazos son 10 %, 10,5 % y 11 %, y la tasa variable fijada para el próximo pago es 10,2 %.</p>
+        <p>\(k = 100 \times 0{,}08/2 = 4\) y \(k^* = 100 \times 0{,}102/2 = 5{,}1\).</p>
+        <p>\(B_{fix} = 4e^{-0{,}10 \times 0{,}25} + 4e^{-0{,}105 \times 0{,}75} + 104e^{-0{,}11 \times 1{,}25} = 98{,}24\)</p>
+        <p>\(B_{fl} = 105{,}1\, e^{-0{,}10 \times 0{,}25} = 102{,}51\)</p>
+        <p>Para el banco, que recibe fijo: \(V = 98{,}24 - 102{,}51 = -4{,}27\) millones. Para la contraparte el swap vale +4,27 millones.</p>
+      </div>
+
+      <h3>Método 2: cartera de FRAs</h3>
+      <p>Cada intercambio de pagos es, en sí mismo, un <strong>FRA</strong> (acuerdo de tasa forward): se cambia una tasa fija por la tasa variable de un período futuro. Un FRA se valúa suponiendo que la tasa variable será igual a la <strong>tasa forward</strong> de hoy. El procedimiento es:</p>
+      <ol>
+        <li>Calcular la tasa forward de cada período a partir de las tasas cero.</li>
+        <li>Calcular los flujos del swap suponiendo que las tasas variables serán iguales a esas forwards.</li>
+        <li>Descontar esos flujos y sumarlos.</li>
+      </ol>
+      <p>La tasa forward entre \(T_1\) y \(T_2\), en composición continua, y su conversión a una tasa compuesta \(m\) veces por año son:</p>
+      <div class="formula">\[ R_F = \frac{R_2 T_2 - R_1 T_1}{T_2 - T_1} \qquad\qquad R_m = m\left(e^{R_F/m} - 1\right) \]</div>
+      <p>El valor de cada intercambio, para quien recibe fijo, es \(\frac{L}{m}\,(R_{fix} - R_{F,i})\, e^{-r_i t_i}\).</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">El mismo ejemplo, con FRAs</p>
+        <p><strong>Pago en 3 meses:</strong> la tasa ya está fijada en 10,2 %. Su valor es \(0{,}5 \times 100 \times (0{,}08 - 0{,}102)\, e^{-0{,}1 \times 0{,}25} = -1{,}07\).</p>
+        <p><strong>Pago en 9 meses:</strong> forward entre 3 y 9 meses \(= \frac{0{,}105 \times 0{,}75 - 0{,}10 \times 0{,}25}{0{,}5} = 10{,}75\%\) continua, o sea 11,044 % semestral. Su valor es \(0{,}5 \times 100 \times (0{,}08 - 0{,}11044)\, e^{-0{,}105 \times 0{,}75} = -1{,}41\).</p>
+        <p><strong>Pago en 15 meses:</strong> forward entre 9 y 15 meses \(= 11{,}75\%\) continua, o sea 12,102 % semestral. Su valor es \(-1{,}79\).</p>
+        <p>Total: \(-1{,}07 - 1{,}41 - 1{,}79 = -4{,}27\) millones, el mismo resultado que con bonos.</p>
+      </div>
+
+      <p>Al inicio, la suma de los FRAs da cero, pero <strong>cada FRA por separado no vale cero</strong>. Si la curva de tasas tiene pendiente positiva, las forwards de los primeros períodos quedan por debajo de la tasa swap y las de los últimos por encima. Para quien paga fijo, los primeros FRAs valen negativo y los últimos, positivo.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo de la cátedra: los dos métodos</p>
+        <p>Una compañía recibe la LIBOR a 6 meses y paga 3 % fijo (TNA, pagos semestrales) sobre $100 millones. Al swap le quedan 15 meses: hay pagos dentro de 3, 9 y 15 meses. Las tasas cero (continuas) para esos plazos son 2,8 %, 3,2 % y 3,4 %, y la LIBOR fijada en el último pago fue 2,9 %.</p>
+        <div class="tabla-wrap">
+          <table class="tabla compacta">
+            <thead><tr><th class="num">t (años)</th><th class="num">Flujo fijo</th><th class="num">Flujo variable</th><th class="num">Factor de descuento</th><th class="num">VP fijo</th><th class="num">VP variable</th></tr></thead>
+            <tbody>
+              <tr><td class="num">0,25</td><td class="num">1,50</td><td class="num">101,45</td><td class="num">0,9930</td><td class="num">1,4895</td><td class="num">100,7423</td></tr>
+              <tr><td class="num">0,75</td><td class="num">1,50</td><td class="num">—</td><td class="num">0,9763</td><td class="num">1,4644</td><td class="num">—</td></tr>
+              <tr><td class="num">1,25</td><td class="num">101,50</td><td class="num">—</td><td class="num">0,9584</td><td class="num">97,2766</td><td class="num">—</td></tr>
+              <tr class="total"><td>Total</td><td></td><td></td><td></td><td class="num">100,2306</td><td class="num">100,7423</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><strong>Con bonos.</strong> El bono variable vale \((100 + 100 \times 0{,}029 \times 0{,}5)\,e^{-0{,}028 \times 0{,}25} = 100{,}7423\). Para quien paga fijo: \(V = B_{fl} - B_{fix} = 100{,}7423 - 100{,}2306 = 0{,}5117\) millones; para la contraparte, \(-0{,}5117\).</p>
+        <p><strong>Con FRAs.</strong> El primer pago ya está fijado: \(50 \times (0{,}029 - 0{,}03) \times 0{,}9930 = -0{,}0497\). Forward entre 3 y 9 meses: \((0{,}032 \times 0{,}75 - 0{,}028 \times 0{,}25)/0{,}5 = 3{,}4\%\) continua, es decir 3,4291 % semestral: \(50 \times (0{,}034291 - 0{,}03) \times 0{,}9763 = 0{,}2094\). Forward entre 9 y 15 meses: 3,7 % continua, 3,7344 % semestral: \(50 \times (0{,}037344 - 0{,}03) \times 0{,}9584 = 0{,}3519\). Total: \(-0{,}0497 + 0{,}2094 + 0{,}3519 = 0{,}5117\), igual que con bonos.</p>
+        <p>Las forwards de los próximos períodos (3,43 % y 3,73 %) están por encima del 3 % fijo: por eso el swap vale positivo para quien paga fijo.</p>
+      </div>
+
+      <p>En <a href="u4-ejemplos.html#ejemplo-3">Ejemplos prácticos → Ejemplo 3</a> podés valuar cualquier swap con los dos métodos a la vez y comprobar que siempre coinciden.</p>
+
+      <!-- ================================================================== -->
+      <h3>La tasa swap</h3>
+      <p>Cuando se firma un swap, se elige la tasa fija para que el contrato <strong>valga cero</strong> para las dos partes. Esa tasa es la <strong>tasa swap</strong>. Como el bono de tasa variable vale su nominal en cada fecha de ajuste, la tasa swap es la que hace que el bono de tasa fija también valga el nominal: es el <em>par yield</em> de la curva.</p>
+      <div class="formula con-nombre"><span class="nombre-formula">Tasa swap (pagos cada \(\tau\) años)</span>\[ R_{swap} = \frac{1 - e^{-r_n T_n}}{\tau \sum_{i=1}^{n} e^{-r_i t_i}} \]</div>
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>Swap a 2 años con pagos semestrales (\(\tau = 0{,}5\)). Tasas cero continuas: 4 % (6 meses), 4,5 % (1 año), 4,8 % (1,5 años) y 5 % (2 años). Los factores de descuento son 0,98020, 0,95600, 0,93053 y 0,90484.</p>
+        <p>\(R_{swap} = \dfrac{1 - 0{,}90484}{0{,}5 \times (0{,}98020 + 0{,}95600 + 0{,}93053 + 0{,}90484)} = \dfrac{0{,}09516}{1{,}88578} = 5{,}046\%\) anual, con composición semestral.</p>
+        <p>Con esa tasa fija el swap vale cero hoy. Al día siguiente, si las tasas se mueven, deja de valer cero: gana quien paga fijo si las tasas suben.</p>
+      </div>
+      <p><strong>Cómo se cotiza.</strong> Los bancos cotizan la tasa swap de cada plazo con dos puntas. Por ejemplo, "5 años: 4,98 % / 5,02 %" quiere decir que el banco paga 4,98 % fijo a quien le paga la tasa variable, y cobra 5,02 % fijo a quien recibe la variable. La diferencia, 4 puntos básicos, es su margen. El conjunto de tasas swap de los distintos plazos forma la <strong>curva swap</strong>, que el mercado usa como referencia para descontar.</p>
+
+      <h3>Cómo se mueve el valor de un swap con las tasas</h3>
+      <p>Quien recibe fijo está comprado en un bono a tasa fija y vendido en uno a tasa variable. El bono variable se reajusta en cada fecha de pago, así que su precio casi no reacciona a las tasas: se comporta como un bono que vence en el próximo pago. Por eso <strong>recibir fijo se parece a tener un bono a tasa fija financiado a corto plazo</strong>: el swap gana valor cuando bajan las tasas y lo pierde cuando suben. Quien paga fijo, al revés.</p>
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo: el swap de Hull ante un cambio de tasas</p>
+        <p>En el ejemplo del método 1, el banco recibe 8 % fijo y el swap vale \(-4{,}27\) millones. Si todas las tasas cero suben un punto, \(B_{fix}\) baja de 98,24 a 97,07 y \(B_{fl}\) apenas de 102,51 a 102,25: el swap pasa a valer \(-5{,}17\) millones para el banco. Si bajan un punto, mejora a \(-3{,}35\).</p>
+        <p>Por cada punto básico de suba de las tasas, el banco pierde unos 9.100 dólares sobre el nocional de 100 millones. Esa sensibilidad se llama <strong>DV01</strong> (<em>dollar value of a basis point</em>) y es la forma habitual de medir el riesgo de tasa de una cartera de swaps.</p>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Swap de monedas</h2>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">Definición</p>
+        <p>En un <strong>swap de monedas</strong> se intercambian el capital y los intereses en una moneda por el capital y los intereses en otra moneda. A diferencia del swap de tasa, <strong>los capitales sí se intercambian</strong>, al principio y al final del contrato.</p>
+      </div>
+
+      <p>Los capitales se eligen para que sean equivalentes al tipo de cambio del inicio. Al empezar, cada parte entrega el capital en una moneda y recibe el capital en la otra. Durante el contrato cada una paga los intereses en la moneda que recibió y, al final, se devuelven los capitales.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ejemplo</p>
+        <p>La Empresa A firma un swap a 3 años: <strong>recibe 6 % anual en dólares</strong> sobre USD 10 millones y <strong>paga 4 % anual en euros</strong> sobre EUR 9 millones. Al inicio el tipo de cambio era 1,11 USD por euro, así que los dos capitales son equivalentes.</p>
+        <div class="tabla-wrap">
+          <table class="tabla">
+            <thead><tr><th>Año</th><th class="num">Flujo en USD (millones)</th><th class="num">Flujo en EUR (millones)</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td class="num neg">−10,00</td><td class="num pos">+9,00</td></tr>
+              <tr><td>1</td><td class="num pos">+0,60</td><td class="num neg">−0,36</td></tr>
+              <tr><td>2</td><td class="num pos">+0,60</td><td class="num neg">−0,36</td></tr>
+              <tr><td>3</td><td class="num pos">+10,60</td><td class="num neg">−9,36</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <p>Un swap de monedas sirve, por ejemplo, para que una empresa que se endeudó en dólares transforme esa deuda en una deuda en euros, si sus ingresos están en euros. También aplica el argumento de la ventaja comparativa: una empresa suele conseguir mejores condiciones en el mercado de su propio país.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Ventaja comparativa con monedas (Hull)</p>
+        <p>General Electric quiere endeudarse en dólares australianos (AUD) y Qantas en dólares estadounidenses (USD). Les ofrecen estas tasas fijas a 5 años:</p>
+        <div class="tabla-wrap">
+          <table class="tabla">
+            <thead><tr><th></th><th class="num">USD</th><th class="num">AUD</th></tr></thead>
+            <tbody>
+              <tr><td>General Electric</td><td class="num">5,0 %</td><td class="num">7,6 %</td></tr>
+              <tr><td>Qantas</td><td class="num">7,0 %</td><td class="num">8,0 %</td></tr>
+              <tr class="total"><td>Diferencia</td><td class="num">2,0 %</td><td class="num">0,4 %</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>GE tiene ventaja absoluta en las dos monedas, pero su ventaja <strong>comparativa</strong> está en dólares (2,0 % contra 0,4 %). La ganancia total a repartir es \(2{,}0\% - 0{,}4\% = 1{,}6\%\) anual.</p>
+        <p>Cada una se endeuda donde tiene ventaja comparativa (GE en USD al 5 %, Qantas en AUD al 8 %) y un banco las une con dos swaps de monedas: GE recibe USD 5 % y paga AUD 6,9 %; Qantas recibe AUD 8 % y paga USD 6,3 %.</p>
+        <ul>
+          <li>GE termina pagando AUD 6,9 % en lugar de 7,6 %: gana 0,7 %.</li>
+          <li>Qantas termina pagando USD 6,3 % en lugar de 7,0 %: gana 0,7 %.</li>
+          <li>El banco gana 1,3 % en USD y pierde 1,1 % en AUD: neto 0,2 %, pero queda expuesto al tipo de cambio (podría cubrirse con forwards).</li>
+        </ul>
+        <p>\(0{,}7\% + 0{,}7\% + 0{,}2\% = 1{,}6\%\): la ganancia total se reparte entre los tres. Igual que en el swap de tasa, las tasas que se ofrecen pueden reflejar riesgos distintos y la ganancia aparente no siempre es real.</p>
+      </div>
+
+      <h3>Otras variantes</h3>
+      <ul>
+        <li><strong>Fija contra variable en distinta moneda</strong> (<em>cross-currency swap</em>): equivale a un swap de monedas fija contra fija más un swap de tasa en una de las monedas.</li>
+        <li><strong>Swaps de base</strong>: variable contra variable, con dos tasas de referencia distintas (por ejemplo, SOFR contra otra tasa a 3 meses).</li>
+        <li><strong>Swaps amortizables</strong>: el nocional baja con el tiempo, como un préstamo que se va pagando.</li>
+        <li><strong>Swaps de commodities</strong>: una empresa paga un precio fijo por un volumen de petróleo o gas y recibe el precio de mercado; es una cartera de forwards.</li>
+        <li><strong>Equity swaps</strong>: se intercambia el rendimiento de un índice accionario por una tasa fija o variable.</li>
+      </ul>
+
+      <h3>Valuación</h3>
+      <p>Igual que antes, el swap de monedas equivale a una posición en dos bonos, cada uno en su moneda. Para quien <strong>recibe la moneda doméstica y paga la extranjera</strong>:</p>
+      <div class="formula">\[ V_{swap} = B_D - S_0\, B_F \]</div>
+      <p>\(B_D\) es el valor del bono en moneda doméstica, descontado con las tasas domésticas, y \(B_F\) el del bono en moneda extranjera, descontado con las tasas extranjeras. \(S_0\) es el tipo de cambio spot, expresado como unidades de moneda doméstica por unidad de moneda extranjera.</p>
+
+      <p>También puede valuarse como una <strong>cartera de forwards de moneda</strong>. Cada intercambio se valúa suponiendo que el tipo de cambio futuro será el forward, \(F_t = S_0\, e^{(r - r_f)t}\), y se descuenta a la tasa doméstica. Los dos métodos dan el mismo valor.</p>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">Continuación del ejemplo</p>
+        <p>Pasa el tiempo y al swap le quedan exactamente 3 pagos anuales. La tasa en dólares es 5 % y en euros 3 % (continuas), y el euro se depreció: hoy vale 1,05 USD.</p>
+        <p>\(B_D = 0{,}6e^{-0{,}05} + 0{,}6e^{-0{,}10} + 10{,}6e^{-0{,}15} = 10{,}2371\) millones de USD</p>
+        <p>\(B_F = 0{,}36e^{-0{,}03} + 0{,}36e^{-0{,}06} + 9{,}36e^{-0{,}09} = 9{,}2428\) millones de EUR</p>
+        <p>\(V = 10{,}2371 - 1{,}05 \times 9{,}2428 = 0{,}5322\) millones de USD a favor de A. Tiene sentido: A paga en euros, y el euro se abarató.</p>
+      </div>
+
+      <div class="caja ejemplo">
+        <p class="caja-titulo">El mismo ejemplo, con forwards de moneda</p>
+        <p>Cada intercambio se valúa con el tipo de cambio forward \(F_t = 1{,}05\,e^{(0{,}05 - 0{,}03)t}\): A recibe los dólares, paga los euros a ese forward y el neto se descuenta al 5 %.</p>
+        <div class="tabla-wrap">
+          <table class="tabla compacta">
+            <thead><tr><th class="num">Año</th><th class="num">Forward \(F_t\)</th><th class="num">Recibe USD</th><th class="num">Paga EUR × \(F_t\)</th><th class="num">Neto (USD)</th><th class="num">Valor presente</th></tr></thead>
+            <tbody>
+              <tr><td class="num">1</td><td class="num">1,0712</td><td class="num">0,60</td><td class="num">0,3856</td><td class="num">0,2144</td><td class="num">0,2039</td></tr>
+              <tr><td class="num">2</td><td class="num">1,0929</td><td class="num">0,60</td><td class="num">0,3934</td><td class="num">0,2066</td><td class="num">0,1869</td></tr>
+              <tr><td class="num">3</td><td class="num">1,1149</td><td class="num">10,60</td><td class="num">10,4357</td><td class="num">0,1643</td><td class="num">0,1414</td></tr>
+              <tr class="total"><td>Total</td><td></td><td></td><td></td><td></td><td class="num">0,5322</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Da 0,5322 millones, igual que con bonos.</p>
+      </div>
+
+      <p>Podés reproducir este cálculo con otros datos en <a href="u4-ejemplos.html#ejemplo-4">Ejemplos prácticos → Ejemplo 4</a>.</p>
+
+      <div class="caja argentina">
+        <p class="caja-titulo">En Argentina</p>
+        <p><strong>Tasas variables en pesos.</strong> Las obligaciones negociables y los préstamos en pesos a tasa variable suelen pagar un margen sobre la <strong>BADLAR</strong> (tasa de plazos fijos de más de un millón de pesos, a 30 a 35 días) o sobre la <strong>TAMAR</strong>, la tasa mayorista que el BCRA publica desde fines de 2024 para plazos fijos de 1.000 millones de pesos o más, con un umbral que se actualiza todos los años. Una empresa que emitió una ON a TAMAR + 3 % y quiere pagar una tasa fija haría lo mismo que la empresa A de esta unidad: un swap en el que paga fijo y recibe TAMAR. Estos swaps se pactan en forma bilateral con bancos y son mucho menos habituales que los futuros de dólar.</p>
+        <p><strong>"El swap" de los diarios.</strong> Cuando se habla del swap del BCRA con el Banco Popular de China, o del acuerdo por USD 20.000 millones con el Tesoro de Estados Unidos anunciado en octubre de 2025, se trata de <strong>swaps de monedas entre autoridades monetarias</strong>: hoy se entregan pesos y se reciben yuanes o dólares, y al vencimiento se devuelven a un tipo de cambio y una tasa de interés pactados. Es la lógica del swap de monedas de esta unidad, sin intereses periódicos: funciona como una línea de liquidez en moneda extranjera.</p>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Riesgo de crédito</h2>
+
+      <p>Cuando un banco intermedia, firma dos contratos que se compensan. Si una de las empresas incumple, el banco sigue obligado con la otra. Pero la pérdida potencial <strong>no es el nocional</strong>: el banco solo pierde si el swap con la parte que incumplió <strong>tenía valor positivo para el banco</strong>. Si tenía valor negativo, el incumplimiento no le genera pérdida.</p>
+
+      <p>Por eso el riesgo de crédito de un swap de tasa es mucho menor que el de un préstamo por el mismo nocional. En los swaps de monedas el riesgo es mayor, porque al final se intercambian los capitales.</p>
+
+      <!-- ================================================================== -->
+      <div class="quiz-rapido">
+        <p class="caja-titulo">Autoevaluación rápida</p>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">Una empresa tiene una deuda a SOFR + 1 % y teme que suban las tasas. ¿Qué swap le sirve?</p>
+          <ol class="qr-op"><li>Uno donde paga variable y recibe fija</li><li>Uno donde paga fija y recibe variable</li><li>Un swap de monedas</li></ol>
+          <p class="qr-explicacion">Recibe variable (cancela lo que paga a sus prestamistas) y paga fija: queda con una deuda a tasa fija.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="3">
+          <p class="qr-enunciado">A puede endeudarse a 5 % fija o SOFR + 0,5 %; B a 6,5 % fija o SOFR + 1 %. ¿Cuál es la ganancia total de un swap?</p>
+          <ol class="qr-op"><li>1,5 %</li><li>0,5 %</li><li>1,0 %</li></ol>
+          <p class="qr-explicacion">Diferencia en fija (1,5 %) menos diferencia en variable (0,5 %) = 1,0 %, a repartir entre las partes (y el banco, si intermedia).</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="1">
+          <p class="qr-enunciado">Justo después de un pago, el bono de tasa variable de un swap vale…</p>
+          <ol class="qr-op"><li>Su nominal</li><li>Cero</li><li>El valor presente de los pagos fijos</li></ol>
+          <p class="qr-explicacion">En cada fecha de ajuste el cupón variable se fija a la tasa de mercado, así que el bono vale el nominal. Por eso para valuar el swap alcanza con valuar el bono de tasa fija.</p>
+        </div>
+        <div class="qr-pregunta" data-correcta="2">
+          <p class="qr-enunciado">¿Por qué el riesgo de crédito de un swap de monedas es mayor que el de un swap de tasa del mismo nocional?</p>
+          <ol class="qr-op"><li>Porque las tasas en moneda extranjera son más volátiles</li><li>Porque al final se intercambian los capitales</li><li>Porque no hay intermediario</li></ol>
+          <p class="qr-explicacion">En el swap de tasa solo se intercambian diferencias de intereses; en el de monedas, el capital completo vuelve al final y su valor depende del tipo de cambio.</p>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <h2>Resumen</h2>
+
+      <div class="caja definicion">
+        <p class="caja-titulo">Para recordar</p>
+        <ul>
+          <li>Un swap es un intercambio de flujos futuros; equivale a una cartera de forwards (FRAs).</li>
+          <li>En un swap de tasa, el nocional no se intercambia; en uno de monedas, sí.</li>
+          <li>Sirve para transformar pasivos y activos entre tasa fija y variable, o entre monedas.</li>
+          <li>Ganancia total por ventaja comparativa: \(a - b\).</li>
+          <li>Swap de tasa: \(V = B_{fl} - B_{fix}\) para quien paga fijo, con \(B_{fl} = (L + k^*)e^{-r_1 t_1}\).</li>
+          <li>Swap de monedas: \(V = B_D - S_0 B_F\) para quien recibe la moneda doméstica.</li>
+          <li>Recibir fijo se comporta como tener un bono a tasa fija: gana si bajan las tasas. El DV01 mide cuánto cambia el valor por cada punto básico.</li>
+        </ul>
+      </div>
+
+      <div class="caja hull">
+        <p class="caja-titulo">Para leer en Hull</p>
+        <p>Edición en español del material, capítulo 6: mecánica de los swaps (6.1), ventaja comparativa (6.2), cotización de swaps (6.3), valuación (6.4) y swaps sobre divisas (6.5).</p>
+      </div>
+    </article>
+  </main>
+
+  <nav class="pie-navegacion" id="pie-navegacion"></nav>
+
+  <script src="vendor/katex/katex.min.js"></script>
+  <script src="vendor/katex/contrib/auto-render.min.js"></script>
+  <script src="vendor/chartjs/chart.umd.min.js"></script>
+  <script src="js/calculos.js"></script>
+  <script src="js/comun.js"></script>
+  <script src="js/diagrama-swap.js"></script>
+</body>
+</html>
