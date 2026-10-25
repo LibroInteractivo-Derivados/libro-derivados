@@ -61,10 +61,15 @@ function dibujarMg() {
       { label: 'Margen inicial', data: [{ x: 0, y: r.mi }, { x: Math.max(1, dias.length - 1), y: r.mi }], borderColor: c.ganancia, borderWidth: 1.2, pointRadius: 0 },
       { label: 'Margen de mantenimiento', data: [{ x: 0, y: r.mm }, { x: Math.max(1, dias.length - 1), y: r.mm }], borderColor: c.perdida, borderWidth: 1.2, borderDash: [6, 4], pointRadius: 0 },
     ] },
-    options: opcionesEjes({ tituloX: 'Día', tituloY: 'Saldo de la cuenta', xMin: 0, xMax: Math.max(1, dias.length - 1), decX: 0, decY: 0 }),
+    options: (() => {
+      const o = opcionesEjes({ tituloX: 'Día', tituloY: 'Saldo de la cuenta', xMin: 0, xMax: Math.max(1, dias.length - 1), decX: 0, decY: 0 });
+      o.scales.x.ticks.stepSize = 1; // un tick por día (sin "0 0 0 1 1 1")
+      o.plugins.legend.labels.boxWidth = 12;
+      return o;
+    })(),
   });
   $('mg-tabla').innerHTML = r.filas.length ? tablaHTML(
-    [{ titulo: 'Día' }, { titulo: 'Precio', num: true }, { titulo: 'Ganancia diaria', num: true }, { titulo: 'Acumulada', num: true }, { titulo: 'Saldo', num: true }, { titulo: 'Llamado', num: true }],
+    [{ titulo: 'Día' }, { titulo: 'Precio', num: true }, { titulo: 'Diaria', num: true }, { titulo: 'Acumulada', num: true }, { titulo: 'Saldo', num: true }, { titulo: 'Llamado', num: true }],
     r.filas.map(f => [f.dia, fmt(f.precio), { texto: fmtSigno(f.diaria), clase: claseSigno(f.diaria) }, { texto: fmtSigno(f.acumulada), clase: claseSigno(f.acumulada) }, fmt(f.saldo), f.llamado > 0 ? { texto: fmt(f.llamado), clase: 'neg' } : '—']),
     i => (r.filas[i].llamado > 0 ? 'resaltada' : ''), 'compacta') : '<p class="vacio">Todavía no pasó ningún día. Usá los botones.</p>';
 }

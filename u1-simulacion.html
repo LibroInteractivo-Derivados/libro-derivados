@@ -48,13 +48,13 @@
           <button class="btn" type="button" id="mg-hull">Cargar los 16 días de Hull</button>
           <button class="btn" type="button" id="mg-reiniciar">Reiniciar</button>
         </div>
-        <div class="sim-dos" style="margin-top:14px">
-          <div style="min-width:0">
-            <div class="resultados" id="mg-datos"></div>
-            <div class="lienzo-medio"><canvas id="mg-grafico" aria-label="Saldo de la cuenta de márgenes"></canvas></div>
-            <div id="mg-tabla"></div>
+        <div class="mg-contenedor" style="margin-top:14px">
+          <div class="resultados" id="mg-datos"></div>
+          <div class="mg-panel">
+            <div id="mg-tabla" style="min-width:0"></div>
+            <div class="mg-grafico"><div class="lienzo-medio"><canvas id="mg-grafico" aria-label="Saldo de la cuenta de márgenes"></canvas></div></div>
           </div>
-          <div id="mg-narrador"></div>
+          <div id="mg-narrador" style="margin-top:16px"></div>
         </div>
       </section>
 
