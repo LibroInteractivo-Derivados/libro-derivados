@@ -35,10 +35,17 @@
   ];
   const UMBRAL_REFORZAR = 60; // % de aciertos por debajo del cual se sugiere reforzar un tema
 
-  // Diagrama de un swap con intermediario (pregunta práctica para completar, con datos al azar).
-  // probabilidad: en qué proporción de los simulacros de cada examen aparece (1 = siempre).
-  const CUADRO_SWAP = { p1: 0, p2: 1, final: 0.5 };
-  const ID_CUADRO = 'U4-CUADRO';
+  // Ejercicios para completar que no salen del banco: tienen datos al azar en cada simulacro y
+  // cuentan como una pregunta práctica. prob: en qué proporción de los simulacros de cada examen
+  // aparece (1 = siempre, 0 = nunca). Cada módulo vive en su propio archivo.
+  const ESPECIALES = [
+    { id: 'U1-MARGENES', modulo: () => CuadroMargenes, prob: { p1: 1, p2: 0, final: 0.5 }, unidad: 1,
+      tema: 'Cuadro de márgenes de un futuro', fuente: 'Como la Guía U1, ej. 1 (Hull, tabla 2.1)',
+      ayuda: 'Escribí los montos con o sin puntos de miles (12.000 o 12000) y las pérdidas con signo menos (−1.800).' },
+    { id: 'U4-CUADRO', modulo: () => DiagramaSwap, prob: { p1: 0, p2: 1, final: 0.5 }, unidad: 4,
+      tema: 'Diagrama de un swap (ventaja comparativa)', fuente: 'Como la Guía U4, ej. 1',
+      ayuda: 'Escribí solo el número, con coma decimal (5,3). Para un spread negativo usá el signo menos (−0,25).' },
+  ];
 
   const el = id => document.getElementById(id);
   const banco = typeof BANCO !== 'undefined' ? BANCO : [];
@@ -122,23 +129,23 @@
     return mezclar(elegidas);
   }
 
-  // ---------- Diagrama de un swap con intermediario (js/diagrama-swap.js) ----------
-  const CAMPOS_DIAGRAMA = DiagramaSwap.CAMPOS;
-  const generarCuadroSwap = DiagramaSwap.generar;
-  const corregirCuadro = DiagramaSwap.corregir;
-  const enunciadoCuadro = c => DiagramaSwap.enunciado(c) + DiagramaSwap.instrucciones(true);
-  const tablaCuadro = DiagramaSwap.dibujar;
-  const explicacionCuadro = DiagramaSwap.explicacion;
+  // ---------- Ejercicios para completar (js/cuadro-margenes.js y js/diagrama-swap.js) ----------
+  const especial = id => ESPECIALES.find(e => e.id === id);
+  const esCuadro = (s, i) => !!especial(s.ids[i]);
+  const moduloDe = (s, i) => especial(s.ids[i]).modulo();
+  // Datos del ejercicio i. (Los simulacros guardados antes de esta versión tenían el swap en s.cuadro.)
+  const datosDe = (s, i) => (s.extra && s.extra[s.ids[i]]) || (s.ids[i] === 'U4-CUADRO' ? s.cuadro : null);
 
-  // Datos de la pregunta i del simulacro (del banco o el diagrama del swap).
+  // Datos de la pregunta i del simulacro (del banco o un ejercicio para completar).
   function pregunta(s, i) {
-    if (s.ids[i] === ID_CUADRO) {
-      return { id: ID_CUADRO, unidad: 4, tema: 'Diagrama de un swap (ventaja comparativa)', tipo: 'práctica', dificultad: 2, fuente: 'Como la Guía U4, ej. 1', cuadro: s.cuadro, enunciado: enunciadoCuadro(s.cuadro) };
+    const e = especial(s.ids[i]);
+    if (e) {
+      const m = e.modulo();
+      return { id: e.id, unidad: e.unidad, tema: e.tema, tipo: 'práctica', dificultad: 2, fuente: e.fuente, enunciado: m.enunciado(datosDe(s, i)) + m.instrucciones(true) };
     }
     return porId.get(s.ids[i]);
   }
-  const esCuadro = (s, i) => s.ids[i] === ID_CUADRO;
-  const respondida = (s, i) => (esCuadro(s, i) ? (s.resp[i] || []).every(x => String(x || '').trim() !== '') : s.resp[i] !== null);
+  const respondida = (s, i) => (esCuadro(s, i) ? moduloDe(s, i).completa(datosDe(s, i), s.resp[i] || []) : s.resp[i] !== null);
 
   // ---------- Pantalla de inicio ----------
 
@@ -221,24 +228,30 @@
     const enCurso = Guardado.leer('simulacro:enCurso', null);
     if (enCurso && enCurso.limite > Date.now() && !confirm('Tenés otro simulacro sin terminar. Si empezás uno nuevo, ese se descarta. ¿Seguir?')) return;
     const vistas = Guardado.leer('simulacro:vistas', {});
-    const conCuadro = Math.random() < (CUADRO_SWAP[examen.id] || 0);
-    const elegidas = seleccionar(preguntasDe(examen), modalidad.preguntas - (conCuadro ? 1 : 0), vistas, conCuadro ? 1 : 0);
+    // Ejercicios para completar que entran en este simulacro, con sus datos al azar.
+    const extra = {};
+    ESPECIALES.filter(e => Math.random() < (e.prob[examen.id] || 0)).forEach(e => {
+      const datos = e.modulo().generar();
+      if (datos) extra[e.id] = datos;
+    });
+    const nExtra = Object.keys(extra).length;
+    const elegidas = seleccionar(preguntasDe(examen), modalidad.preguntas - nExtra, vistas, nExtra);
     if (!elegidas.length) { alert('No hay preguntas para este examen.'); return; }
     elegidas.forEach(q => { vistas[q.id] = (vistas[q.id] || 0) + 1; });
     Guardado.escribir('simulacro:vistas', vistas);
     const ids = elegidas.map(q => q.id);
-    if (conCuadro) ids.splice(Math.floor(Math.random() * (ids.length + 1)), 0, ID_CUADRO);
+    Object.keys(extra).forEach(id => ids.splice(Math.floor(Math.random() * (ids.length + 1)), 0, id));
     const ahora = Date.now();
     S = {
       version: 1,
       examen: examen.id,
       modalidad: modalidad.id,
       ids,
-      orden: ids.map(id => (id === ID_CUADRO ? null : mezclar([0, 1, 2, 3]))), // 0 = la correcta
-      resp: ids.map(id => (id === ID_CUADRO ? Array(CAMPOS_DIAGRAMA).fill('') : null)), // opción elegida (en el orden mostrado) o casilleros del diagrama
-      tiempos: ids.map(() => 0),                                                // segundos mirando cada pregunta
+      orden: ids.map(id => (extra[id] ? null : mezclar([0, 1, 2, 3]))),                   // 0 = la correcta
+      resp: ids.map(id => (extra[id] ? especial(id).modulo().vacio(extra[id]) : null)), // opción elegida (en el orden mostrado) o casilleros del ejercicio
+      tiempos: ids.map(() => 0),                                                         // segundos mirando cada pregunta
       marcadas: ids.map(() => false),
-      cuadro: conCuadro ? generarCuadroSwap() : null,
+      extra,
       inicio: ahora,
       limite: ahora + modalidad.minutos * 60000,
       actual: 0,
@@ -249,7 +262,7 @@
 
   function retomar(enCurso) {
     // Descarta preguntas que ya no existan en el banco (por si se editó).
-    const validas = enCurso.ids.map((id, i) => (porId.has(id) || (id === ID_CUADRO && enCurso.cuadro) ? i : -1)).filter(i => i >= 0);
+    const validas = enCurso.ids.map((id, i) => (porId.has(id) || (especial(id) && datosDe(enCurso, i)) ? i : -1)).filter(i => i >= 0);
     ['ids', 'orden', 'resp', 'tiempos', 'marcadas'].forEach(k => { enCurso[k] = validas.map(i => enCurso[k][i]); });
     enCurso.actual = Math.min(enCurso.actual || 0, enCurso.ids.length - 1);
     S = enCurso;
@@ -295,8 +308,8 @@
     el('pregunta-chips').innerHTML = `<span class="chip">Unidad ${ROMANOS[q.unidad]}</span>`;
     if (esCuadro(S, i)) {
       el('pregunta-enunciado').innerHTML = q.enunciado;
-      el('pregunta-opciones').innerHTML = tablaCuadro(S.cuadro, S.resp[i], 'examen') +
-        '<p class="ayuda">Escribí solo el número, con coma decimal (5,3). Para un spread negativo usá el signo menos (−0,25).</p>';
+      el('pregunta-opciones').innerHTML = moduloDe(S, i).dibujar(datosDe(S, i), S.resp[i], 'examen') +
+        `<p class="ayuda">${especial(S.ids[i]).ayuda}</p>`;
     } else {
       el('pregunta-enunciado').innerHTML = q.enunciado;
       el('pregunta-opciones').innerHTML = S.orden[i]
@@ -387,9 +400,9 @@
     const detalle = s.ids.map((id, i) => {
       const q = pregunta(s, i);
       const base = { id, unidad: q.unidad, tema: q.tema, tipo: q.tipo, dificultad: q.dificultad, segundos: Math.round(s.tiempos[i] * 10) / 10 };
-      if (id === ID_CUADRO) {
-        const c = corregirCuadro(s.cuadro, s.resp[i]);
-        return { ...base, respondida: c.respondida, correcta: c.correcta, opcionElegida: null, celdasBien: c.bien, celdas: c.total, cuadro: s.cuadro, celdasRespuesta: s.resp[i] };
+      if (esCuadro(s, i)) {
+        const c = moduloDe(s, i).corregir(datosDe(s, i), s.resp[i]);
+        return { ...base, respondida: c.respondida, correcta: c.correcta, opcionElegida: null, celdasBien: c.bien, celdas: c.total, datosEjercicio: datosDe(s, i), celdasRespuesta: s.resp[i] };
       }
       const resp = s.resp[i] !== null;
       const k = resp ? s.orden[i][s.resp[i]] : null;
@@ -473,13 +486,14 @@
       const cabecera = `<summary><span class="marca">${!d.respondida ? '—' : d.correcta ? '✔' : '✘'}</span>
           <span class="tema">${i + 1}. Unidad ${ROMANOS[q.unidad]} · ${q.tema} <span class="chip">${q.tipo}</span></span>
           <span class="tiempo">${segundos(d.segundos)}</span></summary>`;
-      if (id === ID_CUADRO) {
-        const c = corregirCuadro(s.cuadro, s.resp[i]);
+      if (esCuadro(s, i)) {
+        const m = moduloDe(s, i), datos = datosDe(s, i);
+        const c = m.corregir(datos, s.resp[i]);
         return `<details class="revision-item ${estado}">${cabecera}
           ${q.enunciado}
-          ${tablaCuadro(s.cuadro, s.resp[i], 'revision', c)}
-          <p><b>${c.marcas.slice(0, 6).filter(Boolean).length} de 6 tasas y ${c.marcas.slice(6).filter(Boolean).length} de 6 sentidos correctos.</b> En rojo, lo que estaba mal, con el valor o el sentido correcto al lado.</p>
-          ${explicacionCuadro(s.cuadro)}
+          ${m.dibujar(datos, s.resp[i], 'revision', c)}
+          <p><b>${m.resumen(c)}</b> En rojo, lo que estaba mal, con la respuesta correcta.</p>
+          ${m.explicacion(datos)}
         </details>`;
       }
       return `<details class="revision-item ${estado}">
@@ -558,7 +572,7 @@
   el('btn-anterior').addEventListener('click', () => irA(S.actual - 1));
   el('btn-siguiente').addEventListener('click', siguiente);
   el('btn-borrar').addEventListener('click', () => {
-    S.resp[S.actual] = esCuadro(S, S.actual) ? Array(CAMPOS_DIAGRAMA).fill('') : null;
+    S.resp[S.actual] = esCuadro(S, S.actual) ? moduloDe(S, S.actual).vacio(datosDe(S, S.actual)) : null;
     guardarEnCurso();
     renderPregunta();
   });
@@ -574,9 +588,9 @@
   // Flechas del diagrama: cada toque pasa a sin elegir → un sentido → el otro.
   el('pregunta-opciones').addEventListener('click', ev => {
     const b = ev.target.closest('[data-sentido]');
-    if (!b || !S || !esCuadro(S, S.actual)) return;
+    if (!b || !S || !esCuadro(S, S.actual) || !moduloDe(S, S.actual).alternarSentido) return;
     const n = Number(b.dataset.sentido);
-    DiagramaSwap.alternarSentido(S.resp[S.actual], n);
+    moduloDe(S, S.actual).alternarSentido(S.resp[S.actual], n);
     guardarEnCurso();
     renderPregunta();
     const igual = el('pregunta-opciones').querySelector(`[data-sentido="${n}"]`);

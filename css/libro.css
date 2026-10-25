@@ -1041,3 +1041,20 @@ button.d-linea:hover, button.d-vertical:hover, button.d-linea:focus-visible, but
 .d-campo .esperado { color: var(--perdida); font-weight: 600; margin-left: 4px; }
 .d-netos { display: flex; gap: 8px 24px; flex-wrap: wrap; margin-top: 14px; font-size: 0.92rem; }
 .d-netos > div { display: flex; align-items: center; gap: 6px; }
+
+/* ==========================================================================
+   Ejercicio: cuadro de márgenes de un futuro (js/cuadro-margenes.js).
+   Lo usan la ejercitación de la Unidad I y el simulacro.
+   ========================================================================== */
+.cuadro-margenes td, .cuadro-margenes th { white-space: nowrap; }
+.cuadro-margenes input {
+  font: inherit; font-family: var(--fuente-datos); font-size: 0.9rem; text-align: right;
+  width: 100%; min-width: 100px; padding: 4px 8px; border-radius: 6px;
+  border: 1px solid var(--borde-fuerte); background: var(--superficie); color: var(--texto);
+}
+.cuadro-margenes input:focus { outline: 2px solid var(--acento); outline-offset: 0; border-color: var(--acento); }
+.cuadro-margenes .celda-vacia { color: var(--tenue); }
+.cuadro-margenes .celda-ok { background: var(--ganancia-suave); }
+.cuadro-margenes .celda-mal { background: var(--perdida-suave); }
+.cuadro-margenes .dado { display: block; }
+.cuadro-margenes .esperado { display: block; color: var(--perdida); font-weight: 600; font-size: 0.85rem; }

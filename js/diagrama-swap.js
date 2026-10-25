@@ -208,7 +208,11 @@ const DiagramaSwap = (() => {
     pintar();
   }
 
-  return { CAMPOS, generar, solucion, respuestaModelo, corregir, alternarSentido, enunciado, instrucciones, dibujar, explicacion, montar, vacio };
+  // Interfaz común con CuadroMargenes (la usa el simulacro).
+  const completa = (c, resp) => resp.every(x => String(x || '').trim() !== '');
+  const resumen = corr => `${corr.tasasBien} de 6 tasas y ${corr.sentidosBien} de 6 sentidos correctos.`;
+
+  return { CAMPOS, campos: () => CAMPOS, generar, solucion, respuestaModelo, corregir, completa, resumen, alternarSentido, enunciado, instrucciones, dibujar, explicacion, montar, vacio };
 })();
 
 // Monta los ejercicios que haya en la página.
