@@ -132,11 +132,11 @@
       <p>En el mercado <strong>OTC</strong> (<em>over-the-counter</em>, extrabursátil) los contratos se pactan en forma bilateral entre instituciones financieras, o entre una institución financiera y sus clientes (empresas, fondos, gobiernos). Los bancos actúan como <strong>creadores de mercado</strong> (<em>market makers</em>): cotizan siempre un precio al que compran (<em>bid</em>) y uno al que venden (<em>offer</em> o <em>ask</em>). La gran ventaja es que el contrato se hace <strong>a medida</strong>: monto, fecha y condiciones exactas que necesita el cliente. La desventaja es el <strong>riesgo de crédito</strong> o de contraparte: la otra parte puede no cumplir. Los contratos suelen documentarse con un acuerdo marco estándar de la ISDA (International Swaps and Derivatives Association).</p>
 
       <h3>La cámara compensadora: una contraparte central</h3>
-      <p>Cuando dos operadores cierran una operación en la bolsa, la cámara compensadora se interpone entre ellos: queda como <strong>vendedora frente al comprador</strong> y como <strong>compradora frente al vendedor</strong>. A este reemplazo se lo llama <strong>novación</strong>, y a la cámara, <strong>contraparte central</strong> (CCP, <em>central counterparty</em>). Cada parte ya no depende de que la otra cumpla: depende de la cámara, que se protege exigiendo márgenes y un fondo de garantía a sus miembros. Solo los <strong>miembros compensadores</strong> operan directamente con la cámara; los demás agentes liquidan a través de uno de ellos.</p>
+      <p>Cuando dos operadores cierran una operación en la bolsa, la cámara compensadora se interpone entre ellos: queda como <strong>vendedora frente al comprador</strong> y como <strong>compradora frente al vendedor</strong>. A este reemplazo se lo llama <strong>novación</strong>, y a la cámara, <strong>contraparte central</strong> (CCP, <em>central counterparty</em>). Cada parte ya no depende de que la otra cumpla: depende de la cámara, que se protege exigiendo márgenes y un fondo de garantía. Los inversores no operan directamente con la cámara: lo hacen a través de su agente, que en la Argentina es una <strong>ALyC</strong> (Agente de Liquidación y Compensación). La ALyC le lleva al cliente la cuenta de márgenes y liquida con la cámara.</p>
 
       <figure class="figura">
         <div class="svg-scroll">
-          <svg viewBox="0 0 760 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Circuito de una operación de futuros entre comprador, vendedor, agentes, miembros compensadores y la cámara compensadora">
+          <svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Circuito de una operación de futuros entre comprador, vendedor, sus ALyC y la cámara compensadora">
             <defs><marker id="u1-flecha-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="s-flecha"/></marker></defs>
             <!-- Comprador y vendedor -->
             <rect x="20" y="20" width="180" height="52" rx="8" class="s-caja" stroke-width="2"/>
@@ -148,52 +148,41 @@
             <line x1="206" y1="46" x2="554" y2="46" class="s-trazo" stroke-width="1.4" stroke-dasharray="6 5" marker-start="url(#u1-flecha-b)" marker-end="url(#u1-flecha-b)"/>
             <text x="380" y="36" text-anchor="middle" font-size="13" class="s-texto">operación pactada en el mercado</text>
             <text x="380" y="66" text-anchor="middle" font-size="12" class="s-suave">la cámara se interpone (novación)</text>
-            <!-- Agentes -->
-            <rect x="20" y="135" width="180" height="50" rx="8" class="s-caja" stroke-width="1.6"/>
-            <text x="110" y="156" text-anchor="middle" font-size="14" font-weight="600" class="s-texto">Agente (ALyC)</text>
-            <text x="110" y="174" text-anchor="middle" font-size="12" class="s-suave">cuenta de márgenes del cliente</text>
-            <rect x="560" y="135" width="180" height="50" rx="8" class="s-caja" stroke-width="1.6"/>
-            <text x="650" y="156" text-anchor="middle" font-size="14" font-weight="600" class="s-texto">Agente (ALyC)</text>
-            <text x="650" y="174" text-anchor="middle" font-size="12" class="s-suave">cuenta de márgenes del cliente</text>
-            <!-- Miembros compensadores -->
-            <rect x="20" y="255" width="180" height="56" rx="8" class="s-caja" stroke-width="1.6"/>
-            <text x="110" y="288" text-anchor="middle" font-size="14" font-weight="600" class="s-texto">Miembro compensador</text>
-            <rect x="560" y="255" width="180" height="56" rx="8" class="s-caja" stroke-width="1.6"/>
-            <text x="650" y="288" text-anchor="middle" font-size="14" font-weight="600" class="s-texto">Miembro compensador</text>
+            <!-- ALyC de cada parte -->
+            <rect x="20" y="150" width="180" height="56" rx="8" class="s-caja" stroke-width="1.6"/>
+            <text x="110" y="174" text-anchor="middle" font-size="14" font-weight="600" class="s-texto">ALyC</text>
+            <text x="110" y="193" text-anchor="middle" font-size="12" class="s-suave">cuenta de márgenes del cliente</text>
+            <rect x="560" y="150" width="180" height="56" rx="8" class="s-caja" stroke-width="1.6"/>
+            <text x="650" y="174" text-anchor="middle" font-size="14" font-weight="600" class="s-texto">ALyC</text>
+            <text x="650" y="193" text-anchor="middle" font-size="12" class="s-suave">cuenta de márgenes del cliente</text>
             <!-- Cámara -->
-            <rect x="300" y="245" width="160" height="76" rx="10" class="s-relleno"/>
-            <rect x="300" y="245" width="160" height="76" rx="10" class="s-acento-trazo" stroke-width="2.4"/>
-            <text x="380" y="272" text-anchor="middle" font-size="14" font-weight="700" class="s-texto">Cámara</text>
-            <text x="380" y="290" text-anchor="middle" font-size="14" font-weight="700" class="s-texto">compensadora</text>
-            <text x="380" y="308" text-anchor="middle" font-size="12" class="s-suave">contraparte central</text>
-            <!-- Flechas verticales -->
-            <line x1="110" y1="76" x2="110" y2="131" class="s-trazo" stroke-width="1.6" marker-start="url(#u1-flecha-b)" marker-end="url(#u1-flecha-b)"/>
-            <text x="120" y="100" font-size="12" class="s-texto">margen inicial y</text>
-            <text x="120" y="115" font-size="12" class="s-texto">ajustes diarios</text>
-            <line x1="110" y1="189" x2="110" y2="251" class="s-trazo" stroke-width="1.6" marker-start="url(#u1-flecha-b)" marker-end="url(#u1-flecha-b)"/>
-            <text x="120" y="218" font-size="12" class="s-texto">liquida a través de</text>
-            <text x="120" y="233" font-size="12" class="s-texto">un miembro</text>
-            <line x1="650" y1="76" x2="650" y2="131" class="s-trazo" stroke-width="1.6" marker-start="url(#u1-flecha-b)" marker-end="url(#u1-flecha-b)"/>
-            <text x="640" y="100" text-anchor="end" font-size="12" class="s-texto">margen inicial y</text>
-            <text x="640" y="115" text-anchor="end" font-size="12" class="s-texto">ajustes diarios</text>
-            <line x1="650" y1="189" x2="650" y2="251" class="s-trazo" stroke-width="1.6" marker-start="url(#u1-flecha-b)" marker-end="url(#u1-flecha-b)"/>
-            <text x="640" y="218" text-anchor="end" font-size="12" class="s-texto">liquida a través de</text>
-            <text x="640" y="233" text-anchor="end" font-size="12" class="s-texto">un miembro</text>
-            <!-- Miembros a cámara -->
-            <line x1="204" y1="290" x2="296" y2="290" class="s-trazo" stroke-width="1.6" marker-start="url(#u1-flecha-b)" marker-end="url(#u1-flecha-b)"/>
-            <text x="250" y="266" text-anchor="middle" font-size="11" class="s-suave">margen de</text>
-            <text x="250" y="279" text-anchor="middle" font-size="11" class="s-suave">compensación</text>
-            <line x1="464" y1="290" x2="556" y2="290" class="s-trazo" stroke-width="1.6" marker-start="url(#u1-flecha-b)" marker-end="url(#u1-flecha-b)"/>
-            <text x="510" y="266" text-anchor="middle" font-size="11" class="s-suave">margen de</text>
-            <text x="510" y="279" text-anchor="middle" font-size="11" class="s-suave">compensación</text>
+            <rect x="300" y="140" width="160" height="76" rx="10" class="s-relleno"/>
+            <rect x="300" y="140" width="160" height="76" rx="10" class="s-acento-trazo" stroke-width="2.4"/>
+            <text x="380" y="167" text-anchor="middle" font-size="14" font-weight="700" class="s-texto">Cámara</text>
+            <text x="380" y="185" text-anchor="middle" font-size="14" font-weight="700" class="s-texto">compensadora</text>
+            <text x="380" y="203" text-anchor="middle" font-size="12" class="s-suave">contraparte central</text>
+            <!-- Cliente ↔ ALyC -->
+            <line x1="110" y1="76" x2="110" y2="146" class="s-trazo" stroke-width="1.6" marker-start="url(#u1-flecha-b)" marker-end="url(#u1-flecha-b)"/>
+            <text x="120" y="107" font-size="12" class="s-texto">margen inicial y</text>
+            <text x="120" y="122" font-size="12" class="s-texto">ajustes diarios</text>
+            <line x1="650" y1="76" x2="650" y2="146" class="s-trazo" stroke-width="1.6" marker-start="url(#u1-flecha-b)" marker-end="url(#u1-flecha-b)"/>
+            <text x="640" y="107" text-anchor="end" font-size="12" class="s-texto">margen inicial y</text>
+            <text x="640" y="122" text-anchor="end" font-size="12" class="s-texto">ajustes diarios</text>
+            <!-- ALyC ↔ cámara -->
+            <line x1="204" y1="178" x2="296" y2="178" class="s-trazo" stroke-width="1.6" marker-start="url(#u1-flecha-b)" marker-end="url(#u1-flecha-b)"/>
+            <text x="250" y="154" text-anchor="middle" font-size="11" class="s-suave">margen de</text>
+            <text x="250" y="167" text-anchor="middle" font-size="11" class="s-suave">compensación</text>
+            <line x1="464" y1="178" x2="556" y2="178" class="s-trazo" stroke-width="1.6" marker-start="url(#u1-flecha-b)" marker-end="url(#u1-flecha-b)"/>
+            <text x="510" y="154" text-anchor="middle" font-size="11" class="s-suave">margen de</text>
+            <text x="510" y="167" text-anchor="middle" font-size="11" class="s-suave">compensación</text>
             <!-- Texto central -->
-            <text x="380" y="140" text-anchor="middle" font-size="13" font-weight="700" class="s-acento">Ajuste diario</text>
-            <text x="380" y="160" text-anchor="middle" font-size="12" class="s-texto">si el futuro sube, los cortos pagan</text>
-            <text x="380" y="177" text-anchor="middle" font-size="12" class="s-texto">y los largos cobran; si baja, al revés</text>
-            <text x="380" y="196" text-anchor="middle" font-size="12" class="s-suave">la cámara garantiza cada pago</text>
+            <text x="380" y="242" text-anchor="middle" font-size="13" font-weight="700" class="s-acento">Ajuste diario</text>
+            <text x="380" y="261" text-anchor="middle" font-size="12" class="s-texto">si el futuro sube, los cortos pagan y los largos cobran;</text>
+            <text x="380" y="277" text-anchor="middle" font-size="12" class="s-texto">si baja, al revés</text>
+            <text x="380" y="294" text-anchor="middle" font-size="12" class="s-suave">la cámara garantiza cada pago</text>
           </svg>
         </div>
-        <figcaption>Circuito de una operación de futuros. Comprador y vendedor pactan en el mercado, pero cada uno queda con la cámara como contraparte. Los márgenes y las diferencias diarias viajan por la cadena cliente → agente → miembro compensador → cámara.</figcaption>
+        <figcaption>Circuito de una operación de futuros. Comprador y vendedor pactan en el mercado, pero cada uno queda con la cámara como contraparte. Los márgenes y las diferencias diarias viajan por la cadena cliente → ALyC → cámara.</figcaption>
       </figure>
 
       <h3>Los cambios después de la crisis de 2008</h3>
@@ -562,14 +551,13 @@
       <h3>El ajuste diario "reescribe" el contrato</h3>
       <p>El efecto del ajuste diario es que el futuro se liquida todos los días en lugar de al final. Después de cada ajuste el contrato vuelve a valer cero: es como si se cerrara y se volviera a abrir al nuevo precio de ajuste. En un forward, en cambio, la ganancia o pérdida se acumula y se paga recién al vencimiento.</p>
 
-      <h3>La cámara, los miembros compensadores y la cadena de márgenes</h3>
-      <p>Los márgenes no existen solo entre vos y tu agente. Se repiten en cada eslabón de la cadena del diagrama:</p>
+      <h3>La cámara, las ALyC y la cadena de márgenes</h3>
+      <p>Los márgenes no existen solo entre vos y tu ALyC. Se repiten en los dos eslabones de la cadena del diagrama:</p>
       <ul>
-        <li><strong>Cliente → agente.</strong> Vos mantenés la cuenta de márgenes con tu agente, con margen inicial, de mantenimiento y llamados. El mercado fija los mínimos; un agente puede exigir más, nunca menos.</li>
-        <li><strong>Agente → miembro compensador.</strong> Si tu agente no es miembro de la cámara, mantiene a su vez una cuenta de márgenes con un miembro compensador.</li>
-        <li><strong>Miembro compensador → cámara.</strong> El miembro deposita en la cámara el <strong>margen de compensación</strong> (<em>clearing margin</em>). En el esquema que describe Hull, la cámara no usa margen de mantenimiento: cada día la cuenta del miembro tiene que tener el margen inicial por la cantidad de contratos abiertos, así que el miembro deposita o retira la diferencia según las operaciones y los precios del día.</li>
+        <li><strong>Cliente → ALyC.</strong> Vos mantenés la cuenta de márgenes con tu ALyC, con margen inicial, de mantenimiento y llamados. El mercado fija los mínimos; la ALyC puede exigir más, nunca menos.</li>
+        <li><strong>ALyC → cámara.</strong> La ALyC deposita en la cámara el <strong>margen de compensación</strong> (<em>clearing margin</em>) por las posiciones de todos sus clientes. En el esquema que describe Hull, la cámara no usa margen de mantenimiento: cada día la cuenta de la ALyC tiene que tener el margen inicial por la cantidad de contratos abiertos, así que deposita o retira la diferencia según las operaciones y los precios del día.</li>
       </ul>
-      <p>El margen de compensación se puede calcular en forma <strong>bruta</strong> (se suman las posiciones largas y cortas de todos los clientes del miembro) o <strong>neta</strong> (se compensan entre sí). Si un miembro tiene un cliente largo en 20 contratos y otro corto en 15, el cálculo bruto toma 35 contratos y el neto, 5. Además, los miembros aportan a un <strong>fondo de garantía</strong>: si uno no cumple, la cámara usa primero sus márgenes y su aporte, y recién después recursos propios y de los demás miembros. Los niveles de margen dependen de la volatilidad del subyacente: cuanto más volátil, más altos.</p>
+      <p>El margen de compensación se puede calcular en forma <strong>bruta</strong> (se suman las posiciones largas y cortas de todos los clientes de la ALyC) o <strong>neta</strong> (se compensan entre sí). Si una ALyC tiene un cliente largo en 20 contratos y otro corto en 15, el cálculo bruto toma 35 contratos y el neto, 5. Además, las ALyC aportan a un <strong>fondo de garantía</strong>: si una no cumple, la cámara usa primero sus márgenes y su aporte, y recién después recursos propios y de las demás ALyC. Los niveles de margen dependen de la volatilidad del subyacente: cuanto más volátil, más altos.</p>
 
       <div class="caja prueba">
         <p class="caja-titulo">Probá vos</p>
