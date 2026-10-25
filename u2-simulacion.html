@@ -24,6 +24,7 @@
       <h2 id="cobertura-y-riesgo-de-base">Cobertura y riesgo de base</h2>
       <section class="widget" id="w-base">
         <p class="widget-intro">La cobertura se abre en t₁ (contado S₁, futuro F₁) y se cierra en t₂. Mové los precios de t₂ y mirá qué parte del riesgo elimina la cobertura y qué parte queda: la base.</p>
+        <p class="widget-intro">El futuro vence después de t₂: al cerrar, F₂ todavía puede diferir de S₂, y esa diferencia es la base. Si t₂ coincidiera con el vencimiento, F₂ = S₂ y la cobertura sería perfecta. Probalo con el botón "Cerrar al vencimiento".</p>
         <div class="entradas">
           <div>
             <label>Cobertura</label>
@@ -36,6 +37,9 @@
           <div><label for="bs-f1">Futuro en t₁, F₁</label><input id="bs-f1" type="number" value="50" step="any"></div>
           <div id="bs-s2-box"></div>
           <div id="bs-f2-box"></div>
+        </div>
+        <div class="botones" style="margin-top:0">
+          <button class="btn" type="button" id="bs-vencimiento" title="Iguala F₂ a S₂: el futuro converge al contado">Cerrar al vencimiento (F₂ = S₂)</button>
         </div>
         <div class="sim-dos">
           <div style="min-width:0">

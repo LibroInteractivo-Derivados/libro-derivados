@@ -37,13 +37,20 @@ function simBase() {
   const fortalecio = db > 1e-9, debilito = db < -1e-9;
   const efecto = corta ? (b2 > 0 ? 'a favor' : b2 < 0 ? 'en contra' : 'neutro') : (b2 > 0 ? 'en contra' : b2 < 0 ? 'a favor' : 'neutro');
   const que = `${corta ? 'Vendés' : 'Comprás'} a ${fmt(S2)} en el contado y ${resFut >= 0 ? 'ganás' : 'perdés'} ${fmt(Math.abs(resFut))} en los futuros: ${corta ? 'precio' : 'costo'} efectivo ${fmt(efectivo)}.`;
-  let porque = `Lo que se conoce en t₁ es F₁ = ${fmt(F1)}. Lo que no se conoce es la base al cerrar, b₂ = ${fmtSigno(b2)}: ese es el riesgo que queda. ${b2 === 0 ? 'Con base cero la cobertura es perfecta: obtenés exactamente F₁.' : `Como b₂ es ${b2 > 0 ? 'positiva' : 'negativa'}, la diferencia de ${fmt(Math.abs(b2))} juega ${efecto} ${corta ? 'del que vende' : 'del que compra'}.`}`;
+  let porque = b2 === 0
+    ? `Lo que se conoce en t₁ es F₁ = ${fmt(F1)}. El único riesgo era la base al cerrar, b₂, y acá es cero: la cobertura es perfecta y obtenés exactamente F₁. Es lo que pasa si cerrás justo al vencimiento del futuro, porque ahí el futuro converge al contado (siempre que cubras el mismo activo que el subyacente del futuro).`
+    : `Lo que se conoce en t₁ es F₁ = ${fmt(F1)}. Lo que no se conoce es la base al cerrar, b₂ = ${fmtSigno(b2)}: ese es el riesgo que queda. ${b2 === 0 ? '' : `Como b₂ es ${b2 > 0 ? 'positiva' : 'negativa'}, la diferencia de ${fmt(Math.abs(b2))} juega ${efecto} ${corta ? 'del que vende' : 'del que compra'}.`}`;
   if (fortalecio || debilito) porque += ` Entre t₁ y t₂ la base se ${fortalecio ? 'fortaleció' : 'debilitó'} (de ${fmtSigno(b1)} a ${fmtSigno(b2)}): ${corta ? (fortalecio ? 'a la cobertura corta le conviene, porque está larga en contado y corta en futuro' : 'a la cobertura corta la perjudica') : (fortalecio ? 'a la cobertura larga la perjudica, porque está corta en contado y larga en futuro' : 'a la cobertura larga le conviene')}.`;
   porque += ` Sin cobertura, el resultado sería ${fmt(S2)} y dependería por completo del precio.`;
   const clave = [corta, S1, F1, S2, F2].join('|');
   if (bsAntes !== clave) { narBs.reemplazar(que, porque, efecto === 'a favor' ? 'pos' : efecto === 'en contra' ? 'neg' : ''); bsAntes = clave; }
 }
 alCambiar('w-base', simBase);
+// Cerrar al vencimiento: el futuro converge al contado (F₂ = S₂) y la base desaparece.
+$('bs-vencimiento').addEventListener('click', () => {
+  $('bs-f2').value = $('bs-s2').value;
+  $('bs-f2').dispatchEvent(new Event('input', { bubbles: true }));
+});
 
 // ======================================================================
 // 2. Estimar h* con datos simulados
