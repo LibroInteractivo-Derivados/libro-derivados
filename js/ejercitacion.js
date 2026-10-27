@@ -37,7 +37,7 @@
   const raiz = $('ejercitacion');
   if (!raiz) return;
 
-  const ejercicios = window.EJERCICIOS || [];
+  const ejercicios = typeof Curso !== 'undefined' ? Curso.ajustarEjercicios(window.EJERCICIOS || []) : (window.EJERCICIOS || []);
   const preguntas = (typeof BANCO !== 'undefined' ? BANCO : []).filter(q => q.unidad === unidadNum);
 
   const DIF = { 1: 'Básica', 2: 'Intermedia', 3: 'Avanzada' };

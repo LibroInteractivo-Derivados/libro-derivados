@@ -426,12 +426,13 @@ function renderEncabezado() {
   if (!lugar) return;
   const general = document.body.dataset.pagina;
 
+  // u.oculta / g.oculta: solo las ve el profesor (los alumnos no reciben esas entradas).
   const enlacesUnidades = LIBRO.unidades
-    .map(u => `<a href="${u.paginas[0].archivo}" class="${unidad && u.id === unidad.id ? 'activa' : ''}" title="Unidad ${u.numero} · ${u.nombre}"><span class="u-num">${u.numero}</span><span class="nombre-u">${u.corto || u.nombre}</span></a>`)
+    .map(u => `<a href="${(u.paginas[0] || {}).archivo || 'index.html'}" class="${unidad && u.id === unidad.id ? 'activa' : ''} ${u.oculta ? 'oculta' : ''}" title="Unidad ${u.numero} · ${u.nombre}${u.oculta ? ' (oculta para los alumnos)' : ''}"><span class="u-num">${u.numero}</span><span class="nombre-u">${u.corto || u.nombre}</span></a>`)
     .join('');
   const enlacesGenerales = LIBRO.generales
     .filter(g => g.archivo)
-    .map(g => `<a href="${g.archivo}" class="general ${general === g.id ? 'activa' : ''}">${g.nombre}</a>`)
+    .map(g => `<a href="${g.archivo}" class="general ${general === g.id ? 'activa' : ''} ${g.oculta ? 'oculta' : ''}"${g.oculta ? ' title="Oculta para los alumnos"' : ''}>${g.nombre}</a>`)
     .join('');
 
   let html = `
@@ -442,7 +443,7 @@ function renderEncabezado() {
           <span class="marca-sub">${LIBRO.subtitulo}</span>
         </a>
         <nav class="unidades" aria-label="Unidades del libro">${enlacesUnidades}<span class="sep"></span>${enlacesGenerales}</nav>
-        <div class="acciones-barra"><button class="btn-barra" id="btn-tema" type="button" title="Tema: automático (según el sistema), claro u oscuro" aria-label="Cambiar el tema de colores">${textoBotonTema(Guardado.leer('tema', 'sistema'))}</button></div>
+        <div class="acciones-barra">${window.Curso ? Curso.botonModo() : ''}<button class="btn-barra" id="btn-tema" type="button" title="Tema: automático (según el sistema), claro u oscuro" aria-label="Cambiar el tema de colores">${textoBotonTema(Guardado.leer('tema', 'sistema'))}</button></div>
       </div>
     </header>`;
 
@@ -451,7 +452,7 @@ function renderEncabezado() {
       .map(p => {
         if (!p.archivo) return `<span title="Próximamente">${p.nombre} <small>(próximamente)</small></span>`;
         const activa = p.id === document.body.dataset.seccion ? 'activa' : '';
-        return `<a href="${p.archivo}" class="${activa}">${p.nombre}</a>`;
+        return `<a href="${p.archivo}" class="${activa} ${p.oculta ? 'oculta' : ''}"${p.oculta ? ' title="Oculta para los alumnos"' : ''}>${p.nombre}</a>`;
       })
       .join('');
     html += `
@@ -465,6 +466,7 @@ function renderEncabezado() {
   html += '<div class="progreso-lectura" aria-hidden="true"><div id="barra-progreso"></div></div>';
   lugar.innerHTML = html;
   $('btn-tema').addEventListener('click', cambiarTema);
+  if (window.Curso) Curso.vincularBotonModo();
 
   // Deja visible la unidad activa en el menú (en pantallas angostas el menú se desplaza).
   const activa = lugar.querySelector('.unidades a.activa');
@@ -900,9 +902,11 @@ function vincularRango(id, formato = v => fmt(v, 2)) {
 // ======================================================================
 
 function iniciarLibro() {
+  if (window.Curso) Curso.ajustarLibro(LIBRO); // qué ven los alumnos y qué editó el profesor (js/curso.js)
   aplicarTemaGuardado();
   aplicarTemaGraficos();
   renderEncabezado();
+  if (window.Curso) Curso.barraProfesor();
   renderIndice();
   renderPieNavegacion();
   renderPieLibro();

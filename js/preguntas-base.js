@@ -12,7 +12,13 @@
 // Requiere js/calculos.js. Cada unidad tiene su archivo: js/preguntas-u4.js, js/preguntas-u5.js, etc.
 
 const BANCO = [];
-const Q = pregunta => BANCO.push(pregunta);
+// Cada pregunta pasa por los cambios del profesor (js/curso.js): ediciones, eliminadas y unidades ocultas.
+const Q = pregunta => {
+  const q = typeof Curso !== 'undefined' ? Curso.ajustarPregunta(pregunta) : pregunta;
+  if (q) BANCO.push(q);
+};
+// Preguntas nuevas que escribió el profesor (no dependen de los cálculos).
+if (typeof Curso !== 'undefined') Curso.preguntasNuevas().forEach(q => BANCO.push(q));
 
 // ---------- Formato ----------
 const f = (x, d = 2) => (Math.abs(x) < 0.5 * Math.pow(10, -d) ? 0 : x).toLocaleString('es-AR', { minimumFractionDigits: d, maximumFractionDigits: d });

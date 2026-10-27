@@ -25,10 +25,30 @@
     </div>`;
   }
   if (evaluacion && (!proxima || !proxima.examen)) {
-    const us = evaluacion.unidades.map(id => unidad(id).numero).join(', ');
+    const us = evaluacion.unidades.map(id => unidad(id)).filter(Boolean).map(u => u.numero).join(', ');
     html += `<p class="ayuda" style="margin:6px 0 0">${evaluacion.nombre}: ${corta(evaluacion.fecha)} (faltan ${dias(evaluacion.fecha)} días)${us ? ` · Unidades ${us}` : ''}.</p>`;
   }
+  // Aviso del profesor (panel del profesor → Calendario y aviso).
+  if (typeof Curso !== 'undefined') {
+    const aviso = Curso.config().aviso;
+    if (aviso.activo && aviso.texto.trim()) html = `<div class="aviso-docente"><p class="caja-titulo">Aviso del docente</p><p>${aviso.texto.trim().replace(/\n/g, '<br>')}</p></div>` + html;
+    // Primera visita: elegir cómo entrar.
+    if (Curso.modo() === null) {
+      html = `<div class="elegir-modo">
+          <p class="caja-titulo">¿Cómo querés entrar?</p>
+          <div class="modos">
+            <button type="button" data-modo="alumno"><b>Soy alumno</b><span>Leer las unidades, simular, ejercitar y rendir simulacros.</span></button>
+            <button type="button" data-modo="profesor"><b>Soy profesor</b><span>Editar contenidos y preguntas, y elegir qué ven los alumnos.</span></button>
+          </div>
+          <p class="ayuda" style="margin:8px 0 0">Podés cambiar después con el botón de arriba a la derecha. El acceso de profesores con usuario y clave se suma más adelante.</p>
+        </div>` + html;
+    }
+  }
   $('hoy').innerHTML = html;
+  $('hoy').addEventListener('click', ev => {
+    const b = ev.target.closest('[data-modo]');
+    if (b) Curso.cambiarModo(b.dataset.modo);
+  });
 
   // ---------- Progreso de lectura ----------
   const progreso = u => {
@@ -38,7 +58,8 @@
   };
 
   const tarjeta = u => `
-    <article class="tarjeta" style="--color: var(--${u.id})">
+    <article class="tarjeta ${u.oculta ? 'oculta' : ''}" style="--color: var(--${u.id})">
+      ${u.oculta ? '<span class="chip aviso" style="align-self:flex-start;margin-bottom:8px">Oculta para los alumnos</span>' : ''}
       ${typeof ILUSTRACIONES !== 'undefined' && ILUSTRACIONES[u.id] ? `<div class="ilustracion">${ILUSTRACIONES[u.id]}</div>` : ''}
       <span class="num-unidad">Unidad ${u.numero}</span>
       <h3>${u.nombre}</h3>
@@ -55,9 +76,11 @@
     { titulo: 'Segundo parcial', ev: LIBRO.evaluaciones[1], unidades: ['u4', 'u5', 'u6', 'u8'], simulacro: 'p2' },
     { titulo: 'Después del segundo parcial · para el final', ev: LIBRO.evaluaciones[3], unidades: ['u7'], simulacro: 'final' },
   ];
-  $('bloques').innerHTML = bloques.map(b => `
+  // Unidades ocultas para los alumnos: no aparecen (y un bloque sin unidades no se muestra).
+  bloques.forEach(b => { b.unidades = b.unidades.filter(id => unidad(id)); });
+  $('bloques').innerHTML = bloques.filter(b => b.unidades.length).map(b => `
     <section class="bloque-parcial">
-      <header><h2>${b.titulo}</h2><span>${b.ev ? `${b.ev.nombre === b.titulo ? '' : b.ev.nombre + ' · '}${corta(b.ev.fecha)}` : ''}${b.simulacro ? ` · <a href="simulacro.html#${b.simulacro}">Hacer un simulacro${b.simulacro === 'final' ? ' del final' : ''}</a>` : ''}</span></header>
+      <header><h2>${b.titulo}</h2><span>${b.ev ? `${b.ev.nombre === b.titulo ? '' : b.ev.nombre + ' · '}${corta(b.ev.fecha)}` : ''}${b.simulacro && (typeof Curso === 'undefined' || (Curso.mostrar.examen(b.simulacro) && Curso.mostrar.general('simulacro'))) ? ` · <a href="simulacro.html#${b.simulacro}">Hacer un simulacro${b.simulacro === 'final' ? ' del final' : ''}</a>` : ''}</span></header>
       <div class="tarjetas">${b.unidades.map(id => tarjeta(unidad(id))).join('')}</div>
     </section>`).join('');
 })();

@@ -1,5 +1,7 @@
 # Guía para editar el libro a mano
 
+> **Para el día a día no hace falta esta guía.** El libro tiene un **modo profesor** (sección 18) desde el que se eligen las unidades y secciones visibles, se corrigen textos, preguntas y ejercicios, y se publican los cambios, todo dentro de la página. Esta guía es para cambios de fondo: páginas nuevas, simulaciones o diseño.
+
 ## 1. Antes de empezar
 
 - **Para ver el libro:** doble clic en `index.html`. Se abre en el navegador. Funciona sin internet: las fórmulas (KaTeX), los gráficos (Chart.js) y las tipografías (IBM Plex y Literata) están incluidos en la carpeta `vendor/`, con sus licencias. El libro no se conecta a ningún servicio externo.
@@ -281,6 +283,15 @@ Las mismas preguntas alimentan la **Batalla** (sección 14 bis): una pregunta nu
   ```
   `data-correcta` es el número de la opción correcta, empezando en 1.
 - **Enlaces a una sección de otra página:** los títulos `<h2>` reciben un id automático a partir del texto (sin tildes, con guiones): "Las griegas" → `u6-teoria.html#las-griegas`.
+- **Punto clave** (resumen de lo que se acaba de leer, con un botón "Marcar como claro" que recuerda cada alumno):
+  ```html
+  <aside class="punto-clave" data-id="u1-margenes">
+    <ul><li>Idea 1.</li><li>Idea 2.</li></ul>
+  </aside>
+  ```
+  `data-id` tiene que ser único en todo el libro.
+- **Mini simulación dentro de la lectura:** `<div class="mini-sim" data-sim="margenes"></div>`. Las disponibles están en `js/lectura-interactiva.js` (`MINI_SIMS`): `forward-payoff`, `margenes`, `base`, `hstar`, `beta`, `composicion`, `forward-precio`, `swap-valor`, `payoff-opcion`, `paridad`, `binomial`, `bs`, `bs-q` y `estrategias`. Cada una enlaza a su simulación completa. Una mini simulación se puede usar en cualquier página de teoría, las veces que quieras.
+- **Ilustraciones de la portada:** una por unidad, en `js/ilustraciones.js` (SVG simples con el color de la unidad).
 
 ## 16. Formulario y glosario
 
@@ -292,3 +303,26 @@ Las mismas preguntas alimentan la **Batalla** (sección 14 bis): una pregunta nu
 - Tasas anuales con composición continua y año de 360 días (30/360), como pide la cátedra, salvo que el enunciado diga otra cosa.
 - Números con coma decimal y punto de miles. En los campos de los ejercicios el alumno puede escribir con coma o con punto, y también fracciones como `4/12`.
 - Cuando la guía de la cátedra tiene un error o un redondeo, el ejercicio lo aclara en `aviso` y acepta las dos respuestas si corresponde.
+
+## 18. Modo profesor
+
+Al entrar por primera vez, la portada pregunta **«¿Cómo querés entrar?»**: alumno o profesor. Después se cambia con el botón **Alumno / Profesor** del encabezado. (Todavía no pide usuario ni clave: eso se agrega cuando el libro tenga un servidor.)
+
+En modo profesor aparece una barra abajo con:
+
+- **Editar textos:** se activa y, con un clic sobre cualquier párrafo, título, ítem o celda de tabla, se abre un editor como el de un procesador de texto (negrita, cursiva y fórmulas entre `\(` y `\)`, con vista previa). Los textos editados quedan marcados con una línea amarilla que solo ve el profesor. Si después se cambia el texto original del libro, la edición deja de aplicarse (para no pisar contenido nuevo) y hay que rehacerla.
+- **Panel del profesor** (`profesor.html`), con estas pestañas:
+  - **Qué ven los alumnos:** casillas para cada unidad y cada sección (Teoría, Simulación, Ejercitación), para las páginas generales (Simulacro, Batalla, Herramientas…) y para los exámenes del simulacro. Lo oculto desaparece del menú, la portada, la batalla y los simulacros; si un alumno entra por un enlace directo ve «No disponible». El profesor lo sigue viendo, tachado.
+  - **Calendario y aviso:** un aviso que aparece arriba en la portada, y las fechas y temas de clases y evaluaciones.
+  - **Preguntas:** buscar, editar, eliminar o volver a incluir cualquier pregunta del banco, y crear preguntas nuevas. Los cambios valen para la autoevaluación, la batalla y los simulacros.
+  - **Ejercicios:** ocultar un ejercicio, corregir título, enunciado, aviso y resolución, y cambiar las respuestas que se aceptan como correctas.
+  - **Textos editados:** la lista de lo que se cambió, con «Volver al original».
+  - **Publicar:** ver abajo.
+- **Ver como alumno:** pasa a modo alumno para revisar cómo queda.
+
+### Cómo se guardan y publican los cambios
+
+- Todo lo que hace el profesor se guarda solo, como **borrador en su navegador**. En esa computadora se ve enseguida; los alumnos todavía no lo ven.
+- Para que lo vean los alumnos: **Panel → Publicar → Descargar curso-config.js**, y reemplazar con ese archivo el `js/curso-config.js` del libro publicado (en GitHub: carpeta `js` → Add file → Upload files → Commit changes).
+- **Importar** permite cargar un `curso-config.js` (por ejemplo, para pasarle la configuración a otro docente).
+- Técnicamente, todo esto vive en `js/curso.js` (lectura de la configuración, visibilidad, ajustes de preguntas y ejercicios, editor de textos) y `js/profesor.js` (el panel). Cuando haya usuarios y servidor, solo hay que cambiar dónde se guarda y se publica.
