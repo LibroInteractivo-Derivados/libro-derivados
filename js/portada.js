@@ -39,6 +39,7 @@
 
   const tarjeta = u => `
     <article class="tarjeta" style="--color: var(--${u.id})">
+      ${typeof ILUSTRACIONES !== 'undefined' && ILUSTRACIONES[u.id] ? `<div class="ilustracion">${ILUSTRACIONES[u.id]}</div>` : ''}
       <span class="num-unidad">Unidad ${u.numero}</span>
       <h3>${u.nombre}</h3>
       <div class="progreso-u" title="Páginas marcadas como leídas"><div style="width:${Math.round(progreso(u) * 100)}%"></div></div>
