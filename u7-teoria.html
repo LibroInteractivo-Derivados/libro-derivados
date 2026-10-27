@@ -148,6 +148,14 @@
       </div>
       <p>En la <a href="u7-simulacion.html#calculadora">calculadora generalizada</a> podés elegir el subyacente y ver cómo cambian los límites, los precios y la paridad.</p>
 
+      <div class="mini-sim" data-sim="bs-q"></div>
+      <aside class="punto-clave" data-id="u7-merton">
+        <ul>
+          <li><strong>Regla de Merton:</strong> si el subyacente rinde \(q\), se valúa como una acción sin dividendos reemplazando \(S_0\) por \(S_0 e^{-qT}\).</li>
+          <li>Índice: \(q\) es el rendimiento por dividendos. Moneda: \(q = r_f\) (Garman-Kohlhagen). Futuro: \(q = r\) (modelo de Black).</li>
+        </ul>
+      </aside>
+
       <div class="quiz-rapido">
         <p class="caja-titulo">Autoevaluación rápida</p>
         <div class="qr-pregunta" data-correcta="1">
@@ -272,6 +280,13 @@
 
       <p>En la <a href="u7-simulacion.html#seguro">simulación del seguro de cartera</a> podés cambiar el beta, el piso y la volatilidad, y ver el costo.</p>
 
+      <aside class="punto-clave" data-id="u7-seguro">
+        <ul>
+          <li>Un <strong>seguro de cartera</strong> se arma comprando puts sobre el índice: tantos contratos como \(\beta\,P/(\text{índice} \cdot m)\).</li>
+          <li>Si la beta no es 1, el strike se elige con el CAPM: el índice tiene que caer menos (o más) que la cartera.</li>
+        </ul>
+      </aside>
+
       <div class="quiz-rapido">
         <p class="caja-titulo">Autoevaluación rápida</p>
         <div class="qr-pregunta" data-correcta="2">
@@ -383,6 +398,13 @@
       </div>
 
       <p>En la <a href="u7-simulacion.html#exportador">simulación de cobertura cambiaria</a> podés comparar las cuatro alternativas y mover los strikes.</p>
+
+      <aside class="punto-clave" data-id="u7-monedas">
+        <ul>
+          <li>Un exportador que va a cobrar en moneda extranjera se protege comprando puts; un importador que va a pagar, comprando calls.</li>
+          <li>Un <strong>range forward</strong> combina la compra de un put y la venta de un call de igual prima: cuesta cero y deja el tipo de cambio dentro de una banda.</li>
+        </ul>
+      </aside>
 
       <div class="quiz-rapido">
         <p class="caja-titulo">Autoevaluación rápida</p>
@@ -543,6 +565,14 @@
         <li>Con opciones <strong>americanas</strong>, aunque venzan junto con el futuro: en un mercado normal, el call americano sobre el futuro vale más que el call americano sobre el contado, porque en los ejercicios anticipados se cobra \(F - K \gt S - K\). El put vale menos. En un mercado invertido (por ejemplo, una moneda extranjera cuya tasa es mayor que la doméstica, \(r_f \gt r\)) se da lo contrario.</li>
       </ul>
 
+      <aside class="punto-clave" data-id="u7-futuros">
+        <ul>
+          <li>Al ejercer una opción sobre un futuro se recibe una posición en el futuro más la diferencia en efectivo.</li>
+          <li>Modelo de Black: \(c = e^{-rT}[F_0 N(d_1) - K N(d_2)]\). Paridad: \(c + K e^{-rT} = p + F_0 e^{-rT}\).</li>
+          <li>Si el futuro vence el mismo día que la opción, la opción europea sobre el futuro vale lo mismo que sobre el contado.</li>
+        </ul>
+      </aside>
+
       <div class="quiz-rapido">
         <p class="caja-titulo">Autoevaluación rápida</p>
         <div class="qr-pregunta" data-correcta="2">
@@ -623,5 +653,6 @@
   <script src="vendor/chartjs/chart.umd.min.js"></script>
   <script src="js/calculos.js"></script>
   <script src="js/comun.js"></script>
+  <script src="js/lectura-interactiva.js"></script>
 </body>
 </html>

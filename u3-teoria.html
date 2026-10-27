@@ -114,6 +114,8 @@
       </div>
 
       <!-- ================================================================== -->
+      <div class="mini-sim" data-sim="composicion"></div>
+
       <h2>Tasas cero, bonos y rendimiento</h2>
 
       <div class="caja definicion">
@@ -299,6 +301,14 @@
         <p>La aproximación \(\Delta B \approx -B D \Delta y\) vale para <strong>cambios chicos</strong> y supone que todo el rendimiento se mueve lo mismo (<strong>desplazamientos paralelos</strong> de la curva). Si la curva se empina o se aplana, bonos con la misma duración pueden reaccionar distinto. Podés comparar la aproximación con el valor exacto en la <a href="u3-simulacion.html#bono">simulación del bono</a>.</p>
       </div>
 
+      <aside class="punto-clave" data-id="u3-tasas">
+        <ul>
+          <li>Para comparar tasas hay que llevarlas a la misma composición: \(R_c = m \ln(1 + R_m/m)\).</li>
+          <li>La tasa cero es el rendimiento de un bono que paga todo al final. La tasa forward entre \(T_1\) y \(T_2\) es \(R_F = (R_2 T_2 - R_1 T_1)/(T_2 - T_1)\), y un <strong>FRA</strong> la fija hoy.</li>
+          <li>La duración mide la sensibilidad del precio de un bono a la tasa: \(\Delta B \approx -B\,D\,\Delta y\). La convexidad corrige el error para cambios grandes.</li>
+        </ul>
+      </aside>
+
       <div class="quiz-rapido">
         <p class="caja-titulo">Autoevaluación rápida</p>
         <div class="qr-pregunta" data-correcta="1">
@@ -448,6 +458,8 @@
       <p>En la <a href="u3-simulacion.html#arbitraje">simulación de arbitraje</a> podés cambiar el precio forward de mercado y ver la tabla de flujos que corresponde a cada caso.</p>
 
       <!-- ================================================================== -->
+      <div class="mini-sim" data-sim="forward-precio"></div>
+
       <h2>Activos con ingresos o rendimiento conocido</h2>
 
       <h3>Ingreso conocido</h3>
@@ -524,6 +536,14 @@
       </div>
 
       <p>En la <a href="u3-simulacion.html#valor-forward">simulación</a> podés mover el precio del activo y el tiempo restante y ver cómo cambia el valor para el comprador y el vendedor.</p>
+
+      <aside class="punto-clave" data-id="u3-forward">
+        <ul>
+          <li>Precio forward por no arbitraje: \(F_0 = S_0 e^{rT}\) sin ingresos; \((S_0 - I)e^{rT}\) con ingresos conocidos; \(S_0 e^{(r-q)T}\) con un rendimiento continuo \(q\).</li>
+          <li>Si el forward está caro se hace <strong>cash-and-carry</strong> (comprar contado y vender forward); si está barato, <strong>reverse cash-and-carry</strong>.</li>
+          <li>Un forward ya pactado a \(K\) vale, para la posición larga, \(f = (F_0 - K)e^{-rT}\).</li>
+        </ul>
+      </aside>
 
       <div class="quiz-rapido">
         <p class="caja-titulo">Autoevaluación rápida</p>
@@ -667,6 +687,14 @@
       <p>Si \(c \gt y\), los futuros más lejanos son más caros: la curva de futuros es <strong>creciente</strong> y se dice que el mercado está en <strong>contango</strong>. Si \(y \gt c\) (rendimiento por dividendos alto, tasa extranjera alta, escasez de un commodity), la curva es <strong>decreciente</strong>: el mercado está en <strong>backwardation</strong>. Podés ver las dos formas en la <a href="u3-simulacion.html#curva-futuros">simulación de la curva de futuros</a>.</p>
 
       <p><strong>Opciones de entrega.</strong> Muchos futuros permiten al vendedor elegir el día de entrega dentro de un período. Si \(c \gt y\), al vendedor le conviene entregar lo antes posible (deja de pagar el costo de tenencia); si \(c \lt y\), lo más tarde posible. El precio futuro se calcula suponiendo que la entrega se hará en la fecha que más le convenga al vendedor.</p>
+
+      <aside class="punto-clave" data-id="u3-subyacentes">
+        <ul>
+          <li>Monedas: \(F_0 = S_0 e^{(r - r_f)T}\). Índices: el rendimiento por dividendos hace de \(q\).</li>
+          <li>Commodities de inversión: los costos de almacenamiento suman (\(U\) o \(u\)). Commodities de consumo: aparece el rendimiento de conveniencia \(y\).</li>
+          <li>En general, \(F_0 = S_0 e^{(c - y)T}\), con el costo de tenencia \(c = r - q + u\).</li>
+        </ul>
+      </aside>
 
       <div class="quiz-rapido">
         <p class="caja-titulo">Autoevaluación rápida</p>
@@ -847,6 +875,13 @@
         <p>Si las tasas bajan y la cartera sube a 10.450.000 mientras el futuro sube a 98-16 (98.500 por contrato), los futuros pierden \(79 \times (98.500 - 93.062{,}50) = 429.562{,}50\) y la posición total cambia apenas \(450.000 - 429.562{,}50 = 20.437{,}50\). La cobertura funcionó: eliminó casi toda la variación, la favorable incluida.</p>
       </div>
 
+      <aside class="punto-clave" data-id="u3-futuros-tasas">
+        <ul>
+          <li>Cada mercado usa su convención de conteo de días; los bonos se cotizan por su precio limpio, pero se paga el sucio (con los intereses corridos).</li>
+          <li>Cobertura basada en la duración: \(N^* = P\,D_P/(V_F\,D_F)\) contratos.</li>
+        </ul>
+      </aside>
+
       <div class="quiz-rapido">
         <p class="caja-titulo">Autoevaluación rápida</p>
         <div class="qr-pregunta" data-correcta="1">
@@ -901,5 +936,6 @@
   <script src="vendor/chartjs/chart.umd.min.js"></script>
   <script src="js/calculos.js"></script>
   <script src="js/comun.js"></script>
+  <script src="js/lectura-interactiva.js"></script>
 </body>
 </html>

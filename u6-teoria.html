@@ -131,6 +131,8 @@
         </ul>
       </div>
 
+      <div class="mini-sim" data-sim="binomial"></div>
+
       <h3>Calibración de u y d</h3>
       <p>En la práctica, \(u\) y \(d\) se eligen para que el árbol refleje la <strong>volatilidad</strong> del subyacente (calibración de Cox, Ross y Rubinstein). Si cada paso dura \(\Delta t\) años:</p>
       <div class="formula">\[ u = e^{\sigma\sqrt{\Delta t}} \qquad\qquad d = e^{-\sigma\sqrt{\Delta t}} = \frac{1}{u} \qquad\qquad p = \frac{e^{r\Delta t} - d}{u - d} \]</div>
@@ -221,6 +223,14 @@
           <li><strong>Creer que un \(\Delta\) negativo significa "vender la opción".</strong> El signo indica la dirección de la sensibilidad: un put comprado gana cuando la acción baja.</li>
         </ul>
       </div>
+
+      <aside class="punto-clave" data-id="u6-binomial">
+        <ul>
+          <li>Una cartera de \(\Delta\) acciones y bonos replica la opción: por no arbitraje, la opción vale lo mismo que esa cartera.</li>
+          <li>Con la probabilidad neutral al riesgo \(p^* = (e^{r\Delta t} - d)/(u - d)\), el precio es el pago esperado descontado a la tasa libre de riesgo. El rendimiento esperado real no importa.</li>
+          <li>Calibración: \(u = e^{\sigma\sqrt{\Delta t}}\) y \(d = 1/u\). En las americanas, en cada nodo se toma el máximo entre seguir y ejercer.</li>
+        </ul>
+      </aside>
 
       <div class="quiz-rapido">
         <p class="caja-titulo">Autoevaluación rápida</p>
@@ -349,6 +359,13 @@
       <p>El caso del futuro tiene una intuición clara: entrar en un futuro no cuesta nada, así que en un mundo neutral al riesgo su precio no puede tener tendencia (si la tuviera, se ganaría en promedio sin invertir). Estos subyacentes se estudian en detalle en la <strong>Unidad VII</strong> (opciones sobre índices, monedas y futuros).</p>
 
       <p>Con <strong>dividendos en efectivo conocidos</strong> (un monto \(D\) en una fecha dada), en la fecha ex-dividendo el precio cae en \(D\) y el árbol deja de recombinar: después de un paso de suba y uno de baja no se llega al mismo nodo. En la práctica se arma el árbol para \(S_0 - VP(D)\) (la parte riesgosa del precio) y en cada nodo se le suma el valor presente de los dividendos que faltan pagar.</p>
+
+      <aside class="punto-clave" data-id="u6-arrow">
+        <ul>
+          <li>Un precio de Arrow-Debreu es lo que vale hoy cobrar 1 en un estado futuro. Cualquier activo vale la suma de sus pagos por los precios de estado.</li>
+          <li>La suma de todos los precios de estado es \(e^{-rT}\): el valor de un bono que paga 1 en cualquier estado.</li>
+        </ul>
+      </aside>
 
       <div class="quiz-rapido">
         <p class="caja-titulo">Autoevaluación rápida</p>
@@ -515,6 +532,13 @@
         </ul>
       </div>
 
+      <aside class="punto-clave" data-id="u6-procesos">
+        <ul>
+          <li>El precio de una acción se modela con un movimiento browniano geométrico: \(dS = \mu S\,dt + \sigma S\,dz\).</li>
+          <li>Con ese supuesto, \(\ln S_T\) es normal y \(S_T\) es lognormal. El rendimiento continuo esperado es \(\mu - \sigma^2/2\), menor que \(\mu\).</li>
+        </ul>
+      </aside>
+
       <div class="quiz-rapido">
         <p class="caja-titulo">Autoevaluación rápida</p>
         <div class="qr-pregunta" data-correcta="2">
@@ -656,6 +680,8 @@
         <p>Call con \(S_0 = 52\), \(K = 50\), \(r = 12\%\), \(\sigma = 30\%\) y \(T = 0{,}25\): \(d_1 = 0{,}5365\), \(d_2 = 0{,}3865\), \(N(d_1) = 0{,}7042\), \(N(d_2) = 0{,}6504\). Entonces \(c = 52 \times 0{,}7042 - 50\,e^{-0{,}03} \times 0{,}6504 = \mathbf{5{,}06}\).</p>
       </div>
 
+      <div class="mini-sim" data-sim="bs"></div>
+
       <h3>Supuestos y limitaciones</h3>
       <p>Black, Scholes y Merton suponen que:</p>
       <ul>
@@ -761,6 +787,14 @@
           <li><strong>Usar Black-Scholes para un put americano.</strong> No hay fórmula cerrada; se usa un árbol.</li>
         </ul>
       </div>
+
+      <aside class="punto-clave" data-id="u6-bsm">
+        <ul>
+          <li>\(c = S_0 N(d_1) - K e^{-rT} N(d_2)\) y \(p = K e^{-rT} N(-d_2) - S_0 N(-d_1)\). \(N(d_2)\) es la probabilidad neutral al riesgo de que el call se ejerza.</li>
+          <li>La <strong>volatilidad implícita</strong> es la σ que hace que el modelo iguale el precio de mercado.</li>
+          <li>Con dividendos se resta su valor presente a \(S_0\) o se usa un rendimiento continuo \(q\).</li>
+        </ul>
+      </aside>
 
       <div class="quiz-rapido">
         <p class="caja-titulo">Autoevaluación rápida</p>
@@ -938,6 +972,13 @@
 
       <p>En el <a href="u6-simulacion.html#black-scholes">explorador de griegas</a> podés ver cómo cambian delta, gamma, theta y vega con el precio, el plazo y la volatilidad.</p>
 
+      <aside class="punto-clave" data-id="u6-griegas">
+        <ul>
+          <li>Delta es la sensibilidad a \(S\) (\(N(d_1)\) para un call); gamma, cuánto cambia la delta; theta, el efecto del paso del tiempo; vega, el de la volatilidad; rho, el de la tasa.</li>
+          <li>Una cartera delta neutral hay que rebalancearla a medida que cambian el precio y el tiempo: la gamma dice qué tan seguido.</li>
+        </ul>
+      </aside>
+
       <div class="quiz-rapido">
         <p class="caja-titulo">Autoevaluación rápida</p>
         <div class="qr-pregunta" data-correcta="2">
@@ -1025,5 +1066,6 @@
   <script src="vendor/chartjs/chart.umd.min.js"></script>
   <script src="js/calculos.js"></script>
   <script src="js/comun.js"></script>
+  <script src="js/lectura-interactiva.js"></script>
 </body>
 </html>

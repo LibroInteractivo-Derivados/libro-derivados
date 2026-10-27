@@ -90,6 +90,13 @@
       <p><strong>Cómo leer los gráficos:</strong> el eje horizontal es el precio del subyacente al vencimiento (\(S_T\)) y el vertical, el beneficio. Las <strong>líneas punteadas</strong> son cada posición por separado; la <strong>línea continua</strong> es la estrategia completa, que es la <strong>suma</strong> de las punteadas. Para cada estrategia interesan tres datos: <strong>ganancia máxima</strong>, <strong>pérdida máxima</strong> y <strong>break-even</strong> (el precio, o los precios, donde el beneficio es cero).</p>
 
       <!-- ================================================================== -->
+      <aside class="punto-clave" data-id="u8-conceptos">
+        <ul>
+          <li><strong>Net debit:</strong> se paga más de lo que se cobra; <strong>net credit:</strong> se cobra más de lo que se paga.</li>
+          <li>Beneficio = payoff bruto al vencimiento − costo neto inicial (ignorando el valor tiempo del dinero).</li>
+        </ul>
+      </aside>
+
       <h2>Garantizar el capital: principal-protected notes</h2>
 
       <p>Una <strong>principal-protected note</strong> (PPN) garantiza el capital inicial, <strong>independientemente de cómo le vaya al subyacente</strong>. En el mejor caso hay ganancia; en el peor, se recupera el capital. Combina tasa fija con derivados: se compra un bono y, con el interés que va a generar hasta el vencimiento, se compran opciones.</p>
@@ -245,6 +252,8 @@
       </p>
 
       <!-- ================================================================== -->
+      <div class="mini-sim" data-sim="estrategias"></div>
+
       <h2>Box spread: la tasa sintética</h2>
 
       <p>El <strong>box spread</strong> combina un <strong>bull call spread</strong> con un <strong>bear put spread</strong>, con los mismos strikes \(K_1\) y \(K_2\). El resultado es un payoff <strong>siempre fijo</strong>:</p>
@@ -278,6 +287,13 @@
       <p><a class="boton-sim" href="u8-simulacion.html?estrategia=box-spread">Abrir el box spread en el simulador →</a></p>
 
       <!-- ================================================================== -->
+      <aside class="punto-clave" data-id="u8-spreads">
+        <ul>
+          <li><strong>Bull spread:</strong> comprar el strike bajo y vender el alto (con calls o con puts): apuesta a una suba moderada con ganancia y pérdida limitadas. El <strong>bear spread</strong> es al revés.</li>
+          <li>Un <strong>box spread</strong> combina un bull spread con calls y un bear spread con puts: paga siempre \(K_2 - K_1\), así que vale ese monto descontado a la tasa libre de riesgo.</li>
+        </ul>
+      </aside>
+
       <h2>Butterfly: apuesta a la NO volatilidad</h2>
 
       <div class="caja definicion">
@@ -368,6 +384,13 @@
       </p>
 
       <!-- ================================================================== -->
+      <aside class="punto-clave" data-id="u8-volatilidad">
+        <ul>
+          <li><strong>Straddle:</strong> call y put con el mismo strike; gana si el precio se mueve mucho. El <strong>strangle</strong> usa strikes distintos: es más barato, pero necesita un movimiento mayor.</li>
+          <li>Strip (más puts) y strap (más calls) inclinan la apuesta hacia un lado. Vender estas combinaciones es apostar a poca volatilidad, con pérdida potencial grande.</li>
+        </ul>
+      </aside>
+
       <h2>Antes del vencimiento: valor tiempo y spreads de calendario</h2>
 
       <p>Todos los gráficos anteriores muestran el resultado <strong>al vencimiento</strong>. Antes de esa fecha cada opción vale su valor intrínseco <strong>más un valor tiempo</strong>, así que la curva de la estrategia es más suave: los quiebres de los strikes aparecen recién el último día. Dos fuerzas mueven esa curva mientras pasa el tiempo:</p>
@@ -409,6 +432,13 @@
           <li>En un calendar, analizar el resultado "al vencimiento" de la opción larga: se mide al vencimiento de la corta, con la larga todavía viva.</li>
         </ul>
       </div>
+
+      <aside class="punto-clave" data-id="u8-calendario">
+        <ul>
+          <li>Un <strong>spread de calendario</strong> vende una opción de vencimiento cercano y compra otra más lejana con el mismo strike: gana si el precio queda cerca de \(K\).</li>
+          <li>Call comprado + put vendido con el mismo strike = <strong>forward sintético</strong>.</li>
+        </ul>
+      </aside>
 
       <div class="quiz-rapido">
         <p class="caja-titulo">Autoevaluación rápida</p>
@@ -489,5 +519,6 @@
   <script src="vendor/chartjs/chart.umd.min.js"></script>
   <script src="js/calculos.js"></script>
   <script src="js/comun.js"></script>
+  <script src="js/lectura-interactiva.js"></script>
 </body>
 </html>

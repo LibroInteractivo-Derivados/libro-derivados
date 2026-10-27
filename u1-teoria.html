@@ -122,6 +122,14 @@
 
       <p>Un derivado <strong>no crea ni destruye riqueza</strong>: entre las dos partes es un juego de suma cero, porque lo que gana la posición larga lo pierde la corta (antes de comisiones). Eso no quiere decir que no sirva. El coberturista que "pierde" con el derivado gana en su negocio lo mismo que pierde en el contrato; lo que compró es certidumbre.</p>
 
+      <aside class="punto-clave" data-id="u1-derivado">
+        <ul>
+          <li>Un derivado es un contrato cuyo valor depende de otra variable, el <strong>subyacente</strong>. Los cuatro tipos básicos son forwards, futuros, opciones y swaps.</li>
+          <li>Se usan para <strong>cubrir</strong>, <strong>especular</strong>, <strong>arbitrar</strong> y <strong>transformar</strong> pasivos o inversiones.</li>
+          <li>Entre las partes es un juego de <strong>suma cero</strong>: lo que gana la posición larga lo pierde la corta. El coberturista no busca ganar con el derivado: compra certidumbre.</li>
+        </ul>
+      </aside>
+
       <!-- ================================================================== -->
       <h2 id="mercados">Mercados organizados y mercados OTC</h2>
 
@@ -213,6 +221,14 @@
         <p>"Como hay una cámara compensadora, operar futuros no tiene riesgo." Falso. La cámara elimina en la práctica el riesgo de que <strong>la contraparte no pague</strong>, pero no el <strong>riesgo de mercado</strong>: si el precio se mueve en tu contra, perdés exactamente lo mismo, y la cámara se encarga de que lo pagues todos los días.</p>
       </div>
 
+      <aside class="punto-clave" data-id="u1-mercados">
+        <ul>
+          <li><strong>Bolsa:</strong> contratos estandarizados, precios públicos y una cámara compensadora que garantiza el cumplimiento.</li>
+          <li><strong>OTC:</strong> contratos a medida entre las partes, con <strong>riesgo de crédito</strong> (que la contraparte no cumpla).</li>
+          <li>La cámara se interpone entre comprador y vendedor (<strong>novación</strong>) y se protege con márgenes: el riesgo de contraparte casi desaparece, pero el riesgo de precio sigue estando.</li>
+        </ul>
+      </aside>
+
       <div class="quiz-rapido">
         <p class="caja-titulo">Autoevaluación rápida</p>
         <div class="qr-pregunta" data-correcta="2">
@@ -281,6 +297,8 @@
         </ul>
         <p>Fijate que cada uno, además, tiene su negocio: el molino necesita trigo y el productor lo produce. Con el forward los dos fijaron el precio de 230, pase lo que pase.</p>
       </div>
+
+      <div class="mini-sim" data-sim="forward-payoff"></div>
 
       <h3>Cotizaciones de contado y forward</h3>
       <p>El precio de <strong>contado</strong> (<em>spot</em>) es el precio para entrega inmediata (en divisas, normalmente a dos días hábiles). Los bancos publican además precios forward para distintos plazos. La tabla muestra cotizaciones <strong>ilustrativas</strong> de un banco para el euro, en dólares por euro:</p>
@@ -548,6 +566,8 @@
         </ul>
       </div>
 
+      <div class="mini-sim" data-sim="margenes"></div>
+
       <h3>El ajuste diario "reescribe" el contrato</h3>
       <p>El efecto del ajuste diario es que el futuro se liquida todos los días en lugar de al final. Después de cada ajuste el contrato vuelve a valer cero: es como si se cerrara y se volviera a abrir al nuevo precio de ajuste. En un forward, en cambio, la ganancia o pérdida se acumula y se paga recién al vencimiento.</p>
 
@@ -568,6 +588,14 @@
           <p>Día 1: el dólar sube 8 pesos. Como estás corto, perdés \(8 \times 3.000 = 24.000\); el saldo queda en 186.000. Día 2: sube 13 más, perdés 39.000 y el saldo queda en 147.000, por debajo de 157.500. Llamado de margen: tenés que depositar \(210.000 - 147.000 = 63.000\) pesos.</p>
         </details>
       </div>
+
+      <aside class="punto-clave" data-id="u1-margenes">
+        <ul>
+          <li>Las dos partes depositan un <strong>margen inicial</strong>. Cada día la cuenta cobra o paga la variación del precio de ajuste: es el <strong>ajuste diario</strong>.</li>
+          <li>Si el saldo cae por debajo del <strong>margen de mantenimiento</strong>, llega un llamado de margen y hay que reponer hasta el margen <strong>inicial</strong>, no hasta el de mantenimiento.</li>
+          <li>El margen no es un costo: es una garantía que sigue siendo del inversor.</li>
+        </ul>
+      </aside>
 
       <div class="quiz-rapido">
         <p class="caja-titulo">Autoevaluación rápida</p>
@@ -628,6 +656,13 @@
         </ul>
         <p>Si se ignoran los intereses, el resultado total es el mismo. La diferencia es <strong>cuándo</strong> se cobra o se paga, y eso hace que, con tasas de interés que cambian, los precios de forwards y futuros puedan diferir un poco (Unidad III).</p>
       </div>
+
+      <aside class="punto-clave" data-id="u1-forward-futuro">
+        <ul>
+          <li>Forward y futuro prometen lo mismo; cambia la forma. El forward es OTC, a medida y se liquida al final; el futuro es estandarizado y se liquida todos los días.</li>
+          <li>Sin contar intereses, el resultado total es el mismo: lo que cambia es <strong>cuándo</strong> se cobra o se paga.</li>
+        </ul>
+      </aside>
 
       <h3>Patrones de los precios futuros</h3>
       <p>Si mirás los precios de un mismo futuro para distintos vencimientos, vas a ver uno de dos patrones (por ahora solo los describimos; la explicación es tema de la Unidad III):</p>
@@ -775,6 +810,13 @@
         <p>En los dos casos falló el control, no el instrumento. Toda institución que usa derivados necesita <strong>límites de riesgo claros</strong> para cada operador y cada mesa, <strong>controles independientes</strong> (quien registra y controla las operaciones no puede ser quien opera) y un <strong>seguimiento diario</strong> de las posiciones y de los resultados. Y un coberturista tiene que verificar que sus posiciones en derivados se correspondan con un riesgo real del negocio: si no, está especulando.</p>
       </div>
 
+      <aside class="punto-clave" data-id="u1-operadores">
+        <ul>
+          <li><strong>Coberturista:</strong> usa el derivado para reducir un riesgo que ya tiene. <strong>Especulador:</strong> toma riesgo para ganar con el movimiento del precio. <strong>Arbitrajista:</strong> aprovecha precios inconsistentes sin asumir riesgo.</li>
+          <li>Un coberturista que se excede de su exposición pasa a especular sin darse cuenta: hacen falta límites de riesgo y control.</li>
+        </ul>
+      </aside>
+
       <div class="quiz-rapido">
         <p class="caja-titulo">Autoevaluación rápida</p>
         <div class="qr-pregunta" data-correcta="2">
@@ -860,5 +902,6 @@
   <script src="vendor/chartjs/chart.umd.min.js"></script>
   <script src="js/calculos.js"></script>
   <script src="js/comun.js"></script>
+  <script src="js/lectura-interactiva.js"></script>
 </body>
 </html>

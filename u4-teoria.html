@@ -198,6 +198,14 @@
         </ul>
       </div>
 
+      <aside class="punto-clave" data-id="u4-ventaja">
+        <ul>
+          <li>En un swap de tasa se intercambian intereses fijos por variables sobre un <strong>nocional</strong> que no cambia de manos. Sirve para transformar pasivos y activos.</li>
+          <li>Ventaja comparativa: la ganancia total es \(a - b\) (diferencia en tasa fija menos diferencia en tasa variable), y se reparte entre las empresas y el intermediario.</li>
+          <li>Cada empresa se endeuda donde tiene ventaja comparativa y usa el swap para quedarse con el tipo de tasa que quería.</li>
+        </ul>
+      </aside>
+
       <div class="quiz-rapido">
         <p class="caja-titulo">Practicá: completá el diagrama</p>
         <p class="widget-intro">Un ejercicio como el de la cátedra, con datos al azar. Es el mismo formato que aparece en los simulacros del segundo parcial. Si querés más práctica, tocá "Otro ejercicio".</p>
@@ -293,6 +301,15 @@
       </div>
 
       <!-- ================================================================== -->
+      <div class="mini-sim" data-sim="swap-valor"></div>
+      <aside class="punto-clave" data-id="u4-valuacion">
+        <ul>
+          <li>Para quien recibe fija, el swap vale \(B_{fix} - B_{fl}\). Justo después de un pago, el bono variable vale su nominal.</li>
+          <li>También se puede valuar como una cartera de FRAs, suponiendo que cada tasa variable futura será igual a la forward.</li>
+          <li>La <strong>tasa swap</strong> es la fija que hace que el swap valga cero al inicio. Recibir fija gana cuando las tasas bajan, como un bono.</li>
+        </ul>
+      </aside>
+
       <h2>Swap de monedas</h2>
 
       <div class="caja definicion">
@@ -400,6 +417,13 @@
       <p>Por eso el riesgo de crédito de un swap de tasa es mucho menor que el de un préstamo por el mismo nocional. En los swaps de monedas el riesgo es mayor, porque al final se intercambian los capitales.</p>
 
       <!-- ================================================================== -->
+      <aside class="punto-clave" data-id="u4-monedas">
+        <ul>
+          <li>En un swap de monedas se intercambian los principales al inicio y al final, y los intereses en cada moneda. Para quien recibe la moneda doméstica vale \(B_D - S_0 B_F\).</li>
+          <li>El riesgo de crédito existe solo si el swap tiene valor positivo para el banco cuando la otra parte incumple. Es mayor en los swaps de monedas, porque se intercambian los capitales.</li>
+        </ul>
+      </aside>
+
       <div class="quiz-rapido">
         <p class="caja-titulo">Autoevaluación rápida</p>
         <div class="qr-pregunta" data-correcta="2">
@@ -454,6 +478,7 @@
   <script src="vendor/chartjs/chart.umd.min.js"></script>
   <script src="js/calculos.js"></script>
   <script src="js/comun.js"></script>
+  <script src="js/lectura-interactiva.js"></script>
   <script src="js/diagrama-swap.js"></script>
 </body>
 </html>

@@ -139,6 +139,13 @@
         </ul>
       </div>
 
+      <aside class="punto-clave" data-id="u2-principios">
+        <ul>
+          <li><strong>Cobertura corta:</strong> se venden futuros porque se va a vender el activo y se teme una baja. <strong>Cobertura larga:</strong> se compran futuros porque se va a comprar y se teme una suba.</li>
+          <li>Cubrirse no busca mejorar el resultado: busca reducir la incertidumbre. A cambio, se resigna la ganancia de un movimiento favorable.</li>
+        </ul>
+      </aside>
+
       <div class="quiz-rapido">
         <p class="caja-titulo">Autoevaluación rápida</p>
         <div class="qr-pregunta" data-correcta="2">
@@ -286,6 +293,8 @@
       </div>
       <p>¿Por qué? El que vende futuros está, en términos netos, "largo en contado y corto en futuro": está largo en la base. Le conviene que la base suba. El que compra futuros está "corto en contado y largo en futuro": está corto en la base. Fijate que importa el cambio <strong>inesperado</strong>: si la base final que el coberturista esperaba ya estaba incorporada en su presupuesto, solo lo afecta la diferencia respecto de esa expectativa.</p>
 
+      <div class="mini-sim" data-sim="base"></div>
+
       <h3>Rendimiento de conveniencia y forma de la curva de futuros</h3>
       <p>El <strong>rendimiento de conveniencia</strong> (<em>convenience yield</em>, \(y\)) es el beneficio no monetario de tener físicamente el activo en lugar de una posición en su futuro: poder usarlo ya, no frenar la producción si falta, aprovechar una escasez. La cátedra lo presenta así, junto con el costo de tenencia:</p>
       <div class="formula con-nombre"><span class="nombre-formula">Costo de tenencia con rendimiento de conveniencia</span>\[ F_0 = S_0\,e^{(r + c - y)\,T} \qquad\Rightarrow\qquad y = r + c - \frac{1}{T}\ln\frac{F_0}{S_0} \]</div>
@@ -356,6 +365,15 @@
           <p>\(b_2 = 285 - 291 = -6\). Precio efectivo: \(F_1 + b_2 = 300 - 6 = 294\) (vende a 285 y gana 9 en futuros). La base pasó de −5 a −6: se <strong>debilitó</strong>. Al que vende futuros eso lo perjudica: obtiene 1 menos de lo que habría obtenido si la base se hubiera mantenido.</p>
         </details>
       </div>
+
+      <aside class="punto-clave" data-id="u2-base">
+        <ul>
+          <li>La <strong>base</strong> es \(b = S - F\). Si se cubre el mismo activo y se cierra al vencimiento, converge a cero.</li>
+          <li>Con la cobertura, el precio efectivo es \(F_1 + b_2\): lo único que queda incierto es la base al cerrar.</li>
+          <li>Un fortalecimiento de la base favorece a la cobertura corta y perjudica a la larga.</li>
+          <li>En una <strong>cobertura cruzada</strong> (otro activo) el riesgo de base es mayor: conviene el contrato más correlacionado y con vencimiento posterior al cierre.</li>
+        </ul>
+      </aside>
 
       <div class="quiz-rapido">
         <p class="caja-titulo">Autoevaluación rápida</p>
@@ -505,6 +523,8 @@
         <p class="caja-titulo">Error frecuente: "h* = 1 es una cobertura perfecta"</p>
         <p>No. Que \(h^* = 1\) solo dice cuántos contratos usar. La cobertura es perfecta solo si \(\rho = 1\). Por ejemplo, con \(\rho = 0{,}5\) y \(\sigma_S = 2\sigma_F\) da \(h^* = 0{,}5 \times 2 = 1\), pero la efectividad es apenas \(\rho^2 = 25\%\): queda el 75 % de la varianza.</p>
       </div>
+      <div class="mini-sim" data-sim="hstar"></div>
+
       <h3>Ajuste por liquidación diaria (<em>tailing the hedge</em>)</h3>
       <p>La fórmula anterior trata al futuro como si fuera un forward. Pero el futuro se liquida todos los días: las ganancias y pérdidas se cobran o pagan diariamente, y lo que importa cada día es cuánto cambia el <strong>valor</strong> de la exposición frente a cuánto cambia el <strong>valor</strong> de un contrato. Por eso el número de contratos se calcula con valores, no con unidades:</p>
       <div class="formula con-nombre"><span class="nombre-formula">Número de contratos con ajuste por liquidación diaria</span>\[ N^* = \frac{h^*\,V_A}{V_F} \qquad V_A = S \cdot Q_A, \quad V_F = F \cdot Q_F \]</div>
@@ -534,6 +554,14 @@
           <li>Confundir la efectividad (\(\rho^2\)) con la correlación (\(\rho\)): con \(\rho = 0{,}9\) se elimina el 81 % de la varianza, no el 90 %.</li>
         </ul>
       </div>
+
+      <aside class="punto-clave" data-id="u2-hstar">
+        <ul>
+          <li>El ratio de mínima varianza es \(h^* = \rho\,\sigma_S/\sigma_F\): la pendiente de la regresión de \(\Delta S\) sobre \(\Delta F\). La efectividad de la cobertura es \(\rho^2\).</li>
+          <li>Contratos: \(N^* = h^* Q_A/Q_F\); con ajuste por liquidación diaria, \(N^* = h^* V_A/V_F\).</li>
+          <li>\(h^* = 1\) no garantiza una cobertura perfecta: para eso hace falta \(\rho = 1\).</li>
+        </ul>
+      </aside>
 
       <div class="quiz-rapido">
         <p class="caja-titulo">Autoevaluación rápida</p>
@@ -636,6 +664,8 @@
       </ul>
       <p>Así un gestor puede ajustar su exposición al mercado en minutos, sin tocar las acciones que eligió. Probalo en la <a href="u2-simulacion.html#cubrir-o-cambiar-la-beta-de-una-cartera">simulación</a>.</p>
 
+      <div class="mini-sim" data-sim="beta"></div>
+
       <h3>Una sola acción</h3>
       <p>Una posición en una acción individual también se puede cubrir con futuros sobre índice: \(N^* = \beta V_A/V_F\), con la beta de la acción. Pero la cobertura funciona mucho peor que con una cartera, porque solo elimina el riesgo de mercado (sistemático), que en una acción individual es una parte chica del riesgo total. Tiene sentido para quien confía en la acción pero no en el mercado, o para un banco que suscribió una emisión de acciones y quiere protegerse de una caída general.</p>
 
@@ -647,6 +677,13 @@
           <p>\(N^* = 1{,}1 \times 2.000.000 / 252.512{,}50 = 8{,}71\): vende 9 contratos. Gana \(20.000 \times 25 = 500.000\) en las acciones y pierde \(9 \times (5.400 - 5.050{,}25) \times 50 = 157.387{,}50\) en los futuros. Total: \(+342.612{,}50\). La cobertura recortó la ganancia, como era de esperar: transforma los escenarios favorables en menos favorables a cambio de suavizar los desfavorables.</p>
         </details>
       </div>
+
+      <aside class="punto-clave" data-id="u2-beta">
+        <ul>
+          <li>Para cubrir una cartera con futuros sobre un índice: \(N^* = \beta\,P/(F \cdot m)\) contratos vendidos. La cartera cubierta rinde, en teoría, la tasa libre de riesgo.</li>
+          <li>Para llevar la beta de \(\beta\) a \(\beta^*\): \(N = (\beta - \beta^*)\,P/(F \cdot m)\). Si da positivo se venden futuros; si da negativo, se compran.</li>
+        </ul>
+      </aside>
 
       <div class="quiz-rapido">
         <p class="caja-titulo">Autoevaluación rápida</p>
@@ -737,6 +774,13 @@
         <figcaption>Cada barra es el período en que la empresa mantiene vendidos 100 contratos de ese vencimiento; al lado, el precio de venta y el de cierre.</figcaption>
       </figure>
 
+      <aside class="punto-clave" data-id="u2-rolleo">
+        <ul>
+          <li><strong>Rolar</strong> la cobertura es cerrar el futuro que vence y abrir otro posterior, para cubrir un plazo mayor que el de los contratos disponibles.</li>
+          <li>Cada rolleo suma riesgo de base, y los llamados de margen pueden exigir fondos antes de que llegue la compensación del negocio: es el <strong>riesgo de liquidez</strong>.</li>
+        </ul>
+      </aside>
+
       <h3>Metallgesellschaft: cuando la cobertura se queda sin caja</h3>
       <p>Rolar puede generar fuertes tensiones de liquidez. A principios de los años noventa, Metallgesellschaft (MG), un grupo alemán, vendió a sus clientes contratos de suministro de combustible para calefacción y nafta a precio fijo por 5 a 10 años, 6 a 8 centavos por encima del precio de mercado. Cubrió esa posición corta con futuros <strong>comprados</strong> de vencimiento cercano, que iba rolando.</p>
       <p>El precio del petróleo bajó. Económicamente, la caída beneficiaba a los contratos de suministro (MG iba a comprar más barato lo que había vendido caro), pero esa ganancia se iba a cobrar a lo largo de años. Las pérdidas de los futuros, en cambio, se pagaban todos los días con llamados de margen (<em>margin calls</em>). Además, el mercado pasó a <em>contango</em> (futuros por encima del contado) y cada rolleo costaba dinero. La dirección y los bancos se alarmaron por la salida de caja, cerraron las coberturas y acordaron con los clientes abandonar los contratos. La pérdida fue de USD 1.330 millones.</p>
@@ -824,5 +868,6 @@
   <script src="vendor/chartjs/chart.umd.min.js"></script>
   <script src="js/calculos.js"></script>
   <script src="js/comun.js"></script>
+  <script src="js/lectura-interactiva.js"></script>
 </body>
 </html>

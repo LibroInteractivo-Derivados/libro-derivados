@@ -89,6 +89,15 @@
         </ul>
       </div>
 
+      <div class="mini-sim" data-sim="payoff-opcion"></div>
+      <aside class="punto-clave" data-id="u5-opcion">
+        <ul>
+          <li>Un <strong>call</strong> da el derecho a comprar a \(K\); un <strong>put</strong>, el derecho a vender a \(K\). El comprador paga la prima y tiene el derecho; el lanzador la cobra y tiene la obligación.</li>
+          <li>Payoff de un call comprado: \(\max(S_T - K, 0)\); de un put comprado: \(\max(K - S_T, 0)\). El beneficio descuenta la prima.</li>
+          <li>Una opción americana se puede ejercer en cualquier momento; una europea, solo al vencimiento.</li>
+        </ul>
+      </aside>
+
       <div class="quiz-rapido">
         <p class="caja-titulo">Autoevaluación rápida</p>
         <div class="qr-pregunta" data-correcta="1">
@@ -199,6 +208,13 @@
           <li><strong>"Si ejerzo, me paga el que me vendió la opción."</strong> Tu contraparte es la cámara, que asigna el ejercicio al azar a algún lanzador de la misma serie.</li>
         </ul>
       </div>
+
+      <aside class="punto-clave" data-id="u5-mercados">
+        <ul>
+          <li>Los contratos son estandarizados y una posición se cierra con la orden contraria (orden compensatoria).</li>
+          <li>La cámara garantiza el cumplimiento. Cuando alguien ejerce, se asigna a un lanzador elegido al azar; solo el lanzador deja garantías.</li>
+        </ul>
+      </aside>
 
       <div class="quiz-rapido">
         <p class="caja-titulo">Autoevaluación rápida</p>
@@ -318,6 +334,13 @@
           <li><strong>"La volatilidad sube el call y baja el put."</strong> Sube los dos: ambos tienen la pérdida acotada y ganan con los movimientos grandes en su dirección.</li>
         </ul>
       </div>
+
+      <aside class="punto-clave" data-id="u5-variables">
+        <ul>
+          <li>Un aumento de \(S_0\), \(\sigma\) o \(r\) sube el valor del call; uno de \(K\) o de los dividendos lo baja. El put reacciona al revés, salvo con la volatilidad, que sube a los dos.</li>
+          <li>Más plazo suma valor a una americana, pero no siempre a una europea.</li>
+        </ul>
+      </aside>
 
       <div class="quiz-rapido">
         <p class="caja-titulo">Autoevaluación rápida</p>
@@ -439,6 +462,8 @@
         <p>La cartera A está cara respecto de la C. El arbitraje consiste en <strong>vender lo caro y comprar lo barato</strong>: vender el call, comprar el put y la acción, y tomar prestado \(Ke^{-rT} = 47{,}56\). Hoy se cobra \(5 - 2 - 50 + 47{,}56 = 0{,}56\). Al vencimiento, pase lo que pase, se entrega o se vende la acción a 50 y con eso se cancela la deuda. Ganancia sin riesgo: 0,56.</p>
       </div>
 
+      <div class="mini-sim" data-sim="paridad"></div>
+
       <h3>Opciones americanas</h3>
       <p>Para americanas no vale la igualdad, pero sí una banda. El límite superior surge de comparar un call americano más un bono que paga \(K\) (cartera E) con un put americano más una acción (cartera F). El inferior, de comparar F con un call americano más \(K\) en efectivo (cartera G):</p>
       <div class="formula">\[ S_0 - K \le C - P \le S_0 - K e^{-rT} \]</div>
@@ -523,6 +548,14 @@
           <li><strong>Olvidar el dividendo en la estrategia.</strong> Quien vende en corto una acción le debe los dividendos al dueño; quien compra la acción, los cobra.</li>
         </ul>
       </div>
+
+      <aside class="punto-clave" data-id="u5-limites">
+        <ul>
+          <li>Límites inferiores de las europeas sin dividendos: \(c \ge \max(S_0 - K e^{-rT}, 0)\) y \(p \ge \max(K e^{-rT} - S_0, 0)\).</li>
+          <li>Paridad put-call: \(c + K e^{-rT} = p + S_0\). Si no se cumple, hay arbitraje.</li>
+          <li>Con dividendos, \(S_0\) se reemplaza por \(S_0 - D\) en los límites y en la paridad.</li>
+        </ul>
+      </aside>
 
       <div class="quiz-rapido">
         <p class="caja-titulo">Autoevaluación rápida</p>
@@ -616,5 +649,6 @@
   <script src="vendor/chartjs/chart.umd.min.js"></script>
   <script src="js/calculos.js"></script>
   <script src="js/comun.js"></script>
+  <script src="js/lectura-interactiva.js"></script>
 </body>
 </html>
