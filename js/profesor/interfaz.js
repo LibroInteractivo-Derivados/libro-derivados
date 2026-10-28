@@ -189,7 +189,7 @@
   // --------------------------------------------------------------------------
   // Modo edición
   // --------------------------------------------------------------------------
-  let barraSup = null, barraBloque = null, panelEl = null, pestanaActual = 'pagina';
+  let barraSup = null, barraBloque = null, panelEl = null, pestanaActual = document.querySelector('main.portada') ? 'alumnos' : 'pagina';
   let bloqueActual = null;
 
   function nombrePagina() {
@@ -570,7 +570,7 @@
   // Panel lateral
   // --------------------------------------------------------------------------
   const PESTANAS = [
-    ['pagina', 'Esta página'], ['simuladores', 'Simuladores'], ['ejercitacion', 'Ejercitación'],
+    ['alumnos', 'Qué ven los alumnos'], ['pagina', 'Esta página'], ['simuladores', 'Simuladores'], ['ejercitacion', 'Ejercitación'],
     ['libro', 'Libro'], ['archivo', 'Archivo'], ['acceso', 'Acceso'],
   ];
 
@@ -620,7 +620,7 @@
     const cuerpo = $q('.prof-panel-cuerpo', panelEl);
     const y = cuerpo.scrollTop;
     cuerpo.innerHTML = '';
-    const f = { pagina: pestanaPagina, simuladores: pestanaSimuladores, ejercitacion: pestanaEjercitacion, libro: pestanaLibro, archivo: pestanaArchivo, acceso: pestanaAcceso }[pestanaActual];
+    const f = { alumnos: pestanaAlumnos, pagina: pestanaPagina, simuladores: pestanaSimuladores, ejercitacion: pestanaEjercitacion, libro: pestanaLibro, archivo: pestanaArchivo, acceso: pestanaAcceso }[pestanaActual];
     try { f(cuerpo); } catch (e) { console.error(e); cuerpo.innerHTML = '<p class="prof-error">No se pudo mostrar esta sección del panel.</p>'; }
     cuerpo.scrollTop = y;
     if (typeof renderFormulas === 'function') renderFormulas(cuerpo);
@@ -641,6 +641,73 @@
     l.append(i, document.createTextNode(' ' + texto));
     return l;
   };
+
+  // ---------- Qué ven los alumnos ----------
+  // Todas las decisiones de visibilidad juntas: unidades (y cada una de sus páginas),
+  // páginas generales y exámenes del Simulacro. Lo oculto desaparece del menú, la
+  // portada, la batalla y los simulacros; el docente lo sigue viendo, marcado.
+  function pestanaAlumnos(cuerpo) {
+    const c = C.obtener();
+    const orig = K.libroOriginal;
+    const cambiarOcultas = (lista, clave, mostrar, texto) => {
+      C.cambiar(texto, x => {
+        x.unidades[lista] = x.unidades[lista].filter(v => v !== clave);
+        if (!mostrar) x.unidades[lista].push(clave);
+      });
+    };
+
+    const s1 = seccionPanel(cuerpo, 'Unidades', 'Desmarcá las unidades que todavía no se dieron en clase. Dentro de cada unidad podés ocultar solo la teoría, la simulación o la ejercitación.');
+    const acc = crear('div', 'prof-botonera');
+    acc.append(
+      boton('Mostrar todas', 'prof-btn', () => {
+        C.cambiar('Mostrar todas las unidades', x => { x.unidades.ocultas = []; });
+        I.recargar({ panel: 'alumnos', aviso: 'Todas las unidades quedaron visibles.' });
+      }),
+      boton('Ocultar todas', 'prof-btn', () => {
+        C.cambiar('Ocultar todas las unidades', x => { x.unidades.ocultas = LIBRO.unidades.map(u => u.id); });
+        I.recargar({ panel: 'alumnos', aviso: 'Todas las unidades quedaron ocultas. Marcá las que ya se dieron.' });
+      }));
+    s1.appendChild(acc);
+    const ul = crear('ul', 'prof-lista-unidades');
+    LIBRO.unidades.forEach(u => {
+      const li = crear('li', u._profOculta ? 'oculta' : '');
+      li.innerHTML = `<div class="prof-fila-unidad">
+          <label class="prof-casilla"><input type="checkbox" ${u._profOculta ? '' : 'checked'} aria-label="Mostrar la unidad ${U.escapar(u.numero)} a los alumnos"> <span><b>Unidad ${u.numero}</b> · ${u.nombre}</span></label></div>
+        <div class="prof-paginas-unidad">${u.paginas.filter(p => p.archivo).map(p => `<label class="prof-casilla"><input type="checkbox" data-pag="${U.escapar(p.archivo.replace(/\.html?$/, ''))}" ${p._profOculta ? '' : 'checked'} ${u._profOculta ? 'disabled' : ''}> <span>${p.nombre}</span></label>`).join('')}</div>`;
+      $q('.prof-fila-unidad input', li).addEventListener('change', ev => {
+        cambiarOcultas('ocultas', u.id, ev.target.checked, ev.target.checked ? 'Mostrar una unidad' : 'Ocultar una unidad');
+        I.recargar({ panel: 'alumnos', aviso: ev.target.checked ? `La unidad ${u.numero} quedó visible.` : `La unidad ${u.numero} quedó oculta para los alumnos.` });
+      });
+      li.querySelectorAll('[data-pag]').forEach(inp => inp.addEventListener('change', () => {
+        cambiarOcultas('paginasOcultas', inp.dataset.pag, inp.checked, inp.checked ? 'Mostrar una página' : 'Ocultar una página');
+        I.recargar({ panel: 'alumnos' });
+      }));
+      ul.appendChild(li);
+    });
+    s1.appendChild(ul);
+
+    const s2 = seccionPanel(cuerpo, 'Páginas generales', 'Aparecen en el menú superior de todas las páginas.');
+    (orig.generales || []).filter(g => g.archivo).forEach(g => {
+      const clave = g.archivo.replace(/\.html?$/, '');
+      s2.appendChild(casilla(g.nombre, !c.unidades.paginasOcultas.includes(clave), v => {
+        cambiarOcultas('paginasOcultas', clave, v, v ? 'Mostrar una página' : 'Ocultar una página');
+        I.recargar({ panel: 'alumnos' });
+      }));
+    });
+
+    const s3 = seccionPanel(cuerpo, 'Exámenes del Simulacro', 'Un examen solo usa preguntas de las unidades visibles.');
+    [['p1', 'Primer parcial'], ['p2', 'Segundo parcial'], ['final', 'Examen final']].forEach(([id, nombre]) => {
+      s3.appendChild(casilla(nombre, !((c.simulacro || {}).ocultos || []).includes(id), v => {
+        C.cambiar(v ? 'Habilitar un examen del simulacro' : 'Ocultar un examen del simulacro', x => {
+          x.simulacro = x.simulacro || { ocultos: [] };
+          x.simulacro.ocultos = (x.simulacro.ocultos || []).filter(e => e !== id);
+          if (!v) x.simulacro.ocultos.push(id);
+        });
+        I.aviso(v ? `El ${nombre.toLowerCase()} vuelve a estar en el Simulacro.` : `El ${nombre.toLowerCase()} quedó oculto en el Simulacro.`);
+      }));
+    });
+    s3.appendChild(crear('p', 'prof-ayuda', 'Para ver cómo queda, usá «Vista alumno» en la barra de arriba. Recordá publicar los cambios (pestaña Archivo) para que les lleguen a los alumnos.'));
+  }
 
   // ---------- Esta página ----------
   function pestanaPagina(cuerpo) {
@@ -791,33 +858,18 @@
     }));
 
     // Unidades
-    const s2 = seccionPanel(cuerpo, 'Unidades', 'Orden en el menú y en la portada, unidades y páginas visibles para los alumnos, y textos de cada unidad.');
+    const s2 = seccionPanel(cuerpo, 'Unidades', 'Orden en el menú y en la portada, y textos de cada unidad. Para elegir qué unidades ven los alumnos, usá la pestaña «Qué ven los alumnos».');
     const ul = crear('ol', 'prof-lista-unidades');
     const ids = LIBRO.unidades.map(u => u.id);
     LIBRO.unidades.forEach((u, i) => {
       const li = crear('li', u._profOculta ? 'oculta' : '');
       li.innerHTML = `<div class="prof-fila-unidad">
-          <label class="prof-casilla"><input type="checkbox" ${u._profOculta ? '' : 'checked'} aria-label="Mostrar la unidad ${U.escapar(u.numero)} a los alumnos"> <span><b>Unidad ${u.numero}</b> · ${u.nombre}</span></label>
+          <span><b>Unidad ${u.numero}</b> · ${u.nombre}${u._profOculta ? ' <small>(oculta)</small>' : ''}</span>
           <span class="prof-acciones-fila">
             <button type="button" class="prof-btn-chico" data-m="-1" ${i === 0 ? 'disabled' : ''} aria-label="Subir la unidad">↑</button>
             <button type="button" class="prof-btn-chico" data-m="1" ${i === ids.length - 1 ? 'disabled' : ''} aria-label="Bajar la unidad">↓</button>
             <button type="button" class="prof-btn-chico" data-textos>Textos</button>
-          </span></div>
-        <div class="prof-paginas-unidad">${u.paginas.filter(p => p.archivo).map(p => `<label class="prof-casilla"><input type="checkbox" data-pag="${U.escapar(p.archivo.replace(/\.html?$/, ''))}" ${p._profOculta ? '' : 'checked'}> <span>${p.nombre}</span></label>`).join('')}</div>`;
-      $q('.prof-fila-unidad input', li).addEventListener('change', ev => {
-        C.cambiar(ev.target.checked ? 'Mostrar una unidad' : 'Ocultar una unidad', x => {
-          x.unidades.ocultas = x.unidades.ocultas.filter(v => v !== u.id);
-          if (!ev.target.checked) x.unidades.ocultas.push(u.id);
-        });
-        I.recargar({ panel: 'libro' });
-      });
-      li.querySelectorAll('[data-pag]').forEach(inp => inp.addEventListener('change', () => {
-        C.cambiar(inp.checked ? 'Mostrar una página' : 'Ocultar una página', x => {
-          x.unidades.paginasOcultas = x.unidades.paginasOcultas.filter(v => v !== inp.dataset.pag);
-          if (!inp.checked) x.unidades.paginasOcultas.push(inp.dataset.pag);
-        });
-        I.recargar({ panel: 'libro' });
-      }));
+          </span></div>`;
       li.querySelectorAll('[data-m]').forEach(b => b.addEventListener('click', () => {
         const nuevo = ids.slice();
         const j = i + parseInt(b.dataset.m, 10);
@@ -913,7 +965,7 @@
     s4.appendChild(acc4);
 
     // Aviso, páginas generales y simulacros
-    const s5 = seccionPanel(cuerpo, 'Para los alumnos: aviso, páginas y simulacros', 'Un aviso que aparece arriba en la portada, las páginas generales que ven los alumnos y los exámenes que pueden practicar en el Simulacro.');
+    const s5 = seccionPanel(cuerpo, 'Aviso en la portada', 'Un mensaje que aparece arriba en la portada, por ejemplo un cambio de fecha o que ya se habilitó un simulacro.');
     s5.insertAdjacentHTML('beforeend', `<label class="prof-etiqueta" for="prof-aviso">Aviso en la portada</label>
       <textarea id="prof-aviso" class="prof-campo" rows="3" placeholder="Por ejemplo: el viernes no hay clase; el simulacro del primer parcial ya está habilitado."></textarea>`);
     $q('#prof-aviso', s5).value = (c.aviso || {}).texto || '';
@@ -924,29 +976,6 @@
       C.cambiar('Cambiar el aviso de la portada', x => { x.aviso = { activo: activo && !!texto, texto }; });
       I.aviso(activo && texto ? 'El aviso se muestra en la portada.' : 'El aviso no se muestra.');
     }));
-    s5.appendChild(crear('p', 'prof-etiqueta', 'Páginas generales visibles'));
-    (orig.generales || []).filter(g => g.archivo).forEach(g => {
-      const clave = g.archivo.replace(/\.html?$/, '');
-      s5.appendChild(casilla(g.nombre, !c.unidades.paginasOcultas.includes(clave), v => {
-        C.cambiar(v ? 'Mostrar una página' : 'Ocultar una página', x => {
-          x.unidades.paginasOcultas = x.unidades.paginasOcultas.filter(p => p !== clave);
-          if (!v) x.unidades.paginasOcultas.push(clave);
-        });
-        I.recargar({ panel: 'libro' });
-      }));
-    });
-    s5.appendChild(crear('p', 'prof-etiqueta', 'Exámenes del Simulacro'));
-    [['p1', 'Primer parcial'], ['p2', 'Segundo parcial'], ['final', 'Examen final']].forEach(([id, nombre]) => {
-      s5.appendChild(casilla(nombre, !((c.simulacro || {}).ocultos || []).includes(id), v => {
-        C.cambiar(v ? 'Habilitar un examen del simulacro' : 'Ocultar un examen del simulacro', x => {
-          x.simulacro = x.simulacro || { ocultos: [] };
-          x.simulacro.ocultos = (x.simulacro.ocultos || []).filter(e => e !== id);
-          if (!v) x.simulacro.ocultos.push(id);
-        });
-        I.aviso(v ? `El ${nombre.toLowerCase()} vuelve a estar en el Simulacro.` : `El ${nombre.toLowerCase()} quedó oculto en el Simulacro.`);
-      }));
-    });
-    s5.appendChild(crear('p', 'prof-ayuda', 'Un examen solo usa preguntas de las unidades visibles. Las preguntas se ocultan o editan desde la Ejercitación de cada unidad (Panel → Ejercitación).'));
   }
 
   function editarTextosUnidad(id) {
