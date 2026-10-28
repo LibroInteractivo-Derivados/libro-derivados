@@ -37,17 +37,26 @@
   const raiz = $('ejercitacion');
   if (!raiz) return;
 
-  const ejercicios = typeof Curso !== 'undefined' ? Curso.ajustarEjercicios(window.EJERCICIOS || []) : (window.EJERCICIOS || []);
-  const preguntas = (typeof BANCO !== 'undefined' ? BANCO : []).filter(q => q.unidad === unidadNum);
+  let ejercicios = window.EJERCICIOS || [];
+  let preguntas = (typeof BANCO !== 'undefined' ? BANCO : []).filter(q => q.unidad === unidadNum);
+
+  // Modo Profesor (js/profesor/ejercicios.js): ejercicios y preguntas que el docente
+  // ocultó, editó o agregó, y si los alumnos ven las resoluciones, las pistas y la
+  // autoevaluación. Sin configuración del docente, todo queda como siempre.
+  let opciones = { resoluciones: true, pistas: true, autoevaluacion: true };
+  const ajuste = window.Profesor && Profesor.ajustarEjercitacion ? Profesor.ajustarEjercitacion(ejercicios, preguntas) : null;
+  if (ajuste) ({ ejercicios, preguntas, opciones } = ajuste);
+  const conMC = opciones.autoevaluacion && preguntas.length > 0;
+  const conBatalla = !window.Profesor || !Profesor.mostrar || Profesor.mostrar.pagina('batalla');
 
   const DIF = { 1: 'Básica', 2: 'Intermedia', 3: 'Avanzada' };
   const claseDif = { 1: 'pos', 2: 'aviso', 3: 'neg' };
 
   // ---------- Esqueleto ----------
   raiz.innerHTML = `
-    <div class="tabs" data-grupo="ej">
-      <button data-tab="ejercicios" aria-selected="${ejercicios.length ? 'true' : 'false'}">Ejercicios (${ejercicios.length})</button>
-      <button data-tab="autoevaluacion" aria-selected="${ejercicios.length ? 'false' : 'true'}">Autoevaluación de opción múltiple (${preguntas.length})</button>
+    <div class="tabs" data-grupo="ej" ${conMC ? '' : 'hidden'}>
+      <button data-tab="ejercicios" aria-selected="${ejercicios.length || !conMC ? 'true' : 'false'}">Ejercicios (${ejercicios.length})</button>
+      <button data-tab="autoevaluacion" aria-selected="${ejercicios.length || !conMC ? 'false' : 'true'}" ${conMC ? '' : 'hidden'}>Autoevaluación de opción múltiple (${preguntas.length})</button>
     </div>
     <section data-panel="ejercicios" data-grupo="ej">
       <div class="marcador" id="ej-marcador"></div>
@@ -63,7 +72,7 @@
       <div id="ej-lista"></div>
     </section>
     <section data-panel="autoevaluacion" data-grupo="ej" hidden>
-      <p class="widget-intro">Armá un cuestionario al azar. Cada respuesta incorrecta muestra la "trampa": el error típico que lleva a esa opción. ¿Preferís repasar jugando? <a href="batalla.html#${unidadId}">Enfrentá al jefe de la unidad</a> con estas mismas preguntas.</p>
+      <p class="widget-intro">Armá un cuestionario al azar. Cada respuesta incorrecta muestra la "trampa": el error típico que lleva a esa opción.${conBatalla ? ` ¿Preferís repasar jugando? <a href="batalla.html#${unidadId}">Enfrentá al jefe de la unidad</a> con estas mismas preguntas.` : ''}</p>
       <div class="filtros-ej">
         <label class="check" style="font-weight:600">Preguntas
           <select id="mc-cant"><option>5</option><option selected>10</option><option>20</option><option value="0">Todas</option></select></label>
@@ -101,20 +110,21 @@
           ${conceptual ? '<span class="chip">Conceptual</span>' : ''}
           <span class="chip pos estado" ${resuelto(e.id) ? '' : 'hidden'}>✔ Resuelto</span>
         </div>
+        ${e.notaDocente ? `<div class="caja docente"><p class="caja-titulo">Nota del docente</p>${e.notaDocente}</div>` : ''}
         <div class="ej-enunciado">${e.enunciado}</div>
         ${e.aviso ? `<div class="alerta" style="font-size:0.88rem">${e.aviso}</div>` : ''}
         ${conceptual ? '' : `<div class="ej-campos">${camposHTML}</div>`}
         <div class="botones">
           ${conceptual
-            ? '<button class="btn-primario" data-accion="modelo" type="button">Ver la respuesta modelo</button>'
+            ? (opciones.resoluciones ? '<button class="btn-primario" data-accion="modelo" type="button">Ver la respuesta modelo</button>' : '')
             : '<button class="btn-primario" data-accion="verificar" type="button">Verificar</button>'}
-          ${(e.pistas || []).length ? '<button class="btn" data-accion="pista" type="button">Pista</button>' : ''}
-          ${e.resolucion ? '<button class="btn" data-accion="resolucion" type="button">Ver la resolución</button>' : ''}
+          ${opciones.pistas && (e.pistas || []).length ? '<button class="btn" data-accion="pista" type="button">Pista</button>' : ''}
+          ${opciones.resoluciones && e.resolucion ? '<button class="btn" data-accion="resolucion" type="button">Ver la resolución</button>' : ''}
           ${e.herramienta ? `<a class="btn" href="${e.herramienta.enlace}">${e.herramienta.texto}</a>` : ''}
         </div>
         <div class="ej-pistas"></div>
-        <div class="ej-resolucion" hidden>${e.resolucion || ''}</div>
-        <div class="ej-modelo ej-resolucion" hidden>${e.respuestaModelo || ''}
+        <div class="ej-resolucion" hidden>${opciones.resoluciones ? e.resolucion || '' : ''}</div>
+        <div class="ej-modelo ej-resolucion" hidden>${opciones.resoluciones ? e.respuestaModelo || '' : ''}
           <div class="botones"><span>¿Cómo te fue?</span><button class="btn" data-accion="bien" type="button">La tenía bien</button><button class="btn" data-accion="repasar" type="button">Tengo que repasar</button></div>
         </div>
       </article>`;
@@ -192,7 +202,9 @@
   }
 
   $('ej-lista').innerHTML = ejercicios.map(tarjetaEjercicio).join('') + '<p class="vacio" id="ej-vacio" hidden>No hay ejercicios con esos filtros.</p>';
-  if (!ejercicios.length) $('ej-lista').innerHTML = '<p class="vacio">Los ejercicios con corrección automática de esta unidad se suman en la próxima entrega del libro. Mientras tanto, practicá con la autoevaluación de opción múltiple.</p>';
+  if (!ejercicios.length) $('ej-lista').innerHTML = conMC
+    ? '<p class="vacio">Los ejercicios con corrección automática de esta unidad se suman en la próxima entrega del libro. Mientras tanto, practicá con la autoevaluación de opción múltiple.</p>'
+    : '<p class="vacio">Por ahora no hay ejercicios habilitados en esta unidad.</p>';
   renderFormulas($('ej-lista'));
   renderDiagramas();
   if (window.Chart) $('ej-lista').querySelectorAll('figure.grafico-payoff[data-patas]').forEach(dibujarGraficoPayoff);

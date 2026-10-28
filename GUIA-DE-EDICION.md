@@ -1,6 +1,6 @@
 # Guía para editar el libro a mano
 
-> **Para el día a día no hace falta esta guía.** El libro tiene un **modo profesor** (sección 18) desde el que se eligen las unidades y secciones visibles, se corrigen textos, preguntas y ejercicios, y se publican los cambios, todo dentro de la página. Esta guía es para cambios de fondo: páginas nuevas, simulaciones o diseño.
+> **¿Querés cambiar textos, fórmulas, preguntas, ejercicios, el cronograma o qué ven los alumnos sin tocar código?** Usá el **Modo Profesor**: botón «Modo Profesor» al pie de cualquier página (ver la sección 18). Esta guía es para cambios de fondo: páginas nuevas, simulaciones o diseño.
 
 ## 1. Antes de empezar
 
@@ -304,25 +304,29 @@ Las mismas preguntas alimentan la **Batalla** (sección 14 bis): una pregunta nu
 - Números con coma decimal y punto de miles. En los campos de los ejercicios el alumno puede escribir con coma o con punto, y también fracciones como `4/12`.
 - Cuando la guía de la cátedra tiene un error o un redondeo, el ejercicio lo aclara en `aviso` y acepta las dos respuestas si corresponde.
 
-## 18. Modo profesor
+## 18. Modo Profesor (cómo funciona por dentro)
 
-Al entrar por primera vez, la portada pregunta **«¿Cómo querés entrar?»**: alumno o profesor. Después se cambia con el botón **Alumno / Profesor** del encabezado. (Todavía no pide usuario ni clave: eso se agrega cuando el libro tenga un servidor.)
+- **Qué es:** una capa de edición para docentes que no programan. Se activa con el botón «Modo Profesor» del pie (o agregando `#profesor` a la dirección) y una contraseña (la inicial es `profesor`; se cambia desde el panel). En la primera visita, la portada pregunta «¿Cómo querés entrar?»: «Soy profesor» abre el ingreso. La contraseña es una barrera de uso, no una medida de seguridad: todo funciona en el navegador, sin servidor.
+- **Qué puede hacer el docente, sin tocar código:**
+  - editar en el lugar los textos, fórmulas, cajas, figuras, puntos clave y preguntas de repaso de cualquier página; ocultar o reordenar bloques y secciones; agregar bloques nuevos;
+  - elegir qué ven los alumnos: unidades, páginas de cada unidad, páginas generales (Simulacro, Batalla, Herramientas, Formulario, Programa) y cada examen del simulacro (1.er parcial, 2.º parcial, final). Lo oculto desaparece del menú, la portada, la batalla y los simulacros; el docente lo sigue viendo, marcado;
+  - en la Ejercitación: ocultar ejercicios y preguntas, agregar notas, crear ejercicios y preguntas propios y **editar cualquier pregunta de opción múltiple del banco** (enunciado, opciones, explicación, tipo y dificultad), con «Volver a la original». Las preguntas editadas, ocultas o propias valen también para la batalla y los simulacros;
+  - escribir un **aviso** que aparece arriba en la portada (Panel → Libro → Aviso en la portada);
+  - cambiar el cronograma, los valores iniciales de los simuladores y si los alumnos ven pistas, resoluciones y la autoevaluación.
+- **Nunca modifica los archivos del libro.** Los cambios del docente se guardan como una *configuración* (un JSON) que se aplica sobre el contenido original cada vez que se abre una página. Por eso siempre se puede restaurar el original, por bloque, por sección, por página o completo.
+- **Dónde se guarda:**
+  - mientras se edita, en el navegador del docente (`localStorage`, clave `derivados:docente:borrador`), con historial de deshacer/rehacer por pestaña;
+  - para los alumnos, en el archivo **`js/config-docente.js`**. Con `window.CONFIG_DOCENTE = null;` el libro se ve tal como viene. El Modo Profesor genera ese archivo (Panel → Archivo → «Descargar config-docente.js»); hay que reemplazar con él el `js/config-docente.js` del libro publicado (en GitHub: carpeta `js` → Add file → Upload files → Commit changes);
+  - para pasar los cambios a otra computadora: Panel → Archivo → Exportar / Importar (archivo `.json`).
+- **Archivos:** `css/profesor.css` y la carpeta `js/profesor/`:
+  - `util.js` almacenamiento seguro, huellas y saneamiento del HTML;
+  - `configuracion.js` modelo de la configuración (incluye `preguntas`, `simulacro.ocultos` y `aviso`), autoguardado, historial, exportar e importar;
+  - `contenido.js` aplica la configuración sobre la página (bloques, secciones, unidades, cronograma). Las mini simulaciones de la lectura y los ejercicios de diagrama de swap y de cuadro de márgenes se pueden ocultar pero no editar como texto;
+  - `editor.js` edición en el lugar (texto con formato, fórmulas con vista previa, cajas, figuras, preguntas de repaso);
+  - `simuladores.js` valores iniciales, rangos y validación de los simuladores;
+  - `ejercicios.js` ajustes de la ejercitación y del banco de preguntas (`Profesor.ajustarPregunta`, usado por `js/preguntas-base.js`);
+  - `interfaz.js` barra superior, panel lateral, ventanas y avisos;
+  - `inicio.js` conecta todo con `js/comun.js` (`Profesor.antes()` y `Profesor.despues()` dentro de `iniciarLibro()`) y ofrece `Profesor.mostrar` y `Profesor.aviso()` a la portada, el simulacro y la batalla.
+- **Si editás un archivo a mano después de usar el Modo Profesor:** los cambios del docente se ubican por posición y por una "huella" del texto original. Si un bloque cambió tanto que no se reconoce, el cambio del docente no se pierde: queda listado en Panel → Esta página → «Cambios sin ubicar».
+- **Qué no se puede hacer desde el Modo Profesor** (requiere editar archivos): cambiar las fórmulas de cálculo de los simuladores (`js/calculos.js`), las respuestas numéricas de los ejercicios originales (`js/ejercicios-uN.js`; en su lugar, se oculta el ejercicio y se crea uno propio) o el diseño (`css/libro.css`).
 
-En modo profesor aparece una barra abajo con:
-
-- **Editar textos:** se activa y, con un clic sobre cualquier párrafo, título, ítem o celda de tabla, se abre un editor como el de un procesador de texto (negrita, cursiva y fórmulas entre `\(` y `\)`, con vista previa). Los textos editados quedan marcados con una línea amarilla que solo ve el profesor. Si después se cambia el texto original del libro, la edición deja de aplicarse (para no pisar contenido nuevo) y hay que rehacerla.
-- **Panel del profesor** (`profesor.html`), con estas pestañas:
-  - **Qué ven los alumnos:** casillas para cada unidad y cada sección (Teoría, Simulación, Ejercitación), para las páginas generales (Simulacro, Batalla, Herramientas…) y para los exámenes del simulacro. Lo oculto desaparece del menú, la portada, la batalla y los simulacros; si un alumno entra por un enlace directo ve «No disponible». El profesor lo sigue viendo, tachado.
-  - **Calendario y aviso:** un aviso que aparece arriba en la portada, y las fechas y temas de clases y evaluaciones.
-  - **Preguntas:** buscar, editar, eliminar o volver a incluir cualquier pregunta del banco, y crear preguntas nuevas. Los cambios valen para la autoevaluación, la batalla y los simulacros.
-  - **Ejercicios:** ocultar un ejercicio, corregir título, enunciado, aviso y resolución, y cambiar las respuestas que se aceptan como correctas.
-  - **Textos editados:** la lista de lo que se cambió, con «Volver al original».
-  - **Publicar:** ver abajo.
-- **Ver como alumno:** pasa a modo alumno para revisar cómo queda.
-
-### Cómo se guardan y publican los cambios
-
-- Todo lo que hace el profesor se guarda solo, como **borrador en su navegador**. En esa computadora se ve enseguida; los alumnos todavía no lo ven.
-- Para que lo vean los alumnos: **Panel → Publicar → Descargar curso-config.js**, y reemplazar con ese archivo el `js/curso-config.js` del libro publicado (en GitHub: carpeta `js` → Add file → Upload files → Commit changes).
-- **Importar** permite cargar un `curso-config.js` (por ejemplo, para pasarle la configuración a otro docente).
-- Técnicamente, todo esto vive en `js/curso.js` (lectura de la configuración, visibilidad, ajustes de preguntas y ejercicios, editor de textos) y `js/profesor.js` (el panel). Cuando haya usuarios y servidor, solo hay que cambiar dónde se guarda y se publica.

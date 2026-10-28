@@ -1127,47 +1127,12 @@ button.d-linea:hover, button.d-vertical:hover, button.d-linea:focus-visible, but
 .mini-sim { container-type: inline-size; }
 
 /* ==========================================================================
-   Modo profesor (js/curso.js, profesor.html)
+   Portada: aviso del docente y elegir el modo (el resto del Modo Profesor
+   está en css/profesor.css)
    ========================================================================== */
-/* Lo oculto para los alumnos, visto por el profesor */
-.unidades a.oculta, .pestanas a.oculta, .unidades a.general.oculta { opacity: 0.5; text-decoration: line-through; }
 .tarjeta.oculta { opacity: 0.6; border-style: dashed; }
-body.pagina-oculta main { outline: 3px dashed var(--aviso); outline-offset: -3px; }
 
-/* Barra del profesor */
-.barra-profesor {
-  position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 50;
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center;
-  max-width: calc(100vw - 24px); padding: 8px 12px; border-radius: 999px;
-  background: var(--tinta); color: var(--tinta-texto); box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
-  font-family: var(--fuente-ui); font-size: 0.85rem;
-}
-.barra-profesor .bp-modo { font-weight: 700; color: var(--aviso); padding: 0 4px; }
-.barra-profesor .bp-aviso { color: var(--aviso); font-size: 0.8rem; }
-.barra-profesor .bp-btn {
-  font: inherit; cursor: pointer; text-decoration: none; padding: 5px 12px; border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.25); background: transparent; color: var(--tinta-texto);
-}
-.barra-profesor .bp-btn:hover, .barra-profesor .bp-btn[aria-pressed="true"] { background: var(--aviso); border-color: var(--aviso); color: #1d2127; }
-body:has(.barra-profesor) { padding-bottom: 70px; }
-
-/* Edición de textos */
-body.edicion-activa main [data-editado], body.edicion-activa main p, body.edicion-activa main li,
-body.edicion-activa main h1, body.edicion-activa main h2, body.edicion-activa main h3, body.edicion-activa main td,
-body.edicion-activa main th, body.edicion-activa main figcaption { cursor: text; }
-body.edicion-activa main :is(p, li, h1, h2, h3, h4, td, th, figcaption, dt, dd):hover { outline: 2px dashed var(--aviso); outline-offset: 2px; border-radius: 3px; }
-body.edicion-activa main :is(.mini-sim, .quiz-rapido, .widget, #ejercitacion) :is(p, li, h1, h2, h3, h4, td, th, figcaption):hover { outline: none; }
-body:has(.barra-profesor) main [data-editado] { box-shadow: inset 3px 0 0 var(--aviso); padding-left: 6px; }
-.editor-texto { width: min(760px, calc(100vw - 32px)); border: 1px solid var(--borde); border-radius: var(--radio); background: var(--superficie); color: var(--texto); padding: 18px 20px; }
-.editor-texto::backdrop { background: rgba(0, 0, 0, 0.45); }
-.editor-texto h3 { margin: 0 0 6px; }
-.editor-texto textarea { width: 100%; font-family: var(--fuente-datos); font-size: 0.88rem; padding: 10px; border-radius: 8px; border: 1px solid var(--borde-fuerte); background: var(--superficie-2); color: var(--texto); resize: vertical; }
-.editor-texto .editor-vista { margin: 10px 0; padding: 10px 12px; border: 1px dashed var(--borde-fuerte); border-radius: 8px; font-family: var(--fuente-texto); }
-.editor-texto .botones { display: flex; gap: 8px; flex-wrap: wrap; }
-
-/* Avisos para los alumnos */
-.aviso-oculto { text-align: center; padding: 60px 16px; }
-.aviso-oculto h1 { margin-bottom: 8px; }
+/* Aviso para los alumnos */
 .aviso-docente { border: 1px solid var(--aviso-borde); background: var(--aviso-suave); border-radius: var(--radio); padding: 12px 16px; margin: 0 0 14px; }
 .aviso-docente .caja-titulo { color: var(--aviso); margin: 0 0 4px; }
 .aviso-docente p:last-child { margin: 0; }
@@ -1180,10 +1145,3 @@ body:has(.barra-profesor) main [data-editado] { box-shadow: inset 3px 0 0 var(--
 .elegir-modo .modos button:hover { border-color: var(--acento); background: var(--acento-suave); }
 .elegir-modo .modos b { font-size: 1.05rem; }
 .elegir-modo .modos span { color: var(--suave); font-size: 0.9rem; }
-.editor-texto .editor-barra { display: flex; gap: 6px; margin: 8px 0 6px; }
-.editor-texto .editor-barra .btn { padding: 4px 12px; }
-.editor-texto .editor-visual {
-  min-height: 120px; max-height: 40vh; overflow: auto; padding: 10px 12px; border-radius: 8px;
-  border: 1px solid var(--borde-fuerte); background: var(--superficie-2); font-family: var(--fuente-texto); line-height: 1.6; outline: none;
-}
-.editor-texto .editor-visual:focus { border-color: var(--acento); box-shadow: 0 0 0 2px var(--acento-suave); }

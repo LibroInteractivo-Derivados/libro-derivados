@@ -21,7 +21,9 @@
   // ======================================================================
   // Puntos clave
   // ======================================================================
-  document.querySelectorAll('aside.punto-clave').forEach(caja => {
+  // También la usa el Modo Profesor (js/profesor/contenido.js) al volver a dibujar un punto clave editado.
+  function decorarPuntoClave(caja) {
+    if (caja.querySelector(':scope > .pc-titulo')) return;
     const id = caja.dataset.id;
     const titulo = document.createElement('p');
     titulo.className = 'pc-titulo';
@@ -40,7 +42,9 @@
     boton.addEventListener('click', () => { Guardado.escribir('pc:' + id, !Guardado.leer('pc:' + id, false)); pintar(); });
     caja.appendChild(boton);
     pintar();
-  });
+  }
+  document.querySelectorAll('aside.punto-clave').forEach(decorarPuntoClave);
+  window.LecturaInteractiva = { decorarPuntoClave };
 
   // ======================================================================
   // Mini simulaciones: utilidades comunes

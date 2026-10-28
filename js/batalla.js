@@ -39,9 +39,9 @@
     { id: 'final', grupo: 'Jefes de parcial', unidades: [1, 2, 3, 4, 5, 6, 7, 8], nombre: 'Leviatán del Final', icono: '🐋', vida: 360, ataque: 22, golpe: 'te arrastra al fondo del programa' },
   ];
 
-  // Unidades ocultas por el profesor (js/curso.js): sus jefes no aparecen y no aportan preguntas.
-  if (typeof Curso !== 'undefined') {
-    JEFES.forEach(j => { j.unidades = j.unidades.filter(n => Curso.mostrar.unidad('u' + n)); });
+  // Unidades ocultas por el docente (Modo Profesor): sus jefes no aparecen y no aportan preguntas.
+  if (window.Profesor && Profesor.mostrar) {
+    JEFES.forEach(j => { j.unidades = j.unidades.filter(n => Profesor.mostrar.unidad('u' + n)); });
     for (let i = JEFES.length - 1; i >= 0; i--) if (!JEFES[i].unidades.length) JEFES.splice(i, 1);
   }
   const ROMANOS = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];

@@ -1,4 +1,5 @@
-// Portada: próxima clase, próxima evaluación y tarjetas de las unidades agrupadas por evaluación.
+// Portada: aviso del docente, próxima clase, próxima evaluación y tarjetas de las unidades
+// agrupadas por evaluación (con su ilustración y el enlace al simulacro de cada examen).
 
 (function () {
   const hoy = new Date();
@@ -8,6 +9,8 @@
   const dias = iso => Math.round((fecha(iso) - hoy) / 86400000);
   const unidad = id => LIBRO.unidades.find(u => u.id === id);
   const primeraPagina = u => (u.paginas.find(p => p.archivo) || {}).archivo;
+  const PROF = window.Profesor && Profesor.mostrar ? Profesor : null;
+  const escapar = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   // ---------- Próxima clase ----------
   const proxima = LIBRO.clases.find(c => dias(c.fecha) >= 0);
@@ -28,26 +31,31 @@
     const us = evaluacion.unidades.map(id => unidad(id)).filter(Boolean).map(u => u.numero).join(', ');
     html += `<p class="ayuda" style="margin:6px 0 0">${evaluacion.nombre}: ${corta(evaluacion.fecha)} (faltan ${dias(evaluacion.fecha)} días)${us ? ` · Unidades ${us}` : ''}.</p>`;
   }
-  // Aviso del profesor (panel del profesor → Calendario y aviso).
-  if (typeof Curso !== 'undefined') {
-    const aviso = Curso.config().aviso;
-    if (aviso.activo && aviso.texto.trim()) html = `<div class="aviso-docente"><p class="caja-titulo">Aviso del docente</p><p>${aviso.texto.trim().replace(/\n/g, '<br>')}</p></div>` + html;
-    // Primera visita: elegir cómo entrar.
-    if (Curso.modo() === null) {
-      html = `<div class="elegir-modo">
-          <p class="caja-titulo">¿Cómo querés entrar?</p>
-          <div class="modos">
-            <button type="button" data-modo="alumno"><b>Soy alumno</b><span>Leer las unidades, simular, ejercitar y rendir simulacros.</span></button>
-            <button type="button" data-modo="profesor"><b>Soy profesor</b><span>Editar contenidos y preguntas, y elegir qué ven los alumnos.</span></button>
-          </div>
-          <p class="ayuda" style="margin:8px 0 0">Podés cambiar después con el botón de arriba a la derecha. El acceso de profesores con usuario y clave se suma más adelante.</p>
-        </div>` + html;
-    }
+
+  // Aviso del docente (Modo Profesor → Libro → Aviso en la portada).
+  const aviso = PROF && Profesor.aviso ? Profesor.aviso() : '';
+  if (aviso) html = `<div class="aviso-docente"><p class="caja-titulo">Aviso del docente</p><p>${escapar(aviso).replace(/\n/g, '<br>')}</p></div>` + html;
+
+  // Primera visita: elegir cómo entrar. "Soy profesor" abre el ingreso con contraseña.
+  const enEdicion = PROF && Profesor.modo !== 'alumno';
+  if (PROF && !enEdicion && !Guardado.leer('modoElegido', false)) {
+    html = `<div class="elegir-modo">
+        <p class="caja-titulo">¿Cómo querés entrar?</p>
+        <div class="modos">
+          <button type="button" data-modo="alumno"><b>Soy alumno</b><span>Leer las unidades, simular, ejercitar y rendir simulacros.</span></button>
+          <button type="button" data-modo="profesor"><b>Soy profesor</b><span>Editar contenidos y preguntas, y elegir qué ven los alumnos (pide contraseña).</span></button>
+        </div>
+        <p class="ayuda" style="margin:8px 0 0">Más adelante, el docente entra con el botón «Modo profesor» al pie de cualquier página.</p>
+      </div>` + html;
   }
   $('hoy').innerHTML = html;
   $('hoy').addEventListener('click', ev => {
     const b = ev.target.closest('[data-modo]');
-    if (b) Curso.cambiarModo(b.dataset.modo);
+    if (!b) return;
+    Guardado.escribir('modoElegido', true);
+    const caja = $('hoy').querySelector('.elegir-modo');
+    if (caja) caja.remove();
+    if (b.dataset.modo === 'profesor') location.hash = '#profesor';
   });
 
   // ---------- Progreso de lectura ----------
@@ -58,8 +66,8 @@
   };
 
   const tarjeta = u => `
-    <article class="tarjeta ${u.oculta ? 'oculta' : ''}" style="--color: var(--${u.id})">
-      ${u.oculta ? '<span class="chip aviso" style="align-self:flex-start;margin-bottom:8px">Oculta para los alumnos</span>' : ''}
+    <article class="tarjeta ${u._profOculta ? 'oculta' : ''}" style="--color: var(--${u.id})">
+      ${u._profOculta ? '<span class="chip aviso" style="align-self:flex-start;margin-bottom:8px">Oculta para los alumnos</span>' : ''}
       ${typeof ILUSTRACIONES !== 'undefined' && ILUSTRACIONES[u.id] ? `<div class="ilustracion">${ILUSTRACIONES[u.id]}</div>` : ''}
       <span class="num-unidad">Unidad ${u.numero}</span>
       <h3>${u.nombre}</h3>
@@ -71,16 +79,37 @@
       </div>
     </article>`;
 
-  const bloques = [
-    { titulo: 'Primer parcial', ev: LIBRO.evaluaciones[0], unidades: ['u1', 'u2', 'u3'], simulacro: 'p1' },
-    { titulo: 'Segundo parcial', ev: LIBRO.evaluaciones[1], unidades: ['u4', 'u5', 'u6', 'u8'], simulacro: 'p2' },
-    { titulo: 'Después del segundo parcial · para el final', ev: LIBRO.evaluaciones[3], unidades: ['u7'], simulacro: 'final' },
-  ];
-  // Unidades ocultas para los alumnos: no aparecen (y un bloque sin unidades no se muestra).
-  bloques.forEach(b => { b.unidades = b.unidades.filter(id => unidad(id)); });
-  $('bloques').innerHTML = bloques.filter(b => b.unidades.length).map(b => `
+  // Bloques: uno por evaluación que incluye unidades (en el orden del menú) y, al final,
+  // las unidades que no entran en ninguna. Con el cronograma original queda: Primer
+  // parcial (I, II, III), Segundo parcial (IV, V, VI, VIII) y, para el final, la VII.
+  // Se arma a partir de LIBRO para que respete lo que configure el docente.
+  const orden = id => LIBRO.unidades.findIndex(u => u.id === id);
+  const enOrden = ids => ids.filter(id => unidad(id)).sort((a, b) => orden(a) - orden(b));
+  const conUnidades = LIBRO.evaluaciones.filter(e => enOrden(e.unidades || []).length);
+  const SIMULACROS = ['p1', 'p2'];
+  const bloques = conUnidades.map(e => ({ titulo: e.nombre, ev: e, unidades: enOrden(e.unidades), simulacro: SIMULACROS[LIBRO.evaluaciones.indexOf(e)] || 'final' }));
+  const usadas = new Set(bloques.flatMap(b => b.unidades));
+  const restantes = LIBRO.unidades.map(u => u.id).filter(id => !usadas.has(id));
+  if (restantes.length) {
+    const ultima = conUnidades[conUnidades.length - 1];
+    bloques.push({
+      titulo: ultima ? `Después del ${ultima.nombre.charAt(0).toLowerCase() + ultima.nombre.slice(1)} · para el final` : 'Unidades del libro',
+      ev: ultima ? LIBRO.evaluaciones[LIBRO.evaluaciones.length - 1] : null,
+      unidades: restantes,
+      simulacro: 'final',
+    });
+  }
+  // El enlace al simulacro aparece una sola vez por examen y solo si está habilitado.
+  const yaEnlazados = new Set();
+  const enlaceSimulacro = b => {
+    if (!b.simulacro || yaEnlazados.has(b.simulacro)) return '';
+    if (PROF && !(Profesor.mostrar.pagina('simulacro') && Profesor.mostrar.examen(b.simulacro))) return '';
+    yaEnlazados.add(b.simulacro);
+    return ` · <a href="simulacro.html#${b.simulacro}">Hacer un simulacro${b.simulacro === 'final' ? ' del final' : ''}</a>`;
+  };
+  $('bloques').innerHTML = bloques.map(b => `
     <section class="bloque-parcial">
-      <header><h2>${b.titulo}</h2><span>${b.ev ? `${b.ev.nombre === b.titulo ? '' : b.ev.nombre + ' · '}${corta(b.ev.fecha)}` : ''}${b.simulacro && (typeof Curso === 'undefined' || (Curso.mostrar.examen(b.simulacro) && Curso.mostrar.general('simulacro'))) ? ` · <a href="simulacro.html#${b.simulacro}">Hacer un simulacro${b.simulacro === 'final' ? ' del final' : ''}</a>` : ''}</span></header>
+      <header><h2>${b.titulo}</h2><span>${b.ev ? `${b.ev.nombre === b.titulo ? '' : b.ev.nombre + ' · '}${corta(b.ev.fecha)}` : ''}${enlaceSimulacro(b)}</span></header>
       <div class="tarjetas">${b.unidades.map(id => tarjeta(unidad(id))).join('')}</div>
     </section>`).join('');
 })();

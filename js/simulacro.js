@@ -24,12 +24,13 @@
     { id: 'p2', nombre: 'Segundo parcial', unidades: (ev(1).unidades || ['u4', 'u5', 'u6', 'u8']).map(numU), fecha: ev(1).fecha },
     { id: 'final', nombre: 'Examen final', unidades: [1, 2, 3, 4, 5, 6, 7, 8], fecha: ev(3).fecha },
   ];
-  // El profesor puede ocultar exámenes o unidades (js/curso.js): los alumnos solo ven lo habilitado.
-  if (typeof Curso !== 'undefined') {
-    EXAMENES.forEach(e => { e.unidades = e.unidades.filter(n => Curso.mostrar.unidad('u' + n)); });
+  // El docente puede ocultar exámenes o unidades (Modo Profesor): los alumnos solo ven lo habilitado.
+  const PROF = window.Profesor && Profesor.mostrar ? Profesor : null;
+  if (PROF) {
+    EXAMENES.forEach(e => { e.unidades = e.unidades.filter(n => PROF.mostrar.unidad('u' + n)); });
     for (let i = EXAMENES.length - 1; i >= 0; i--) {
-      if (!Curso.mostrar.examen(EXAMENES[i].id) || !EXAMENES[i].unidades.length) EXAMENES.splice(i, 1);
-      else EXAMENES[i].oculto = !Curso.visible.examen(EXAMENES[i].id);
+      if (!PROF.mostrar.examen(EXAMENES[i].id) || !EXAMENES[i].unidades.length) EXAMENES.splice(i, 1);
+      else EXAMENES[i].oculto = !PROF.visible.examen(EXAMENES[i].id);
     }
   }
   const MODALIDADES = [
